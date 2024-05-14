@@ -11,24 +11,22 @@ const Header = (props: {
   sidebarOpen: string | boolean | undefined;
   setSidebarOpen: (arg0: boolean) => void;
 }) => {
-  const {sidebarOpen} = props
+  const { sidebarOpen } = props;
 
   return (
     <header className="sticky top-0  z-999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
-      <div className="flex flex-grow items-center justify-between px-4 py-4 pr-8 shadow-2 ">
+      <div
+        className={`flex flex-grow items-center ${sidebarOpen ? "justify-end" : "justify-between"}  px-4 py-4 pr-8 shadow-2 `}
+      >
         {/* Hiện logo khi ẩn slideBar */}
         {!sidebarOpen && (
-     <div className="flex items-center gap-2  ">
-     <Link className="flex items-end justify-center" href="/">
-     <Logo size={40} color={colors.primary400} /> 
-     <div className=" text-black font-bold">eSign</div>
-     </Link>
-   </div>
+          <div className="flex items-center gap-2  ">
+            <Link className="flex items-end justify-center" href="/">
+              <Logo size={40} color={colors.primary400} />
+              <div className=" font-bold text-black">eSign</div>
+            </Link>
+          </div>
         )}
- 
-      
-
-    
 
         <div className="flex items-center gap-3 2xsm:gap-7">
           <ul className="flex items-center gap-2 2xsm:gap-4">

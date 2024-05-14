@@ -3,7 +3,11 @@ import React, { useState, ReactNode } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { Logo, MessageIcon } from "@/assets/icons";
-import { CloseOutlined, DoubleLeftOutlined, DoubleRightOutlined } from "@ant-design/icons";
+import {
+  CloseOutlined,
+  DoubleLeftOutlined,
+  DoubleRightOutlined,
+} from "@ant-design/icons";
 import BasicDrawer from "../draw/BasicDraw";
 import { colors } from "@/assets/colors";
 
@@ -27,22 +31,21 @@ export default function DefaultLayout({
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className="flex h-screen overflow-hidden ">
         {/* <!-- ===== Sidebar Start ===== --> */}
-       {sidebarOpen && (
-        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-       )}  
-     
+        {sidebarOpen && (
+          <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        )}
+
         {/* <!-- ===== Sidebar End ===== --> */}
         <button
-                className=" bg-white rounded-full p-2 focus:outline-none dark:bg-boxdark"
-                onClick={toggleSidebar}
-              >
-                {sidebarOpen ? (
-                  <DoubleLeftOutlined size={24} />
-                    
-                ) : (
-                  <DoubleRightOutlined size={24} />
-                )}
-              </button>
+          className=" rounded-full bg-white p-2 focus:outline-none dark:bg-boxdark"
+          onClick={toggleSidebar}
+        >
+          {sidebarOpen ? (
+            <DoubleLeftOutlined size={24} />
+          ) : (
+            <DoubleRightOutlined size={24} />
+          )}
+        </button>
         {/* <!-- ===== Content Area Start ===== --> */}
         <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
           {/* <!-- ===== Header Start ===== --> */}
@@ -52,30 +55,34 @@ export default function DefaultLayout({
           {/* <!-- ===== Main Content Start ===== --> */}
           <main>
             <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-         
               {children}
             </div>
           </main>
           {/* <!-- ===== Main Content End ===== --> */}
         </div>
 
-        <div className="bg-white fixed right-0 bottom-0 top-0 z-[1000] rounded-md" style={{width: chatOpen ? "360px" : "60px"}}>
+        <div
+          className="fixed bottom-0 right-0 top-0 z-[1000] rounded-md bg-white"
+          style={{ width: chatOpen ? "360px" : "60px" }}
+        >
           {/* Header */}
-                  <div className="px-4 bg-neutral-700 h-20 flex justify-between items-center cursor-pointer transition-all" >
-                    <div className="flex text-white gap-4 items-center" onClick={() => setChatOpen(true)} >
-                      
-                    <MessageIcon size={36}  color={colors.primary600}  />
+          <div className="flex h-20 cursor-pointer items-center justify-between bg-neutral-700 px-4 transition-all">
+            <div
+              className="flex items-center gap-4 text-white"
+              onClick={() => setChatOpen(true)}
+            >
+              <MessageIcon size={36} color={colors.primary600} />
 
-                     {chatOpen && "MY CHAT"} 
-                    </div>
-                  {chatOpen && (
-                    <div className="" onClick={() => setChatOpen(false)}>
-                    <CloseOutlined style={{color: "white"}} />
-                    </div>
-                  )}
-                  </div>
-                </div>
-       
+              {chatOpen && "MY CHAT"}
+            </div>
+            {chatOpen && (
+              <div className="" onClick={() => setChatOpen(false)}>
+                <CloseOutlined style={{ color: "white" }} />
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* <!-- ===== Content Area End ===== --> */}
       </div>
       {/* <!-- ===== Page Wrapper End ===== --> */}
