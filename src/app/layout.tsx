@@ -1,27 +1,22 @@
 "use client";
-import "jsvectormap/dist/css/jsvectormap.css";
-import "flatpickr/dist/flatpickr.min.css";
+import Loader from "@/components/common/Loader";
+import { injectStore } from "@/config/http";
 import "@/css/satoshi.css";
 import "@/css/style.css";
-import React, { useEffect, useState } from "react";
-import Loader from "@/components/common/Loader";
-import { ConfigProvider } from "antd";
-import { PersistGate } from "redux-persist/integration/react";
-import { persistStore } from "redux-persist";
-import { injectStore } from "@/config/http";
 import { store } from "@/store";
-import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Head from "next/head";
+import { ConfigProvider } from "antd";
+import "flatpickr/dist/flatpickr.min.css";
+import "jsvectormap/dist/css/jsvectormap.css";
+import { useEffect, useState } from "react";
+import { Provider } from "react-redux";
+import { persistStore } from "redux-persist";
+import { PersistGate } from "redux-persist/integration/react";
 
 const persistor = persistStore(store);
 injectStore(store);
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: any) {
   const [loading, setLoading] = useState<boolean>(true);
   const [queryClient] = useState(() => new QueryClient());
 
@@ -31,10 +26,6 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <Head>
-        {/* Thêm favicon */}
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <body suppressHydrationWarning={true}>
         <QueryClientProvider client={queryClient}>
           <ConfigProvider>
