@@ -1,7 +1,7 @@
 import { Store } from "@reduxjs/toolkit";
 import axios from "axios";
-import { RootState } from "../store";
-import { logout } from "../store/slices/adminSlice";
+import { RootState } from "../../store";
+import { logout } from "../../store/slices/adminSlice";
 
 let store: Store;
 
@@ -14,8 +14,7 @@ const http = axios.create();
 
 http.interceptors.request.use(
   (config) => {
-    const state: RootState = store.getState();
-    const apiToken = state.admin?.token;
+    const apiToken = localStorage.getItem("access_token");
 
     if (apiToken) {
       config.headers.Authorization = `Bearer ${apiToken}`;
