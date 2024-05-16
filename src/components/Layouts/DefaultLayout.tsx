@@ -54,13 +54,13 @@ export default function DefaultLayout({
 
           {/* <!-- ===== Main Content Start ===== --> */}
           <main>
-            <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+            <div className="mx-auto max-w-screen-2xl p-4 pr-14 ">
               {children}
             </div>
           </main>
-          {/* <!-- ===== Main Content End ===== --> */}
         </div>
 
+        {/* Chat */}
         <div
           className="fixed bottom-0 right-0 top-0 z-[1000] rounded-md bg-white"
           style={{ width: chatOpen ? "360px" : "60px" }}
@@ -82,8 +82,6 @@ export default function DefaultLayout({
             )}
           </div>
         </div>
-
-        {/* <!-- ===== Content Area End ===== --> */}
       </div>
       {/* <!-- ===== Page Wrapper End ===== --> */}
     </>

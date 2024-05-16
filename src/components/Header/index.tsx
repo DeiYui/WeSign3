@@ -18,7 +18,6 @@ const Header = (props: {
 
   const state: RootState = store.getState();
   const admin = state.admin;
-  console.log("admin", admin);
 
   return (
     <header className="sticky top-0  z-999 flex w-full bg-white pr-6 drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">

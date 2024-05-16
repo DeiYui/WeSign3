@@ -29,7 +29,12 @@ export default function RootLayout({ children }: any) {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    if (token && (pathname === "/login" || pathname === "/register")) {
+    if (
+      token &&
+      (pathname === "/login" ||
+        pathname === "/register" ||
+        pathname === "/verify-otp")
+    ) {
       router.push("/");
     }
   }, [pathname, router]);

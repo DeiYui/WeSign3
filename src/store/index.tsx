@@ -10,6 +10,7 @@ import {
   REGISTER,
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
+import registerSlice, { RegisterState } from "./slices/registerSlice";
 
 const persistConfig = {
   key: "we_sign_app",
@@ -18,6 +19,7 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   admin: adminSlice,
+  register: registerSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -34,5 +36,7 @@ export const store = configureStore({
 
 export type RootState = {
   admin: AdminState;
+  register: RegisterState;
 };
+
 export type AppDispatch = typeof store.dispatch;

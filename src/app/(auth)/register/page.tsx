@@ -1,22 +1,25 @@
 "use client";
-import React from "react";
-import LayoutAuth from "..";
-import { Form, Input, Button, message } from "antd";
-import { MailOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
-import Link from "next/link";
+import Loader from "@/components/common/Loader";
+import Auth from "@/model/Auth";
 import {
   validateEmail,
   validateRequireInput,
 } from "@/utils/validation/validtor";
+import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
 import { useMutation } from "@tanstack/react-query";
-import Auth from "@/model/Auth";
-import { useRouter } from "next/navigation";
-import Loader from "@/components/common/Loader";
+import { Button, Form, Input, message } from "antd";
 import { useForm } from "antd/es/form/Form";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React from "react";
+import { useDispatch } from "react-redux";
+import LayoutAuth from "..";
+import { register } from "@/store/slices/registerSlice";
 
 const Register: React.FC = () => {
   //* Hooks
   const router = useRouter();
+  const dispatch = useDispatch();
   const [form] = useForm();
 
   //* API
@@ -29,15 +32,16 @@ const Register: React.FC = () => {
         const email = form.getFieldValue("email");
         message.success(`Mã OTP đã được gửi về email ${email} `);
 
-        router.push(`/verify-otp?email=${email}`);
+        router.push(`/verify-otp`);
       }
     },
     onError: (error: Error) => {
-      message.error(error.message);
+      message.error("Email đã được sử dụng");
     },
   });
 
   const onFinish = (values: any) => {
+    dispatch(register(values));
     registerMutation.mutate(values);
   };
 
