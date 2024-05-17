@@ -2,13 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Avatar, Image } from "antd";
 import { UserOutlined } from "@ant-design/icons";
+import { useDispatch } from "react-redux";
+import { logout } from "@/store/slices/adminSlice";
+import { useRouter } from "next/navigation";
 
 const DropdownUser = ({ admin }: { admin: User }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
+  const dispatch = useDispatch();
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
-
+  const router = useRouter();
   // close on click outside
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
@@ -99,7 +102,7 @@ const DropdownUser = ({ admin }: { admin: User }) => {
               href="#"
               className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
             >
-              <svg
+              {/* <svg
                 className="fill-current"
                 width="22"
                 height="22"
@@ -111,7 +114,7 @@ const DropdownUser = ({ admin }: { admin: User }) => {
                   d="M17.6687 1.44374C17.1187 0.893744 16.4312 0.618744 15.675 0.618744H7.42498C6.25623 0.618744 5.25935 1.58124 5.25935 2.78437V4.12499H4.29685C3.88435 4.12499 3.50623 4.46874 3.50623 4.91562C3.50623 5.36249 3.84998 5.70624 4.29685 5.70624H5.25935V10.2781H4.29685C3.88435 10.2781 3.50623 10.6219 3.50623 11.0687C3.50623 11.4812 3.84998 11.8594 4.29685 11.8594H5.25935V16.4312H4.29685C3.88435 16.4312 3.50623 16.775 3.50623 17.2219C3.50623 17.6687 3.84998 18.0125 4.29685 18.0125H5.25935V19.25C5.25935 20.4187 6.22185 21.4156 7.42498 21.4156H15.675C17.2218 21.4156 18.4937 20.1437 18.5281 18.5969V3.47187C18.4937 2.68124 18.2187 1.95937 17.6687 1.44374ZM16.9469 18.5625C16.9469 19.2844 16.3625 19.8344 15.6406 19.8344H7.3906C7.04685 19.8344 6.77185 19.5594 6.77185 19.2156V17.875H8.6281C9.0406 17.875 9.41873 17.5312 9.41873 17.0844C9.41873 16.6375 9.07498 16.2937 8.6281 16.2937H6.77185V11.7906H8.6281C9.0406 11.7906 9.41873 11.4469 9.41873 11C9.41873 10.5875 9.07498 10.2094 8.6281 10.2094H6.77185V5.63749H8.6281C9.0406 5.63749 9.41873 5.29374 9.41873 4.84687C9.41873 4.39999 9.07498 4.05624 8.6281 4.05624H6.77185V2.74999C6.77185 2.40624 7.04685 2.13124 7.3906 2.13124H15.6406C15.9844 2.13124 16.2937 2.26874 16.5687 2.50937C16.8094 2.74999 16.9469 3.09374 16.9469 3.43749V18.5625Z"
                   fill=""
                 />
-              </svg>
+              </svg> */}
               My Contacts
             </Link>
           </li>
@@ -120,7 +123,7 @@ const DropdownUser = ({ admin }: { admin: User }) => {
               href="/settings"
               className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
             >
-              <svg
+              {/* <svg
                 className="fill-current"
                 width="22"
                 height="22"
@@ -136,12 +139,19 @@ const DropdownUser = ({ admin }: { admin: User }) => {
                   d="M11 6.32498C8.42189 6.32498 6.32501 8.42186 6.32501 11C6.32501 13.5781 8.42189 15.675 11 15.675C13.5781 15.675 15.675 13.5781 15.675 11C15.675 8.42186 13.5781 6.32498 11 6.32498ZM11 14.1281C9.28126 14.1281 7.87189 12.7187 7.87189 11C7.87189 9.28123 9.28126 7.87186 11 7.87186C12.7188 7.87186 14.1281 9.28123 14.1281 11C14.1281 12.7187 12.7188 14.1281 11 14.1281Z"
                   fill=""
                 />
-              </svg>
+              </svg> */}
               Account Settings
             </Link>
           </li>
         </ul>
-        <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
+
+        <button
+          className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+          onClick={() => {
+            dispatch(logout());
+            router.push("/login");
+          }}
+        >
           <svg
             className="fill-current"
             width="22"
@@ -159,7 +169,7 @@ const DropdownUser = ({ admin }: { admin: User }) => {
               fill=""
             />
           </svg>
-          Log Out
+          Đăng xuất
         </button>
       </div>
       {/* <!-- Dropdown End --> */}

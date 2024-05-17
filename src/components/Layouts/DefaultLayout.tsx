@@ -1,14 +1,13 @@
 "use client";
-import React, { useState, ReactNode } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-import { Logo, MessageIcon } from "@/assets/icons";
+import { MessageIcon } from "@/assets/icons";
 import {
   CloseOutlined,
   DoubleLeftOutlined,
   DoubleRightOutlined,
 } from "@ant-design/icons";
-import BasicDrawer from "../draw/BasicDraw";
 import { colors } from "@/assets/colors";
 
 export default function DefaultLayout({
@@ -16,12 +15,21 @@ export default function DefaultLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Initial state from local storage or default to false
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
+    const savedState = localStorage.getItem("sidebarOpen");
+    return savedState !== null ? JSON.parse(savedState) : false;
+  });
 
   // Show chat
   const [chatOpen, setChatOpen] = useState(false);
 
-  // Hàm để đảo ngược giá trị của sidebarOpen
+  // Effect to save sidebarOpen state to local storage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("sidebarOpen", JSON.stringify(sidebarOpen));
+  }, [sidebarOpen]);
+
+  // Toggle sidebar function
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -83,7 +91,6 @@ export default function DefaultLayout({
           </div>
         </div>
       </div>
-      {/* <!-- ===== Page Wrapper End ===== --> */}
     </>
   );
 }

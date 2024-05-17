@@ -1,4 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { useRouter } from "next/navigation";
+import { useReducer } from "react";
 
 export type AdminState = any | null;
 
@@ -15,7 +17,7 @@ export const adminSlice = createSlice({
     },
     logout: (state) => {
       state = null;
-
+      localStorage.removeItem("access_token");
       return state;
     },
   },
