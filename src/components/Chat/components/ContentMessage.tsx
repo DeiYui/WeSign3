@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { isImage } from "@/components/common/constants";
 import { UserOutlined } from "@ant-design/icons";
 import { Avatar, Modal, Spin } from "antd";
