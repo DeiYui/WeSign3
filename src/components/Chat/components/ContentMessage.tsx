@@ -2,9 +2,47 @@
 "use client";
 import { isImage } from "@/components/common/constants";
 import { UserOutlined } from "@ant-design/icons";
-import { Avatar, Modal, Spin } from "antd";
+import { Avatar, Image, Modal, Spin } from "antd";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 import { useEffect, useRef, useState } from "react";
+import styled, { keyframes } from "styled-components";
+
+const CustomTyping = styled.div`
+  .typing-dots {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .typing-dot {
+    width: 4px;
+    height: 4px;
+    background-color: #000; /* You can change the color here */
+    border-radius: 50%;
+    animation: ${() => typingAnimation} 1.4s infinite both;
+  }
+
+  .typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+`;
+
+const typingAnimation = keyframes`
+  0% {
+    transform: translateY(0);
+  }
+  20% {
+    transform: translateY(-10px);
+  }
+  40% {
+    transform: translateY(0);
+  }
+`;
 
 export default function ContentMessage({
   messages,
@@ -128,21 +166,27 @@ export default function ContentMessage({
           <div className="flex flex-col gap-4">
             {messages ? renderMess : <> </>}
           </div>
-          {isTyping && (
+          {isTyping ? (
             <div className="mt-4 flex items-center gap-3">
-              <Avatar size={40} />
-              <span className="typing-dots">
-                <span className="typing-dot" />
-                <span className="typing-dot" />
-                <span className="typing-dot" />
-              </span>
+              <Avatar
+                icon={<UserOutlined />}
+                src={userInfo?.avatarLocation}
+                size={40}
+              />
+              <CustomTyping className="">
+                <span className="typing-dots">
+                  <span className="typing-dot" />
+                  <span className="typing-dot" />
+                  <span className="typing-dot" />
+                </span>
+              </CustomTyping>
             </div>
-          )}
+          ) : null}
           {messages.length > 0 && (
             <div className="text-gray-500 text-xs">
               Tin nhắn cuối:{" "}
               {formatDistanceToNow(
-                new Date(messages[messages.length - 1].created),
+                new Date(messages[messages.length - 1].createdAt),
                 {
                   addSuffix: true,
                 },
@@ -167,12 +211,7 @@ export default function ContentMessage({
           >
             <div className="mt-4 flex items-center justify-center py-4">
               {isImage(itemPreview) ? (
-                <Avatar
-                  size={40}
-                  src={itemPreview}
-                  alt=""
-                  icon={<UserOutlined />}
-                />
+                <Image preview={false} src={itemPreview} alt="" />
               ) : (
                 <video ref={videoRef} autoPlay controls muted>
                   <source src={itemPreview} type="video/mp4" />

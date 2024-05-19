@@ -6,6 +6,7 @@ import { Button, Input, Popover, Upload } from "antd";
 import EmojiPicker from "emoji-picker-react";
 import { EmojiIcon, ImageIcon } from "@/assets/icons";
 import UploadModel from "@/model/UploadModel";
+import { isFunction } from "lodash";
 
 const FilePreview = ({ selectedFiles, setSelectedFiles, isImage }: any) => {
   return (
@@ -69,10 +70,18 @@ const FilePreview = ({ selectedFiles, setSelectedFiles, isImage }: any) => {
 const ChatInput = ({
   selectedFiles,
   setSelectedFiles,
+  onKeyDown,
+  onBlur,
+  onChange,
 }: {
   selectedFiles: any;
   setSelectedFiles: any;
+  onKeyDown: any;
+  onBlur?: any;
+  onChange: any;
 }) => {
+  const [message, setMessage] = useState("");
+
   const handleFileChange = async ({ file }: any) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -82,6 +91,21 @@ const ChatInput = ({
 
   const isImage = (file: { type: string }) => {
     return typeof file === "string" || file.type.startsWith("image/");
+  };
+
+  // handle Keydown
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && message.trim()) {
+      isFunction(onKeyDown) && onKeyDown(message);
+      setMessage("");
+    }
+  };
+
+  const handleChange = (e: any) => {
+    if (isFunction(onChange)) {
+      onChange(e.target.value);
+      setMessage(e.target.value);
+    }
   };
 
   return (
@@ -118,8 +142,12 @@ const ChatInput = ({
                 <SendOutlined className="cursor-pointer" />
               </div>
             }
+            value={message}
+            onChange={handleChange}
             size="large"
             placeholder="Nhập tin nhắn"
+            onKeyDown={handleKeyDown}
+            onBlur={onBlur}
           />
         </div>
       </div>

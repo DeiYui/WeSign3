@@ -1,41 +1,24 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import { colors } from "@/assets/colors";
-import { EmojiIcon, ImageIcon, MessageIcon } from "@/assets/icons";
+import { CallIcon, MessageIcon } from "@/assets/icons";
+import { SocketContext } from "@/hooks/useContext";
+import { useSocket } from "@/hooks/useSocket";
 import Conversations from "@/model/Conversations";
+import User from "@/model/User";
 import { RootState } from "@/store";
-import { CloseOutlined, SendOutlined } from "@ant-design/icons";
+import { chatAndCall } from "@/store/slices/chatSlice";
+import { CloseOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Form, Input, Popover, Spin, Typography, Upload } from "antd";
+import { Typography } from "antd";
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { useSelector } from "react-redux";
+import Image from "next/image";
+import { useContext, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import ChatInput from "./components/ChatInput";
 import ContactButton from "./components/ContactButton";
 import ContentMessage from "./components/ContentMessage";
-import EmojiPicker from "emoji-picker-react";
-import Image from "next/image";
-import User from "@/model/User";
-import { isImage } from "../common/constants";
-import UploadModel from "@/model/UploadModel";
-import ChatInput from "./components/ChatInput";
-
-const duplicateItems = (items: Contact[], count: number): Contact[] => {
-  const result: Contact[] = [];
-  while (result.length < count) {
-    result.push(
-      ...items.map((item) => ({ ...item, contactId: result.length + 1 })),
-    );
-  }
-  return result.slice(0, count);
-};
-
-const container = {
-  show: {
-    transition: {
-      staggerChildren: 0.05,
-    },
-  },
-};
+import CallVideoModal from "./components/CallVideoModal";
 
 const item = {
   hidden: { opacity: 0, scale: 0.6 },
@@ -43,6 +26,7 @@ const item = {
 };
 
 const ChatWidget = () => {
+  const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.admin);
   // trạng thái mơ chat
   const [chatOpen, setChatOpen] = useState(true);
@@ -57,11 +41,14 @@ const ChatWidget = () => {
     conversationId: 0,
   });
 
+  // danh sách tin nhắn
+  const [messageList, setMessageList] = useState<any[]>([]);
+
   // files
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
 
   // API lấy danh sách hội thoại
-  const { data: lstConversations, isFetching } = useQuery({
+  const { data: lstConversations } = useQuery({
     queryKey: ["getLstConversations"],
     queryFn: async () => {
       const res = await Conversations.getConversations();
@@ -78,25 +65,32 @@ const ChatWidget = () => {
   });
 
   // API lấy message
-  const { data: lstMessage, isFetching: isFetchingMessage } = useQuery({
+  const { isFetching: isFetchingMessage } = useQuery({
     queryKey: ["getMessage", selectedContact.conversationId],
     queryFn: async () => {
       const res = await Conversations.getMessage(
         selectedContact?.conversationId,
       );
       if (res.data) {
-        const sortedMessages = res.data?.sort(
-          (
-            a: { created: string | number | Date },
-            b: { created: string | number | Date },
-          ) => {
-            const dateA: any = new Date(a.created);
-            const dateB: any = new Date(b.created);
-            return dateA - dateB;
-          },
-        );
+        const sortedMessages = res.data
+          ?.sort(
+            (
+              a: { created: string | number | Date },
+              b: { created: string | number | Date },
+            ) => {
+              const dateA: any = new Date(a.created);
+              const dateB: any = new Date(b.created);
+              return dateA - dateB;
+            },
+          )
+          ?.map((e: { created: any }) => ({
+            ...e,
+            createdAt: e.created,
+          }));
+        setMessageList(sortedMessages);
         return sortedMessages;
       } else {
+        setMessageList([]);
         return [];
       }
     },
@@ -104,7 +98,7 @@ const ChatWidget = () => {
   });
 
   // API lấy thông tin người muốn nhắn tin
-  const { data: userInfo, isFetching: isFetchingUserInfo } = useQuery({
+  const { data: userInfo } = useQuery({
     queryKey: ["getUserInfo", selectedContact.contactId],
     queryFn: async () => {
       const res = await User.getUserInfo(selectedContact.contactId);
@@ -113,7 +107,67 @@ const ChatWidget = () => {
     enabled: !!selectedContact.contactId,
   });
 
-  //function
+  //socket
+  const {
+    socketResponse,
+    sendData,
+    sendTypingEvent,
+    sendStopTypingEvent,
+    isTyping,
+    setIsTyping,
+  } = useSocket(selectedContact.conversationId, selectedContact.contactId);
+  // open call video
+  const [openCall, setOpenCall] = useState<boolean>(false);
+  const {
+    callAccepted,
+    myVideo,
+    userVideo,
+    callUser,
+    leaveCall,
+    startVideo,
+  }: any = useContext(SocketContext);
+
+  useEffect(() => {
+    if (socketResponse) {
+      if (isTyping) {
+        setIsTyping(false);
+      }
+      addMessageToList(socketResponse);
+    }
+  }, [socketResponse]);
+
+  const addMessageToList = (val: { content: string }) => {
+    if (!val.content) return;
+    setMessageList((oldMess: any) => [...oldMess, val]);
+  };
+
+  const sendMessage = (message: string) => {
+    if (message !== "") {
+      sendData({
+        contactId: user?.userId,
+        content: message,
+        messageType: "TEXT",
+        mediaLocation: selectedFiles?.length ? selectedFiles[0] : null,
+      });
+    }
+  };
+
+  const handleKeyPress = (value: any) => {
+    sendMessage(value);
+  };
+
+  const handleInputChange = (value: string) => {
+    if (value.trim() !== "") {
+      // Nếu có giá trị nhập liệu thì gửi sự kiện "typing" tới server
+      sendTypingEvent({
+        contactId: selectedContact.contactId,
+        avatarLocation: user?.avatarLocation,
+      });
+    } else {
+      sendStopTypingEvent();
+      setIsTyping(false);
+    }
+  };
 
   return (
     <div
@@ -131,8 +185,24 @@ const ChatWidget = () => {
             {(chatOpen && selectedContact.contactName) || "MY CHAT"}
           </div>
           {chatOpen && (
-            <div className="" onClick={() => setChatOpen(false)}>
-              <CloseOutlined style={{ color: "white" }} />
+            <div className="flex gap-2">
+              {selectedContact.contactId ? (
+                <div
+                  className="hover:cursor-pointer"
+                  onClick={() => {
+                    setOpenCall(true);
+                    startVideo((currentStream: any) => {
+                      callUser(currentStream);
+                    });
+                  }}
+                >
+                  <CallIcon size={24} color="white" />
+                </div>
+              ) : null}
+              <CloseOutlined
+                style={{ color: "white", fontWeight: "bold" }}
+                onClick={() => setChatOpen(false)}
+              />
             </div>
           )}
         </div>
@@ -153,6 +223,12 @@ const ChatWidget = () => {
                           conversationId: contact.conversationId || 0,
                         });
                         setChatOpen(true);
+                        dispatch(
+                          chatAndCall({
+                            contactId: value.contactId,
+                            conversationId: contact.conversationId || 0,
+                          }),
+                        );
                       }}
                     />
                   </motion.div>
@@ -160,7 +236,7 @@ const ChatWidget = () => {
               })}
           </div>
           {/* Message */}
-          {lstMessage?.length && selectedContact.contactId ? (
+          {messageList?.length && selectedContact.contactId ? (
             <div
               className="custom-scrollbar  w-full  overscroll-contain px-2 pt-4 "
               style={{
@@ -170,10 +246,11 @@ const ChatWidget = () => {
               }}
             >
               <ContentMessage
-                messages={lstMessage}
+                messages={messageList}
                 user={user}
                 userInfo={userInfo}
                 isFetching={isFetchingMessage}
+                isTyping={isTyping}
               />
             </div>
           ) : (
@@ -197,13 +274,31 @@ const ChatWidget = () => {
         </div>
 
         {/* Input */}
-        <div className="w-full">
-          <ChatInput
-            selectedFiles={selectedFiles}
-            setSelectedFiles={setSelectedFiles}
-          />
-        </div>
+        {selectedContact.contactId ? (
+          <div className="w-full">
+            <ChatInput
+              selectedFiles={selectedFiles}
+              setSelectedFiles={setSelectedFiles}
+              onKeyDown={handleKeyPress}
+              onBlur={() => {
+                sendStopTypingEvent();
+              }}
+              onChange={handleInputChange}
+            />
+          </div>
+        ) : null}
       </div>
+
+      {/* Call video */}
+      <CallVideoModal
+        openModal={openCall}
+        setOpenModal={setOpenCall}
+        userInfo={userInfo}
+        currentUserVideoRef={myVideo}
+        remoteVideoRef={userVideo}
+        endCall={leaveCall}
+        callAccepted={callAccepted}
+      />
     </div>
   );
 };

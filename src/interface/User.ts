@@ -43,6 +43,7 @@ interface Message {
   content: string;
   mediaLocation?: string;
   created: string;
+  createdAt: string;
 }
 
 interface ContentMessageProps {

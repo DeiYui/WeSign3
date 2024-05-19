@@ -7,3 +7,4 @@ export * from "./DashboardIcon";
 export * from "./StudyIcon";
 export * from "./EmojiIcon";
 export * from "./ImageIcon";
+export * from "./CallIcon";

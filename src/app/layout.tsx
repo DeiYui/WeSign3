@@ -11,6 +11,7 @@ import { useState } from "react";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import ClientLoader from "./ClientLoader";
+import { ContextProvider } from "@/hooks/useContext";
 
 injectStore(store);
 
@@ -24,9 +25,11 @@ export default function RootLayout({ children }: any) {
           <ConfigProvider>
             <Provider store={store}>
               <PersistGate loading={<Loader />} persistor={persistor}>
-                <div className="overflow-hidden dark:bg-boxdark-2 dark:text-bodydark">
-                  <ClientLoader>{children}</ClientLoader>
-                </div>
+                <ContextProvider>
+                  <div className="overflow-hidden dark:bg-boxdark-2 dark:text-bodydark">
+                    <ClientLoader>{children}</ClientLoader>
+                  </div>
+                </ContextProvider>
               </PersistGate>
             </Provider>
           </ConfigProvider>
