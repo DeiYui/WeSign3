@@ -1,180 +1,31 @@
-"use client";
-import Loader from "@/components/common/Loader";
-import Auth from "@/model/Auth";
-import {
-  validateEmail,
-  validateRequireInput,
-} from "@/utils/validation/validtor";
-import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
-import { useMutation } from "@tanstack/react-query";
-import { Button, Form, Input, message } from "antd";
-import { useForm } from "antd/es/form/Form";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React from "react";
-import { useDispatch } from "react-redux";
+// pages/auth/login.tsx
+import { Metadata } from "next";
 import LayoutAuth from "..";
-import { register } from "@/store/slices/registerSlice";
+import Register from "@/components/Auth/Register";
 
-const Register: React.FC = () => {
-  //* Hooks
-  const router = useRouter();
-  const dispatch = useDispatch();
-  const [form] = useForm();
-
-  //* API
-  const registerMutation = useMutation({
-    mutationFn: Auth.register,
-    onSuccess: async (res) => {
-      if (res.data.code === 404) {
-        message.error("Email đã được sử dụng");
-      } else {
-        const email = form.getFieldValue("email");
-        message.success(`Mã OTP đã được gửi về email ${email} `);
-
-        router.push(`/verify-otp`);
-      }
-    },
-    onError: (error: Error) => {
-      message.error("Email đã được sử dụng");
-    },
-  });
-
-  const onFinish = (values: any) => {
-    dispatch(register(values));
-    registerMutation.mutate(values);
-  };
-
-  if (registerMutation.isPending) {
-    return <Loader />;
-  }
-
-  return (
-    <LayoutAuth>
-      <div className="w-full p-4 sm:p-12.5 xl:p-17.5">
-        <h2 className="mb-9 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
-          Đăng ký
-        </h2>
-
-        <Form
-          form={form}
-          name="register"
-          initialValues={{ remember: true }}
-          onFinish={onFinish}
-          className="mx-auto max-w-md"
-        >
-          <Form.Item
-            name="name"
-            required
-            rules={[validateRequireInput("Tên không được bỏ trống")]}
-          >
-            <Input
-              size="large"
-              prefix={<UserOutlined className="site-form-item-icon" />}
-              placeholder="Họ và tên"
-              style={{
-                height: "50px",
-                display: "flex",
-                alignItems: "center",
-                borderRadius: "8px",
-              }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="email"
-            required
-            rules={[
-              validateRequireInput("Email không được bỏ trống"),
-              validateEmail("Sai định dạng email"),
-            ]}
-          >
-            <Input
-              size="large"
-              prefix={<MailOutlined className="site-form-item-icon" />}
-              type="email"
-              placeholder="Email"
-              style={{
-                height: "50px",
-                display: "flex",
-                alignItems: "center",
-                borderRadius: "8px",
-              }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            required
-            rules={[validateRequireInput("Mật khẩu không được bỏ trống")]}
-          >
-            <Input.Password
-              size="large"
-              prefix={<LockOutlined className="site-form-item-icon" />}
-              placeholder="Mật khẩu"
-              style={{
-                height: "50px",
-                display: "flex",
-                alignItems: "center",
-                borderRadius: "8px",
-              }}
-              autoComplete="new-password"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="confirm"
-            dependencies={["password"]}
-            hasFeedback
-            required
-            rules={[
-              validateRequireInput("Nhập lại mật khẩu không được bỏ trống"),
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject("Nhập lại mật khẩu không khớp");
-                },
-              }),
-            ]}
-          >
-            <Input.Password
-              size="large"
-              prefix={<LockOutlined className="site-form-item-icon" />}
-              placeholder="Nhập lại mật khẩu"
-              style={{
-                height: "50px",
-                display: "flex",
-                alignItems: "center",
-                borderRadius: "8px",
-              }}
-            />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              size="large"
-              type="primary"
-              htmlType="submit"
-              className="w-full"
-            >
-              Đăng ký
-            </Button>
-          </Form.Item>
-
-          <Form.Item className="text-center">
-            <p>
-              Quay lại{" "}
-              <Link href="/login" className="text-primary">
-                Đăng nhập
-              </Link>
-            </p>
-          </Form.Item>
-        </Form>
-      </div>
-    </LayoutAuth>
-  );
+export const metadata: Metadata = {
+  title: "Register - We_sign",
+  description: "Register page for We_sign",
+  icons: {
+    icon: [
+      {
+        media: "(prefers-color-scheme: light)",
+        url: "/favicon.ico",
+        href: "/favicon.ico",
+      },
+      {
+        media: "(prefers-color-scheme: dark)",
+        url: "/favicon.ico",
+        href: "/favicon.ico",
+      },
+    ],
+  },
 };
 
-export default Register;
+export default function RegisterPage() {
+  return (
+    <LayoutAuth>
+      <Register />
+    </LayoutAuth>
+  );
+}

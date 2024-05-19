@@ -1,5 +1,5 @@
+// store/index.ts
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import adminSlice, { AdminState } from "./slices/adminSlice";
 import {
   persistReducer,
   FLUSH,
@@ -8,8 +8,10 @@ import {
   PERSIST,
   PURGE,
   REGISTER,
+  persistStore,
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
+import adminSlice, { AdminState } from "./slices/adminSlice";
 import registerSlice, { RegisterState } from "./slices/registerSlice";
 
 const persistConfig = {
@@ -40,3 +42,5 @@ export type RootState = {
 };
 
 export type AppDispatch = typeof store.dispatch;
+
+export const persistor = persistStore(store);

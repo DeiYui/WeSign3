@@ -1,4 +1,4 @@
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import Breadcrumb from "@/components/UI/Breadcrumbs/Breadcrumb";
 import Image from "next/image";
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
@@ -23,10 +23,10 @@ const Profile = () => {
                 height: "auto",
               }}
             />
-            <div className="absolute bottom-1 right-1 z-10 xsm:bottom-4 xsm:right-4">
+            <div className="xsm:bottom-4 xsm:right-4 absolute bottom-1 right-1 z-10">
               <label
                 htmlFor="cover"
-                className="flex cursor-pointer items-center justify-center gap-2 rounded bg-primary px-2 py-1 text-sm font-medium text-white hover:bg-opacity-80 xsm:px-4"
+                className="xsm:px-4 flex cursor-pointer items-center justify-center gap-2 rounded bg-primary px-2 py-1 text-sm font-medium text-white hover:bg-opacity-80"
               >
                 <input
                   type="file"
@@ -114,19 +114,19 @@ const Profile = () => {
               </h3>
               <p className="font-medium">Ui/Ux Designer</p>
               <div className="mx-auto mb-5.5 mt-4.5 grid max-w-94 grid-cols-3 rounded-md border border-stroke py-2.5 shadow-1 dark:border-strokedark dark:bg-[#37404F]">
-                <div className="flex flex-col items-center justify-center gap-1 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
+                <div className="xsm:flex-row flex flex-col items-center justify-center gap-1 border-r border-stroke px-4 dark:border-strokedark">
                   <span className="font-semibold text-black dark:text-white">
                     259
                   </span>
                   <span className="text-sm">Posts</span>
                 </div>
-                <div className="flex flex-col items-center justify-center gap-1 border-r border-stroke px-4 dark:border-strokedark xsm:flex-row">
+                <div className="xsm:flex-row flex flex-col items-center justify-center gap-1 border-r border-stroke px-4 dark:border-strokedark">
                   <span className="font-semibold text-black dark:text-white">
                     129K
                   </span>
                   <span className="text-sm">Followers</span>
                 </div>
-                <div className="flex flex-col items-center justify-center gap-1 px-4 xsm:flex-row">
+                <div className="xsm:flex-row flex flex-col items-center justify-center gap-1 px-4">
                   <span className="font-semibold text-black dark:text-white">
                     2K
                   </span>

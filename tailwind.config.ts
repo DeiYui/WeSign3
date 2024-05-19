@@ -13,8 +13,8 @@ const config: Config = {
       satoshi: ["Satoshi", "sans-serif"],
     },
     screens: {
-      "2xsm": "375px",
-      xsm: "425px",
+      mobile: { max: "767px" },
+      tablet: { max: "1169px" },
       "3xl": "2000px",
       ...defaultTheme.screens,
     },
@@ -58,6 +58,7 @@ const config: Config = {
         danger: "#D34053",
         warning: "#FFA70B",
       },
+
       fontSize: {
         "title-xxl": ["44px", "55px"],
         "title-xxl2": ["42px", "58px"],

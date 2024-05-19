@@ -1,28 +1,24 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
-import { MessageIcon } from "@/assets/icons";
-import {
-  CloseOutlined,
-  DoubleLeftOutlined,
-  DoubleRightOutlined,
-} from "@ant-design/icons";
-import { colors } from "@/assets/colors";
+import Header from "@/components/Layouts/Header";
+import Sidebar from "@/components/Layouts/Sidebar";
+import { DoubleLeftOutlined, DoubleRightOutlined } from "@ant-design/icons";
+import React, { useEffect, useState } from "react";
+import ChatWidget from "../Chat/ChatWidget";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 export default function DefaultLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const admin = useSelector((state: RootState) => state.admin);
+
   // Initial state from local storage or default to false
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
     const savedState = localStorage.getItem("sidebarOpen");
     return savedState !== null ? JSON.parse(savedState) : false;
   });
-
-  // Show chat
-  const [chatOpen, setChatOpen] = useState(false);
 
   // Effect to save sidebarOpen state to local storage whenever it changes
   useEffect(() => {
@@ -56,9 +52,7 @@ export default function DefaultLayout({
         </button>
         {/* <!-- ===== Content Area Start ===== --> */}
         <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-          {/* <!-- ===== Header Start ===== --> */}
           <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-          {/* <!-- ===== Header End ===== --> */}
 
           {/* <!-- ===== Main Content Start ===== --> */}
           <main>
@@ -69,27 +63,7 @@ export default function DefaultLayout({
         </div>
 
         {/* Chat */}
-        <div
-          className="fixed bottom-0 right-0 top-0 z-[1000] rounded-md bg-white"
-          style={{ width: chatOpen ? "360px" : "60px" }}
-        >
-          {/* Header */}
-          <div className="flex h-20 cursor-pointer items-center justify-between bg-neutral-700 px-4 transition-all">
-            <div
-              className="flex items-center gap-4 text-white"
-              onClick={() => setChatOpen(true)}
-            >
-              <MessageIcon size={36} color={colors.primary600} />
-
-              {chatOpen && "MY CHAT"}
-            </div>
-            {chatOpen && (
-              <div className="" onClick={() => setChatOpen(false)}>
-                <CloseOutlined style={{ color: "white" }} />
-              </div>
-            )}
-          </div>
-        </div>
+        {admin && <ChatWidget />}
       </div>
     </>
   );

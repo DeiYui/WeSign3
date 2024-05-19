@@ -1,12 +1,12 @@
 "use client";
 import React from "react";
-import ChartOne from "../Charts/ChartOne";
-import ChartThree from "../Charts/ChartThree";
-import ChartTwo from "../Charts/ChartTwo";
-import ChatCard from "../Chat/ChatCard";
-import TableOne from "../Tables/TableOne";
 import CardDataStats from "../CardDataStats";
-import MapOne from "../Maps/MapOne";
+import ChartOne from "../Charts/ChartOne";
+import ChartTwo from "../Charts/ChartTwo";
+import ChartThree from "../Charts/ChartThree";
+import MapOne from "../UI/Maps/MapOne";
+import TableOne from "../UI/Tables/TableOne";
+import ChatCard from "../Chat/ChatCard";
 
 const ECommerce: React.FC = () => {
   return (

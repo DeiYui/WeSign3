@@ -1,17 +1,25 @@
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-import TableOne from "@/components/Tables/TableOne";
-import TableThree from "@/components/Tables/TableThree";
-import TableTwo from "@/components/Tables/TableTwo";
-
-import { Metadata } from "next";
-import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import ECommerce from "@/components/Dashboard/E-commerce";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "We_sign - Dashboard",
-  description: "Dashboard",
+  title: "Dashboard - We_sign",
+  description: "Dashboard page for We_sign",
+  icons: {
+    icon: [
+      {
+        media: "(prefers-color-scheme: light)",
+        url: "/favicon.ico",
+        href: "/favicon.ico",
+      },
+      {
+        media: "(prefers-color-scheme: dark)",
+        url: "/favicon.ico",
+        href: "/favicon.ico",
+      },
+    ],
+  },
 };
-
 const Dashboard = () => {
   return (
     <DefaultLayout>
