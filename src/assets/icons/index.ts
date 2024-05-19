@@ -5,3 +5,5 @@ export * from "./EmailIcon";
 export * from "./PassWorkIcon";
 export * from "./DashboardIcon";
 export * from "./StudyIcon";
+export * from "./EmojiIcon";
+export * from "./ImageIcon";

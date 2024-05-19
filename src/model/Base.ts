@@ -57,13 +57,13 @@ export class Base {
     http.delete(`${this.apiRoot}${url}`, { signal });
 
   apiUploadFile = (url: string, body: any, signal?: any) =>
-    http.post(`${this.apiRoot}${url}`, body, {
+    http.post(`${this.apiPrefix}${url}`, body, {
       headers: { "Content-Type": "multipart/form-data" },
       signal,
     });
 
   apiPostUpload = (url: string, body: any) =>
-    http.post(`${this.apiRoot}${url}`, body, {
+    http.post(`${this.apiPrefix}${url}`, body, {
       headers: {
         "Content-Type":
           "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW",
