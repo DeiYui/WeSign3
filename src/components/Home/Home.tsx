@@ -3,6 +3,7 @@
 
 import { FC } from "react";
 import { CheckCircleTwoTone } from "@ant-design/icons";
+import VideoCall from "../Chat/components/VideoCall";
 
 const HomePage: FC = () => {
   return (
@@ -105,6 +106,8 @@ const HomePage: FC = () => {
         </div>
       </div>
     </div>
+
+    // <VideoCall />
   );
 };
 

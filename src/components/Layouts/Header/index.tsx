@@ -1,20 +1,20 @@
-import Link from "next/link";
-import DarkModeSwitcher from "./DarkModeSwitcher";
-import DropdownMessage from "./DropdownMessage";
-import DropdownNotification from "./DropdownNotification";
-import DropdownUser from "./DropdownUser";
-import Image from "next/image";
-import { Logo } from "@/assets/icons";
 import { colors } from "@/assets/colors";
+import { Logo } from "@/assets/icons";
+import SearchInput from "@/components/Friend/components/SearchInput";
 import { RootState, store } from "@/store";
-import Buttons from "@/app/ui/buttons/page";
 import { Button } from "antd";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import DropdownUser from "./DropdownUser";
 
 const Header = (props: {
   sidebarOpen: string | boolean | undefined;
   setSidebarOpen: (arg0: boolean) => void;
 }) => {
   const { sidebarOpen } = props;
+  const router = useRouter();
+  const pathname = usePathname();
+  console.log("router", router, pathname);
 
   const state: RootState = store.getState();
   const admin = state.admin;
@@ -22,17 +22,21 @@ const Header = (props: {
   return (
     <header className="sticky top-0  z-999 flex w-full bg-white pr-6 drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div
-        className={`flex flex-grow items-center ${sidebarOpen ? "justify-end" : "justify-between"}  px-4 py-4 pr-8 shadow-2 `}
+        className={`flex flex-grow items-center justify-between  px-4 py-4 pr-10 shadow-2 `}
       >
         {/* Hiện logo khi ẩn slideBar */}
-        {!sidebarOpen && (
-          <div className="flex items-center gap-2  ">
-            <Link className="flex items-end justify-center" href="/">
-              <Logo size={40} color={colors.primary400} />
-              <div className="font-bold text-black">eSign</div>
-            </Link>
-          </div>
-        )}
+        <div className="flex items-center gap-4">
+          {!sidebarOpen && (
+            <div className="flex items-center gap-2">
+              <Link className="flex items-end justify-center" href="/">
+                <Logo size={40} color={colors.primary400} />
+                <div className="font-bold text-black">eSign</div>
+              </Link>
+            </div>
+          )}
+          {/* Tìm kiếm bạn bè */}
+          {pathname?.includes("friend") && <SearchInput />}
+        </div>
 
         <div className="2xsm:gap-7 flex items-center gap-3">
           <ul className="2xsm:gap-4 flex items-center gap-2">

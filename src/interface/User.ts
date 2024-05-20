@@ -30,6 +30,19 @@ interface Contact {
   conversationId?: number;
 }
 
+//friend
+interface FriendProps {
+  userId: number;
+  name: string;
+  email: string;
+  phoneNumber: string | null;
+  address: string | null;
+  role: "ADMIN" | "USER" | "MODERATOR";
+  birthDay: string | null;
+  gender: "MALE" | "FEMALE" | "OTHER" | null;
+  avatarLocation: string | null;
+}
+
 interface Conversation {
   conversationId: number;
   grouAttachConvResList: Contact[];

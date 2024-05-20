@@ -19,6 +19,7 @@ import ChatInput from "./components/ChatInput";
 import ContactButton from "./components/ContactButton";
 import ContentMessage from "./components/ContentMessage";
 import CallVideoModal from "./components/CallVideoModal";
+import VideoCall from "./components/VideoCall";
 
 const item = {
   hidden: { opacity: 0, scale: 0.6 },
@@ -29,7 +30,7 @@ const ChatWidget = () => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.admin);
   // trạng thái mơ chat
-  const [chatOpen, setChatOpen] = useState(true);
+  const [chatOpen, setChatOpen] = useState(false);
   // Select user
   const [selectedContact, setSelectedContact] = useState<{
     contactId: number;

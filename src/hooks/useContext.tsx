@@ -22,7 +22,8 @@ const ContextProvider = ({ children }: ContextProviderProps) => {
 
   useEffect(() => {
     if (conversationId && contactId) {
-      const socketBaseUrl = "http://localhost:8017";
+      // const socketBaseUrl = "http://localhost:8017";
+      const socketBaseUrl = "https://chat-call-app.onrender.com";
       const socketInstance = io(socketBaseUrl, {
         query: { conversationId, contactId },
       });
