@@ -1,16 +1,16 @@
-import User from "@/model/User";
+import React, { useState } from "react";
+import { Avatar, Button, Input, List, Skeleton } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Avatar, Button, Input, List, Skeleton } from "antd";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import styled from "styled-components";
+import User from "@/model/User";
+import DetailFriend from "./DetailFriend";
 
 const { Search } = Input;
 
 const CustomSearch = styled(Search)`
   .ant-input {
-    height: 40px;
+    height: 30px;
     width: 300px;
     border-radius: 12px;
     border: 2px solid #cccc;
@@ -20,9 +20,15 @@ const CustomSearch = styled(Search)`
   }
 `;
 
-const SearchInput = () => {
+interface FriendProps {
+  userId: number;
+  name: string;
+  email: string;
+  avatarLocation: string;
+}
+
+const SearchInput: React.FC = () => {
   const [results, setResults] = useState<FriendProps[]>([]);
-  const router = useRouter();
   const [params, setParams] = useState<{
     text: string;
     page: number;
@@ -33,8 +39,15 @@ const SearchInput = () => {
     size: 5,
   });
   const [totalElements, setTotalElements] = useState<number>(0);
+  const [showLstFriend, setShowLstFriend] = useState<boolean>(false);
+  const [openFriendDetail, setOpenFriendDetail] = useState<{
+    open: boolean;
+    userId: number;
+  }>({
+    open: false,
+    userId: 0,
+  });
 
-  //* API tìm kiếm bạn bè
   const { data: lstFriendSearch, isFetching } = useQuery({
     queryKey: ["searchFriend", params],
     queryFn: async () => {
@@ -45,16 +58,14 @@ const SearchInput = () => {
     },
     enabled: !!params.text,
   });
-  console.log("lstFriendSearch", lstFriendSearch);
 
   const onSearch = (value: string) => {
-    console.log("value", value);
-
     setResults([]);
   };
 
   const onItemClick = (id: number) => {
-    router.push(`/friend/${id}`);
+    setOpenFriendDetail({ open: true, userId: id });
+    setShowLstFriend(false);
   };
 
   const onLoadMore = () => {
@@ -76,26 +87,36 @@ const SearchInput = () => {
     ) : null;
 
   return (
-    <div className="relative ">
+    <div className="relative">
       <CustomSearch
+        allowClear
+        value={params.text}
         placeholder="Tìm kiếm bạn bè"
         onSearch={onSearch}
-        onChange={(e) =>
-          setParams({ ...params, text: e.target.value, size: 5 })
-        }
+        onChange={(e) => {
+          setShowLstFriend(true);
+          setParams({ ...params, text: e.target.value, size: 5 });
+        }}
+        onBlur={() => {
+          setShowLstFriend(false);
+        }}
+        onFocus={() => setShowLstFriend(true)}
         enterButton
       />
-      {params.text && (
+      {showLstFriend && params.text && (
         <div className="absolute z-10 mt-2 w-full rounded-lg bg-white shadow-lg">
           <List
-            className="custom-scrollbar max-h-[350px] overflow-y-auto  pb-4"
+            className="custom-scrollbar max-h-[350px] overflow-y-auto pb-4"
             loading={isFetching}
             itemLayout="horizontal"
             dataSource={results}
             loadMore={loadMore}
             bordered
             renderItem={(friend) => (
-              <List.Item className="hover:cursor-pointer hover:bg-neutral-300">
+              <List.Item
+                className="hover:cursor-pointer hover:bg-neutral-300"
+                onMouseDown={() => onItemClick(friend.userId)}
+              >
                 <Skeleton avatar title={false} loading={isFetching} active>
                   <List.Item.Meta
                     avatar={
@@ -116,6 +137,17 @@ const SearchInput = () => {
           />
         </div>
       )}
+
+      <DetailFriend
+        visible={openFriendDetail.open}
+        userId={openFriendDetail.userId}
+        onClose={() => {
+          setOpenFriendDetail({
+            ...openFriendDetail,
+            open: false,
+          });
+        }}
+      />
     </div>
   );
 };

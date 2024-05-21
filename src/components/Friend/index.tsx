@@ -1,9 +1,11 @@
 "use client";
 import React, { useState } from "react";
-import { Button, List, Avatar, Spin, Tabs, Card, Empty } from "antd";
+import { Button, List, Avatar, Spin, Tabs, Card, Empty, message } from "antd";
 import { DeleteFilled, UserOutlined, MailOutlined } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import User from "@/model/User";
+import { ConfirmModal } from "../UI/Modal/ConfirmModal";
+import DetailFriend from "./components/DetailFriend";
 
 interface Friend {
   id: number;
@@ -27,13 +29,36 @@ const friendRequests: FriendRequest[] = [
 ];
 
 const Friend = () => {
+  const queryClient = useQueryClient();
   const [view, setView] = useState<"friends" | "requests" | "sending">(
     "friends",
   );
 
+  // state lưu xáo bạn bè, lời mời kb
+  const [stateDel, setStateDel] = useState<{
+    delFriend: boolean;
+    delRequest: boolean;
+    delSending: boolean;
+  }>({
+    delFriend: false,
+    delRequest: false,
+    delSending: false,
+  });
+
+  // state lưu id cần xoá
+  const [stateDelId, setStateDelId] = useState<number>(0);
+
+  const [openFriendDetail, setOpenFriendDetail] = useState<{
+    open: boolean;
+    userId: number;
+  }>({
+    open: false,
+    userId: 0,
+  });
+
   //* API lấy danh sách bạn bè
   const { data: lstFriend, isFetching } = useQuery({
-    queryKey: ["getLstFriend"],
+    queryKey: ["getLstFriend", view],
     queryFn: async () => {
       const res = await User.getLstFriend();
 
@@ -54,48 +79,80 @@ const Friend = () => {
 
       return groupedData;
     },
+    retry: false,
+    refetchOnWindowFocus: false,
     // enabled: view === "friends",
   });
 
   //* API lấy danh sách lời mời kết bạn
   const { data: lstRequest, isFetching: isFetchingRequest } = useQuery({
-    queryKey: ["getLstRequest"],
+    queryKey: ["getLstRequest", view],
     queryFn: async () => {
       const res = await User.getLstRequest();
       return res.data || [];
     },
+    retry: false,
+    refetchOnWindowFocus: false,
     // enabled: view === "requests",
   });
 
   //* API lấy danh sách lời mời đã gửi
   const { data: lstSending, isFetching: isFetchingSending } = useQuery({
-    queryKey: ["getLstSending"],
+    queryKey: ["getLstSending", view],
     queryFn: async () => {
       const res = await User.getLstSending();
       return res.data || [];
     },
+    retry: false,
+    refetchOnWindowFocus: false,
     // enabled: view === "sending",
+  });
+
+  //* API đồng ý kết bạn
+  const acceptMutation = useMutation({
+    mutationFn: User.acceptFriend,
+    onSuccess: async () => {
+      message.success("Xác nhận kết bạn thành công");
+      await queryClient.invalidateQueries({ queryKey: ["getLstFriend"] });
+      await queryClient.invalidateQueries({ queryKey: ["getLstRequest"] });
+    },
+    onError: (error: Error) => {
+      message.error(error.message);
+    },
+  });
+
+  //* API huỷ kết bạn, lời mời
+  const cancelMutation = useMutation({
+    mutationFn: User.cancelFriend,
+    onSuccess: async () => {
+      if (view === "friends") {
+        message.success("Xoá bạn bè thành công");
+        await queryClient.invalidateQueries({ queryKey: ["getLstFriend"] });
+      } else if (view === "requests") {
+        message.success("Huỷ lời mời kết bạn thành công");
+        await queryClient.invalidateQueries({ queryKey: ["getLstRequest"] });
+      } else {
+        message.success("Thu hồi lời mời kết bạn thành công");
+        await queryClient.invalidateQueries({ queryKey: ["getLstSending"] });
+      }
+    },
+    onError: (error: Error) => {
+      message.error(error.message);
+    },
   });
 
   console.log("lstFriend", lstFriend);
 
-  const handleRouterChat = (friend: Friend) => {
-    // Your navigation logic here
-  };
-
-  const handleDeleteFr = (friend: Friend) => {
-    // Your delete logic here
-  };
-
-  const onAcceptFriends = (userId: number) => {
-    // Your accept friend logic here
-  };
-
   const onCancelFriends = (
     userId: number,
-    type: "cancelPending" | "cancelRequest",
+    type: "cancelPending" | "cancelRequest" | "cancelFriend",
   ) => {
-    // Your cancel friend logic here
+    setStateDel({
+      delFriend: type === "cancelFriend",
+      delRequest: type === "cancelRequest",
+      delSending: type === "cancelPending",
+    });
+    setStateDelId(userId);
   };
 
   return (
@@ -135,6 +192,7 @@ const Friend = () => {
                           icon={<DeleteFilled />}
                           onClick={(e) => {
                             e.stopPropagation();
+                            onCancelFriends(friend.userId, "cancelFriend");
                             // handleDeleteFr(friend.userId);
                           }}
                         />,
@@ -167,7 +225,8 @@ const Friend = () => {
           tab={
             <span className="flex items-center gap-3">
               <MailOutlined size={24} className="pt-[2px]" />
-              Lời mời kết bạn ({lstRequest?.length ? lstRequest?.length : null})
+              Lời mời kết bạn{" "}
+              {lstRequest?.length ? `(${lstRequest?.length})` : null}
             </span>
           }
           key="requests"
@@ -182,7 +241,12 @@ const Friend = () => {
                 total: lstRequest?.length,
               }}
               renderItem={(request: FriendProps, index) => (
-                <List.Item className="shadow-12 transition-all hover:scale-[1.02]  ">
+                <List.Item
+                  className="shadow-12 transition-all hover:scale-[1.02]  "
+                  onClick={() =>
+                    setOpenFriendDetail({ open: true, userId: request.userId })
+                  }
+                >
                   <div className="rounded-lg bg-white p-4 shadow-lg">
                     <div className="mb-3 flex gap-3">
                       <Avatar
@@ -211,9 +275,7 @@ const Friend = () => {
                       <Button
                         type="primary"
                         className="w-full"
-                        onClick={() =>
-                          onCancelFriends(request.userId, "cancelRequest")
-                        }
+                        onClick={() => acceptMutation.mutate(request.userId)}
                       >
                         Xác nhận
                       </Button>
@@ -231,7 +293,8 @@ const Friend = () => {
           tab={
             <span className="flex items-center gap-3">
               <MailOutlined size={24} className="pt-[2px]" />
-              Lời mời đã gửi: {lstSending?.length ? lstSending?.length : null}
+              Lời mời đã gửi{" "}
+              {lstSending?.length ? `(${lstSending?.length})` : null}
             </span>
           }
           key="sending"
@@ -267,7 +330,7 @@ const Friend = () => {
                         danger
                         className="w-full"
                         onClick={() =>
-                          onCancelFriends(sending.userId, "cancelRequest")
+                          onCancelFriends(sending.userId, "cancelPending")
                         }
                       >
                         Thu hồi lời mời
@@ -283,6 +346,49 @@ const Friend = () => {
           )}
         </Tabs.TabPane>
       </Tabs>
+
+      {/* Modal */}
+      <ConfirmModal
+        visible={
+          stateDel.delFriend || stateDel.delRequest || stateDel.delSending
+        }
+        iconType="DELETE"
+        title={
+          <>
+            {stateDel.delFriend && "Xoá bạn bè"}
+            {stateDel.delRequest && "Từ chối kết bạn"}
+            {stateDel.delSending && "Thu hồi lời mời kết bạn"}
+          </>
+        }
+        content={
+          <>
+            Hành động này sẽ {stateDel.delFriend && "xoá bạn bè"}
+            {stateDel.delRequest && "huỷ lời mời kết bạn"}
+            {stateDel.delSending && "thu hồi lời mời kết bạn"}
+          </>
+        }
+        onClick={() => cancelMutation.mutate(stateDelId)}
+        onCloseModal={() => {
+          setStateDel({
+            delFriend: false,
+            delRequest: false,
+            delSending: false,
+          });
+        }}
+      />
+
+      {/* Detail thông tin */}
+      <DetailFriend
+        visible={openFriendDetail.open}
+        userId={openFriendDetail.userId}
+        onClose={() => {
+          setOpenFriendDetail({
+            ...openFriendDetail,
+            open: false,
+          });
+        }}
+        showFooter={false}
+      />
     </div>
   );
 };

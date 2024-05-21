@@ -1,6 +1,6 @@
 // pages/auth/login.tsx
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
-import Profile from "@/components/Profile";
+import ProfileEdit from "@/components/Profile/ProfileEdit";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -22,10 +22,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ProfilePage() {
+export default function LoginPage() {
   return (
     <DefaultLayout>
-      <Profile />
+      <ProfileEdit />
     </DefaultLayout>
   );
 }

@@ -3,3 +3,8 @@ export function isImage(url: any) {
 
   return ["jpg", "jpeg", "png", "bmp", "gif"].includes(extension);
 }
+
+export const VALUE_GENDER: { [key: string]: string } = {
+  MALE: "Nam",
+  FEMALE: "Nữ",
+};

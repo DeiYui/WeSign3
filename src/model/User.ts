@@ -8,9 +8,21 @@ class User extends Base {
     return res.data;
   };
 
+  //Cập nhật thông tin cá nhân
+  updateProfile = async (body: any) => {
+    const res = await this.apiPut(`/users`, body);
+    return res.data;
+  };
+
   // Thông tin người dùng chi tiết
   getUserInfo = async (id: number) => {
     const res = await this.apiGet(`/users/${id}`);
+    return res.data;
+  };
+
+  // Thay đổi mật khẩu
+  changePassword = async (body: any) => {
+    const res = await this.apiPost(`/users/change-password`, body);
     return res.data;
   };
 
@@ -35,6 +47,24 @@ class User extends Base {
   // Lời mời đã gửi
   getLstSending = async (param?: any) => {
     const res = await this.apiGet(`/friend-ship/sending-list`, param);
+    return res.data;
+  };
+
+  // Thêm bạn bè
+  addFriend = async (userId: number) => {
+    const res = await this.apiPost(`/friend-ship/add-friend/${userId}`, {});
+    return res.data;
+  };
+
+  // Đồng ý kết bạn
+  acceptFriend = async (userId: number) => {
+    const res = await this.apiPost(`/friend-ship/accept-friend/${userId}`, {});
+    return res.data;
+  };
+
+  // Huỷ kết bạn, lời mời
+  cancelFriend = async (userId: number) => {
+    const res = await this.apiDelete(`/friend-ship/cancel-friend/${userId}`);
     return res.data;
   };
 }
