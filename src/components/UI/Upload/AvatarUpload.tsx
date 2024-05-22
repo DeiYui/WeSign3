@@ -87,7 +87,6 @@ export const AvatarUpload: FC<ImageUploadProps> = ({
       <div className="flex flex-wrap items-center gap-4">
         <CustomUpload
           size={size}
-          value={value as any}
           listType={listType as any}
           showUploadList={false}
           customRequest={handleUpload as any}
