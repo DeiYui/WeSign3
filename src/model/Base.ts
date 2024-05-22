@@ -56,11 +56,8 @@ export class Base {
   apiDeleteWithoutPrefix = (url = {}, signal?: any) =>
     http.delete(`${this.apiRoot}${url}`, { signal });
 
-  apiUploadFile = (url: string, body: any, signal?: any) =>
-    http.post(`${this.apiPrefix}${url}`, body, {
-      headers: { "Content-Type": "multipart/form-data" },
-      signal,
-    });
+  apiUploadFile = (url: string, body: any) =>
+    http.post(`${this.apiPrefix}${url}`, body, {});
 
   apiPostUpload = (url: string, body: any) =>
     http.post(`${this.apiPrefix}${url}`, body, {

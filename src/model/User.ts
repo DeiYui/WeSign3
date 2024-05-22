@@ -14,6 +14,12 @@ class User extends Base {
     return res.data;
   };
 
+  // Cập nhật avatar
+  updateAvatar = async (body: any) => {
+    const res = await this.apiUploadFile(`/users/upload-avatar`, body);
+    return res.data;
+  };
+
   // Thông tin người dùng chi tiết
   getUserInfo = async (id: number) => {
     const res = await this.apiGet(`/users/${id}`);

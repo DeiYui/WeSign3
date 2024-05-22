@@ -241,18 +241,20 @@ const Friend = () => {
                 total: lstRequest?.length,
               }}
               renderItem={(request: FriendProps, index) => (
-                <List.Item
-                  className="shadow-12 transition-all hover:scale-[1.02]  "
-                  onClick={() =>
-                    setOpenFriendDetail({ open: true, userId: request.userId })
-                  }
-                >
+                <List.Item className="shadow-12 transition-all hover:scale-[1.02]  ">
                   <div className="rounded-lg bg-white p-4 shadow-lg">
                     <div className="mb-3 flex gap-3">
                       <Avatar
                         icon={<UserOutlined />}
                         size={40}
                         src={request.avatarLocation}
+                        className="hover:cursor-pointer"
+                        onClick={() =>
+                          setOpenFriendDetail({
+                            open: true,
+                            userId: request.userId,
+                          })
+                        }
                       />
 
                       <div className="">

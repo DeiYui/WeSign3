@@ -14,6 +14,9 @@ const ClientLoader = ({ children }: any) => {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
+    if (!token && pathname?.includes("/profile")) {
+      router.push("/");
+    }
     if (
       token &&
       (pathname === "/login" ||

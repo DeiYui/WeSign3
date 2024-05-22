@@ -2,38 +2,26 @@
 import Breadcrumb from "@/components/UI/Breadcrumbs/Breadcrumb";
 import User from "@/model/User";
 import { RootState } from "@/store";
+import { login } from "@/store/slices/adminSlice";
 import { validateRequireInput } from "@/utils/validation/validtor";
-import { useMutation } from "@tanstack/react-query";
-import { Avatar, Button, DatePicker, Form, Input, Select, message } from "antd";
+import { Button, DatePicker, Form, Input, Select, message } from "antd";
 import { useForm } from "antd/es/form/Form";
 import dayjs from "dayjs";
-import moment from "moment";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { AvatarUpload } from "../UI/Upload/AvatarUpload";
 
 const ProfileEdit = () => {
   const [form] = useForm();
   const router = useRouter();
   const user: User = useSelector((state: RootState) => state.admin);
-
-  console.log("user", user);
-  //* API update thông tin cá nhân
-  const updateProfile = useMutation({
-    mutationFn: User.updateProfile,
-    onSuccess: async (res) => {
-      if (res.data.code === 200) {
-        message.success("Cập nhật thành công");
-      }
-    },
-    onError: (error: Error) => {
-      message.error("Đã có lỗi sảy ra");
-    },
-  });
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    if (user.birthDay) {
+    debugger;
+    if (user?.birthDay) {
       form.setFieldsValue({
         ...user,
         birthDay: dayjs(user?.birthDay),
@@ -99,29 +87,47 @@ const ProfileEdit = () => {
                   />
                 </svg>
               </span>
-              <span>Chỉnh sửa</span>
             </label>
           </div>
         </div>
 
         <Form
           form={form}
-          onFinish={(value) => {
+          onFinish={async (value) => {
             const newValue = {
               ...value,
-              birthDay: dayjs(value.birthDay).format("DD/MM/YYYY"),
+              birthDay: dayjs(value.birthDay).format("YYYY-MM-DD"),
             };
-            updateProfile.mutate(newValue);
+            const res = await User.updateProfile(newValue);
+            if (res.code === 200) {
+              message.success("Cập nhật thành công");
+              const response = await User.getProfile();
+              dispatch(login(response.data));
+              router.push("/profile");
+            }
           }}
           layout="vertical"
           className="mx-auto max-w-[400px] py-4"
         >
-          <Form.Item
-            className="relative z-30 mx-auto -mt-22 h-44 w-full max-w-44 rounded-full p-3 "
-            name="avatar"
-          >
-            <Avatar alt="profile" src={user.avatarLocation} size={160} />
-          </Form.Item>
+          <div className="relative z-30 mx-auto -mt-22 h-44 w-full max-w-44 rounded-full p-3  ">
+            <div className="relative drop-shadow-2">
+              <AvatarUpload
+                size={160}
+                value={user.avatarLocation}
+                listType="picture-circle"
+                onChange={async (value) => {
+                  const res = await User.updateAvatar({
+                    avatarLocation: value,
+                  });
+                  if (res.code === 200) {
+                    const response = await User.getProfile();
+                    dispatch(login(response.data));
+                    message.success("Cập nhật avatar thành công");
+                  }
+                }}
+              />
+            </div>
+          </div>
           <Form.Item
             required
             rules={[validateRequireInput("Họ tên không được bỏ trống")]}
