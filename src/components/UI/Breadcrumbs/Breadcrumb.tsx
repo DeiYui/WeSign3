@@ -7,7 +7,7 @@ interface BreadcrumbItem {
 }
 
 interface BreadcrumbProps {
-  itemBreadcrumb: BreadcrumbItem[];
+  itemBreadcrumb?: BreadcrumbItem[];
   pageName: string;
 }
 
