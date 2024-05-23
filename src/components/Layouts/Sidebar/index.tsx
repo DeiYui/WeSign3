@@ -133,9 +133,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
             {/* Menu */}
             <ul className="mb-6 flex flex-col gap-1.5">
-              {navigation?.map((item) => (
+              {navigation?.map((item: any) => (
                 <React.Fragment key={item.label}>
-                  {item.children?.length
+                  {item?.children?.length
                     ? renderParentItem(item)
                     : renderItem(item)}
                 </React.Fragment>
