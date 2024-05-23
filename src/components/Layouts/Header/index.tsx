@@ -1,10 +1,11 @@
 import { colors } from "@/assets/colors";
 import { Logo } from "@/assets/icons";
 import SearchInput from "@/components/Friend/components/SearchInput";
+import StudySelect from "@/components/Study/StudySelect";
 import { RootState, store } from "@/store";
 import { Button } from "antd";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import DropdownUser from "./DropdownUser";
 
 const Header = (props: {
@@ -12,9 +13,7 @@ const Header = (props: {
   setSidebarOpen: (arg0: boolean) => void;
 }) => {
   const { sidebarOpen } = props;
-  const router = useRouter();
   const pathname = usePathname();
-  console.log("router", router, pathname);
 
   const state: RootState = store.getState();
   const admin = state.admin;
@@ -36,6 +35,9 @@ const Header = (props: {
           )}
           {/* Tìm kiếm bạn bè */}
           {pathname?.includes("friend") && <SearchInput />}
+
+          {/* Học tập */}
+          {pathname?.includes("study") && sidebarOpen && <StudySelect />}
         </div>
 
         <div className="2xsm:gap-7 flex items-center gap-3">

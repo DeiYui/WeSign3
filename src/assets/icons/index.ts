@@ -8,3 +8,7 @@ export * from "./StudyIcon";
 export * from "./EmojiIcon";
 export * from "./ImageIcon";
 export * from "./CallIcon";
+export * from "./AlphabetIcon";
+export * from "./TopicIcon";
+export * from "./VocabularyIcon";
+export * from "./NumberIcon";

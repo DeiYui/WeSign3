@@ -1,6 +1,7 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
 import React from "react";
+import Vocabulary from "./Vocabulary";
 
 export const metadata: Metadata = {
   title: "LearnVocabulary - We_sign",
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 const LearnVocabulary = () => {
   return (
     <DefaultLayout>
-      <div>Học theo từ vựng</div>;
+      <Vocabulary />
     </DefaultLayout>
   );
 };

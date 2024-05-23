@@ -1,6 +1,7 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
 import React from "react";
+import Topics from "./Topics";
 
 export const metadata: Metadata = {
   title: "LearnTopics - We_sign",
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 const LearnTopics = () => {
   return (
     <DefaultLayout>
-      <div>Học theo chủ đề</div>;
+      <Topics />
     </DefaultLayout>
   );
 };

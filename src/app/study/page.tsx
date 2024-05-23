@@ -1,12 +1,10 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
-import React from "react";
-import LearnHome from "../../../components/Study/LearnHome";
-import Projects from "./Alphabet";
+import LearnHome from "../../components/Study/LearnHome";
 
 export const metadata: Metadata = {
-  title: "LearnAlphabet - We_sign",
-  description: "LearnAlphabet page for We_sign",
+  title: "Learn - We_sign",
+  description: "Learn page for We_sign",
   icons: {
     icon: [
       {
@@ -22,10 +20,11 @@ export const metadata: Metadata = {
     ],
   },
 };
+
 const LearnAlphabet = () => {
   return (
     <DefaultLayout>
-      <Projects />
+      <LearnHome />
     </DefaultLayout>
   );
 };

@@ -4,23 +4,23 @@ import Sidebar from "@/components/Layouts/Sidebar";
 import { DoubleLeftOutlined, DoubleRightOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import ChatWidget from "../Chat/ChatWidget";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { settingSlice, updateSetting } from "@/store/slices/SettingSlice";
 
 export default function DefaultLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const dispatch = useDispatch();
   const admin = useSelector((state: RootState) => state.admin);
 
-  // Initial state from local storage or default to false
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
     const savedState = localStorage.getItem("sidebarOpen");
     return savedState !== null ? JSON.parse(savedState) : false;
   });
 
-  // Effect to save sidebarOpen state to local storage whenever it changes
   useEffect(() => {
     localStorage.setItem("sidebarOpen", JSON.stringify(sidebarOpen));
   }, [sidebarOpen]);
@@ -28,6 +28,11 @@ export default function DefaultLayout({
   // Toggle sidebar function
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+    dispatch(
+      updateSetting({
+        openSideBar: !sidebarOpen,
+      }),
+    );
   };
 
   return (
