@@ -1,6 +1,6 @@
 "use client";
 import ButtonPrimary from "@/components/UI/Button/ButtonPrimary";
-import { StaticImageData } from "next/image";
+import Image, { StaticImageData } from "next/image";
 import { FC } from "react";
 
 export interface SectionHero2Props {
@@ -47,14 +47,14 @@ const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
             </div>
           </div>
           <div className="bottom-0 end-0 top-0 mt-10 w-full max-w-2xl lg:absolute lg:mt-0 xl:max-w-3xl 2xl:max-w-4xl rtl:-end-28">
-            {/* <Image
+            <Image
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
               className="nc-SectionHero2Item__image h-full w-full object-contain object-right-bottom"
               src={item.image}
               alt={item.heading}
               priority
-            /> */}
+            />
           </div>
         </div>
       </div>
