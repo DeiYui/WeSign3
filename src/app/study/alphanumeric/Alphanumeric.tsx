@@ -29,7 +29,6 @@ const Alphanumeric: React.FC = () => {
     if (alphabet === "All") {
       setLstLetter(ListAlphanumeric);
     } else {
-      debugger;
       const newLstAlphabet = ListAlphanumeric.filter(
         (item) => item.name === alphabet,
       );

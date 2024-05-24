@@ -59,8 +59,6 @@ const DetailFriend: React.FC<ProfileModalProps> = ({
     (e: { userId: number }) => e?.userId === userId,
   );
 
-  console.log("isSendingFr", isSendingFr, isFriend);
-
   //* API thêm bạn bè
   const addMutation = useMutation({
     mutationFn: User.addFriend,

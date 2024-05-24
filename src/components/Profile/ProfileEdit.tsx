@@ -20,7 +20,6 @@ const ProfileEdit = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    debugger;
     if (user?.birthDay) {
       form.setFieldsValue({
         ...user,

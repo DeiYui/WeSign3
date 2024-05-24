@@ -12,3 +12,4 @@ export * from "./AlphabetIcon";
 export * from "./TopicIcon";
 export * from "./VocabularyIcon";
 export * from "./NumberIcon";
+export * from "./SearchIcon";

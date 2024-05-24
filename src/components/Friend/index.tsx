@@ -141,8 +141,6 @@ const Friend = () => {
     },
   });
 
-  console.log("lstFriend", lstFriend);
-
   const onCancelFriends = (
     userId: number,
     type: "cancelPending" | "cancelRequest" | "cancelFriend",

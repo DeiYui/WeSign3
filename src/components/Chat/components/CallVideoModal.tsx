@@ -43,8 +43,6 @@ const CallVideoModal: React.FC<CallModalProps> = ({
   remoteVideoRef,
   callAccepted,
 }) => {
-  console.log("callAccepted", callAccepted);
-
   return (
     <Modal
       open={openModal}

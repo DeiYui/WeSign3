@@ -42,7 +42,6 @@ const Projects: React.FC = () => {
     if (alphabet === "All") {
       setLstLetter(ListAlphabet);
     } else {
-      debugger;
       const newLstAlphabet = ListAlphabet.filter(
         (item) => item.name === alphabet,
       );

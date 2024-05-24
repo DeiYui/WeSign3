@@ -1,7 +1,12 @@
 "use client";
-import ButtonPrimary from "@/components/UI/Button/ButtonPrimary";
+import { SearchIcon } from "@/assets/icons";
+import StudyComponent from "@/components/Study/StudyComponent";
+import InputPrimary from "@/components/UI/Input/InputPrimary";
+import Learning from "@/model/Learning";
+import { useQuery } from "@tanstack/react-query";
+import { message } from "antd";
 import Image, { StaticImageData } from "next/image";
-import { FC } from "react";
+import { FC, useState } from "react";
 
 export interface SectionHero2Props {
   className?: string;
@@ -23,6 +28,28 @@ export const HERO2_DEMO_DATA: Hero2DataType[] = [
 ];
 
 const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
+  //value search
+  const [valueSearch, setValueSearch] = useState<string>("");
+
+  // API lấy danh sách từ khi tìm kiếm
+  const { data: allVocabulary } = useQuery({
+    queryKey: ["searchVocabulary", valueSearch],
+    queryFn: async () => {
+      const res = await Learning.searchVocabulary({
+        page: 1,
+        size: 999999999,
+        text: valueSearch,
+        ascending: true,
+      });
+      if (!res?.data?.length) {
+        message.warning("Không có kết quả tìm kiếm");
+        return;
+      }
+      return (res?.data as Vocabulary[]) || [];
+    },
+    enabled: !!valueSearch,
+  });
+
   const renderItem = (index: number) => {
     const item = HERO2_DEMO_DATA[index];
 
@@ -43,14 +70,26 @@ const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
               <h2 className=" text-3xl font-bold !leading-[114%] text-slate-900 sm:text-4xl md:text-5xl xl:text-6xl 2xl:text-7xl">
                 {item.heading}
               </h2>
-              <ButtonPrimary>{item.btnText}</ButtonPrimary>
+              <InputPrimary
+                style={{ width: "50%" }}
+                placeholder={item.btnText}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setValueSearch(e.currentTarget.value);
+                  }
+                }}
+                suffixIcon={<SearchIcon size={24} />}
+                onSuffixClick={(value) => {
+                  setValueSearch(value);
+                }}
+              />
             </div>
           </div>
-          <div className="bottom-0 end-0 top-0 mt-10 w-full max-w-2xl lg:absolute lg:mt-0 xl:max-w-3xl 2xl:max-w-4xl rtl:-end-28">
+          <div className="absolute bottom-0 end-0 right-0 top-0 mt-10 w-full max-w-2xl  rtl:-end-28">
             <Image
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
-              className="nc-SectionHero2Item__image h-full w-full object-contain object-right-bottom"
+              className=" h-full w-full object-contain object-right-bottom"
               src={item.image}
               alt={item.heading}
               priority
@@ -61,7 +100,31 @@ const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
     );
   };
 
-  return <>{HERO2_DEMO_DATA.map((_: any, index: any) => renderItem(index))}</>;
+  return (
+    <>
+      {valueSearch ? (
+        <>
+          <InputPrimary
+            className="mb-4"
+            style={{ width: "50%" }}
+            placeholder="Tìm kiếm từ vựng"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setValueSearch(e.currentTarget.value);
+              }
+            }}
+            suffixIcon={<SearchIcon size={24} />}
+            onSuffixClick={(value) => {
+              setValueSearch(value);
+            }}
+          />
+          <StudyComponent allVocabulary={allVocabulary} />
+        </>
+      ) : (
+        <>{HERO2_DEMO_DATA.map((_: any, index: any) => renderItem(index))}</>
+      )}
+    </>
+  );
 };
 
 export default Vocabulary;

@@ -19,7 +19,7 @@ const Header = (props: {
   const admin = state.admin;
 
   return (
-    <header className="sticky top-0  z-999 flex w-full bg-white pr-6 drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
+    <header className="sticky top-0  z-[98] flex w-full bg-white pr-6 drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div
         className={`flex flex-grow items-center justify-between px-4 py-4 pr-10 shadow-2 `}
       >

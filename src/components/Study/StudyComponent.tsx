@@ -1,18 +1,23 @@
 "use client";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
-import { Button, Carousel, Empty, Modal, Pagination } from "antd";
+import { Button, Carousel, Empty, Image, Modal, Pagination } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import ButtonPrimary from "../UI/Button/ButtonPrimary";
 
 const PAGE_SIZE = 12;
+
 const CustomSlider = styled(Carousel)`
   &.ant-carousel {
     width: 100%;
   }
+  .slick-slide.slick-active.slick-current {
+    display: flex;
+    justify-content: center;
+  }
 `;
 
-const StudyComponent: React.FC = ({ files = [] }: any) => {
+const StudyComponent = ({ allVocabulary = [] }: any) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showFileDetail, setShowFileDetail] = useState(false);
   const videoRef = useRef<any>(null);
@@ -28,19 +33,20 @@ const StudyComponent: React.FC = ({ files = [] }: any) => {
     if (showFileDetail) {
       setAutoplay(true);
       setVideoCurrent(
-        files[fileIndex]?.vocabularyVideoResList[0].videoLocation,
+        allVocabulary[fileIndex]?.vocabularyVideoResList[0].videoLocation,
       );
       setCurrentVideoIndex(0);
     }
-  }, [showFileDetail, fileIndex, files]);
+  }, [showFileDetail, fileIndex, allVocabulary]);
 
   const handleNextVideo = () => {
     const nextIndex = currentVideoIndex + 1;
-    if (nextIndex < files[fileIndex]?.vocabularyVideoResList?.length) {
+    if (nextIndex < allVocabulary[fileIndex]?.vocabularyVideoResList?.length) {
       setCurrentVideoIndex(nextIndex);
       setAutoplay(true);
       setVideoCurrent(
-        files[fileIndex]?.vocabularyVideoResList[nextIndex].videoLocation,
+        allVocabulary[fileIndex]?.vocabularyVideoResList[nextIndex]
+          .videoLocation,
       );
     }
   };
@@ -51,32 +57,38 @@ const StudyComponent: React.FC = ({ files = [] }: any) => {
       setCurrentVideoIndex(previousIndex);
       setAutoplay(true);
       setVideoCurrent(
-        files[fileIndex]?.vocabularyVideoResList[previousIndex].videoLocation,
+        allVocabulary[fileIndex]?.vocabularyVideoResList[previousIndex]
+          .videoLocation,
       );
     }
   };
 
-  //  next files
+  //  next allVocabulary
   const handleNext = () => {
-    setFileIndex((prevIndex) => Math.min(prevIndex + 1, files?.length - 1));
+    setFileIndex((prevIndex) =>
+      Math.min(prevIndex + 1, allVocabulary?.length - 1),
+    );
   };
 
   const handlePrevious = () => {
     setFileIndex((prevIndex) => Math.max(prevIndex - 1, 0));
   };
 
-  // CHia page
+  // Pagination
   useEffect(() => {
     const totalPages =
-      files?.length > PAGE_SIZE ? Math.ceil(files?.length / PAGE_SIZE) : 1;
+      allVocabulary?.length > PAGE_SIZE
+        ? Math.ceil(allVocabulary?.length / PAGE_SIZE)
+        : 1;
     setCurrentPage(Math.min(currentPage, totalPages));
-  }, [files, currentPage]);
+  }, [allVocabulary, currentPage]);
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
   };
 
-  const handleViewDetail = () => {
+  const handleViewDetail = (index: number) => {
+    setFileIndex(PAGE_SIZE * (currentPage - 1) + index);
     setShowFileDetail(true);
   };
 
@@ -90,19 +102,26 @@ const StudyComponent: React.FC = ({ files = [] }: any) => {
     setShowFileDetail(false);
   };
 
+  if (allVocabulary?.length === 0) {
+    return (
+      <Empty style={{ width: "100%" }} description={`Không có dữ liệu `} />
+    );
+  }
+
   return (
     <>
-      <div className="">
-        <div className="flex flex-wrap gap-4">
-          {files && files?.length ? (
-            files
+      <div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {allVocabulary &&
+            allVocabulary?.length > 0 &&
+            allVocabulary
               ?.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
               ?.map((item: any, i: number) => {
                 return (
                   <div key={i} style={{ height: "max-content" }}>
                     <div
                       key={i}
-                      className="searchWord-item "
+                      className=" border-gray-300 group relative flex h-40 items-center  overflow-hidden rounded-lg border bg-cover bg-center bg-no-repeat object-contain  hover:shadow-3"
                       style={{
                         backgroundImage: `url(${
                           item?.vocabularyImageResList[0]?.imageLocation !== ""
@@ -110,96 +129,85 @@ const StudyComponent: React.FC = ({ files = [] }: any) => {
                             : "/images/study/defaultvideo.png"
                         })`,
                         backgroundSize: "contain",
-                        backgroundPosition: "center",
+                        backgroundPosition: "center center",
                         backgroundRepeat: "no-repeat",
                       }}
                     >
-                      <div className="searchWord-item-detail">
-                        <p
-                          style={{
-                            fontWeight: "600",
-                            fontSize: "28px",
-                            marginLeft: "10px",
-                          }}
-                        >
+                      <div className="absolute right-0 top-0 h-full w-full translate-x-0 transform bg-neutral-50 bg-opacity-75 transition-transform duration-500 hover:translate-x-30 group-hover:-translate-x-[100%]">
+                        <p className="ml-2 py-2 text-xl font-semibold text-black">
                           {item?.content}
                         </p>
                       </div>
                       <button
-                        className="searchWord-item-play"
-                        onClick={() => {
-                          handleViewDetail();
-                          setFileIndex(i + (currentPage - 1) * PAGE_SIZE);
-                        }}
+                        className="absolute right-0 flex h-full w-full translate-x-[100%] items-center justify-center bg-black bg-opacity-50 text-white  duration-500 group-hover:translate-x-0"
+                        onClick={() => handleViewDetail(i)}
                       >
                         Bấm để xem!!!
                       </button>
                     </div>
                   </div>
                 );
-              })
-          ) : (
-            <Empty
-              style={{ width: "100%" }}
-              description={`Không có dữ liệu cho .`}
-            />
-          )}
-          {files?.length > PAGE_SIZE && (
-            <div className="flex w-full justify-center pb-3">
-              <Pagination
-                current={currentPage}
-                pageSize={PAGE_SIZE}
-                total={files?.length}
-                onChange={handlePageChange}
-                showSizeChanger={false}
-              />
-            </div>
-          )}
+              })}
         </div>
+        {allVocabulary?.length > PAGE_SIZE && (
+          <div className="mt-4 flex w-full justify-center pb-3">
+            <Pagination
+              current={currentPage}
+              pageSize={PAGE_SIZE}
+              total={allVocabulary?.length}
+              onChange={handlePageChange}
+              showSizeChanger={false}
+            />
+          </div>
+        )}
       </div>
 
+      {/* modal hiển thị thông tin từ */}
       <Modal
         open={showFileDetail}
         footer={null}
         onCancel={onCloseDetail}
-        style={{ top: 20 }}
         title={
           <div className="text-[32px] font-bold">
-            {files[fileIndex]?.content}
+            {allVocabulary[fileIndex]?.content}
           </div>
         }
         width={1300}
-        key={files[fileIndex]?.content}
+        key={allVocabulary[fileIndex]?.content}
         centered
       >
         <div className="w-full px-4  ">
           <div className="w-full ">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 items-center gap-3">
               {/* image */}
-              <div className="col-span-1 flex items-center justify-center">
-                <CustomSlider ref={slider} className="w-full" dots={false}>
-                  {files[fileIndex]?.vocabularyImageResList?.map(
-                    (
-                      item: { imageLocation: string | undefined },
-                      index: React.Key | null | undefined,
-                    ) => (
-                      <div key={index}>
-                        {item.imageLocation ? (
-                          <img
-                            src={item.imageLocation}
-                            alt="Uploaded"
-                            style={{ width: "100%", height: "auto" }}
-                          />
-                        ) : (
-                          <div className="text-center text-xl">
-                            Chưa có hình ảnh minh hoạ
-                          </div>
-                        )}
-                      </div>
-                    ),
-                  )}
-                </CustomSlider>
-              </div>
+              <CustomSlider
+                ref={slider}
+                className="flex w-full items-center justify-center"
+                dots={false}
+              >
+                {allVocabulary[fileIndex]?.vocabularyImageResList?.map(
+                  (
+                    item: { imageLocation: string | undefined },
+                    index: React.Key | null | undefined,
+                  ) => (
+                    <div key={index}>
+                      {item.imageLocation ? (
+                        <Image
+                          preview={false}
+                          src={item.imageLocation}
+                          alt="imageLocation"
+                          className="flex max-h-[400px] w-[400px] items-center justify-center object-scale-down "
+                        />
+                      ) : (
+                        <div className="text-center text-xl">
+                          Chưa có hình ảnh minh hoạ
+                        </div>
+                      )}
+                    </div>
+                  ),
+                )}
+              </CustomSlider>
+
               {/* video */}
               <div className="col-span-2">
                 {videoCurrent ? (
@@ -227,7 +235,7 @@ const StudyComponent: React.FC = ({ files = [] }: any) => {
             <Button
               style={{
                 display:
-                  files[fileIndex]?.vocabularyImageResList?.length < 2
+                  allVocabulary[fileIndex]?.vocabularyImageResList?.length < 2
                     ? "none"
                     : "block",
               }}
@@ -237,7 +245,7 @@ const StudyComponent: React.FC = ({ files = [] }: any) => {
             <Button
               style={{
                 display:
-                  files[fileIndex]?.vocabularyImageResList?.length < 2
+                  allVocabulary[fileIndex]?.vocabularyImageResList?.length < 2
                     ? "none"
                     : "block",
               }}
@@ -255,7 +263,7 @@ const StudyComponent: React.FC = ({ files = [] }: any) => {
               style={{
                 display:
                   currentVideoIndex ===
-                  files[fileIndex]?.vocabularyVideoResList?.length - 1
+                  allVocabulary[fileIndex]?.vocabularyVideoResList?.length - 1
                     ? "none"
                     : "block",
               }}
@@ -269,7 +277,7 @@ const StudyComponent: React.FC = ({ files = [] }: any) => {
             Previous (Lùi lại)
           </ButtonPrimary>
           <ButtonPrimary
-            disabled={fileIndex === files?.length - 1}
+            disabled={fileIndex === allVocabulary?.length - 1}
             onClick={handleNext}
           >
             Next (Kế tiếp)
