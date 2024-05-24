@@ -15,7 +15,7 @@ interface Hero2DataType {
 
 export const HERO2_DEMO_DATA: Hero2DataType[] = [
   {
-    image: "",
+    image: "/images/study/study-topics.svg",
     heading: "Lựa chọn chủ đề học tập",
     subHeading: "Học tập theo chủ đề",
     btnText: "Lựa chọn",

@@ -15,7 +15,7 @@ interface Hero2DataType {
 
 export const HERO2_DEMO_DATA: Hero2DataType[] = [
   {
-    image: "",
+    image: "/images/study/study-vocabulary.svg",
     heading: "Tìm kiếm từ vựng",
     subHeading: "Học tập theo từ vựng",
     btnText: "Tìm kiếm",
