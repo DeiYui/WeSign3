@@ -1,11 +1,12 @@
 import { colors } from "@/assets/colors";
 import { Logo } from "@/assets/icons";
-import { navigation } from "@/config/navigation";
+import { navigation, navigationAdmin } from "@/config/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import SidebarLinkGroup from "./SidebarLinkGroup";
 import { VerticalNavItem } from "@/interface/Navigation";
+import { RootState, store } from "@/store";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -14,7 +15,8 @@ interface SidebarProps {
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const pathname = usePathname();
-
+  const state: RootState = store.getState();
+  const admin = state.admin;
   const sidebar = useRef(null);
 
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -141,6 +143,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 </React.Fragment>
               ))}
             </ul>
+
+            {admin && (
+              <>
+                <h3 className="mb-4 ml-4 text-sm font-semibold text-bodydark2">
+                  ADMIN
+                </h3>
+
+                <ul className="mb-6 flex flex-col gap-1.5">
+                  {navigationAdmin?.map((item: any) => (
+                    <React.Fragment key={item.label}>
+                      {item?.children?.length
+                        ? renderParentItem(item)
+                        : renderItem(item)}
+                    </React.Fragment>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         </nav>
       </div>

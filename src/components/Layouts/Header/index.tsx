@@ -19,9 +19,9 @@ const Header = (props: {
   const admin = state.admin;
 
   return (
-    <header className="sticky top-0  z-[98] flex w-full bg-white pr-6 drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
+    <header className="sticky top-0  z-[98] flex w-full bg-white  drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div
-        className={`flex flex-grow items-center justify-between px-4 py-4 pr-10 shadow-2 `}
+        className={`flex flex-grow items-center justify-between  px-4  py-4  shadow-2 ${!pathname.includes("/chat") && admin ? "pr-16" : "pr-4"} `}
       >
         {/* Hiện logo khi ẩn slideBar */}
         <div className="flex items-center gap-4">
@@ -40,8 +40,8 @@ const Header = (props: {
           {pathname?.includes("study") && sidebarOpen && <StudySelect />}
         </div>
 
-        <div className="2xsm:gap-7 flex items-center gap-3">
-          <ul className="2xsm:gap-4 flex items-center gap-2">
+        <div className=" flex items-center gap-3">
+          <ul className=" flex items-center gap-2">
             {/* <!-- Dark Mode Toggler --> */}
             {/* <DarkModeSwitcher /> */}
             {/* <!-- Dark Mode Toggler --> */}

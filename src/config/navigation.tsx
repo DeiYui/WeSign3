@@ -1,5 +1,17 @@
-import { DashboardIcon, StudyIcon } from "@/assets/icons";
+import {
+  ChatIcon,
+  CollectDataIcon,
+  DashboardIcon,
+  ExamIcon,
+  MessageIcon,
+  StudyIcon,
+} from "@/assets/icons";
+import { AdminIcon } from "@/assets/icons/AdminIcon";
+import { RootState, store } from "@/store";
 import { UserOutlined } from "@ant-design/icons";
+
+const state: RootState = store.getState();
+const admin = state.admin;
 
 export const navigation = [
   {
@@ -14,7 +26,7 @@ export const navigation = [
     label: "Bạn bè",
     path: "/friend",
     icon: <UserOutlined color="white" size={20} />,
-    hidden: false,
+    hidden: !admin ? true : false,
     // children: [
     //   {
     //     key: "/study/alphabet",
@@ -65,4 +77,56 @@ export const navigation = [
     //   },
     // ],
   },
-];
+  {
+    key: "/chat",
+    label: "Trò chuyện",
+    path: "/chat",
+    icon: <ChatIcon size={20} color="white" />,
+    hidden: false,
+  },
+  {
+    key: "/exam",
+    label: "Kiểm tra",
+    path: "/exam",
+    icon: <ExamIcon color="white" size={20} />,
+    hidden: false,
+  },
+  {
+    key: "/collect-data",
+    label: "Thu thập dữ liệu ",
+    path: "/collect-data",
+    icon: <CollectDataIcon color="white" size={20} />,
+    hidden: false,
+  },
+]?.filter((item) => !item.hidden);
+
+// admin
+export const navigationAdmin = [
+  {
+    key: "/learning-management",
+    label: "Quản lý học tập",
+    path: "/learning-management",
+    icon: <AdminIcon color="white" size={20} />,
+    children: [
+      {
+        key: "/learning-management/topics",
+        label: "Chủ đề",
+        path: "/learning-management/topics",
+        hidden: false,
+      },
+      {
+        key: "/learning-management/vocabulary",
+        label: "Ký hiệu",
+        path: "/learning-management/vocabulary",
+        hidden: false,
+      },
+      {
+        key: "/learning-management/exam",
+        label: "Bài kiểm tra",
+        path: "/learning-management/exam",
+        hidden: false,
+      },
+    ],
+    hidden: admin.role !== "ADMIN",
+  },
+]?.filter((item) => !item.hidden);

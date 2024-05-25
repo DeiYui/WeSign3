@@ -1,18 +1,21 @@
 "use client";
 import Header from "@/components/Layouts/Header";
 import Sidebar from "@/components/Layouts/Sidebar";
+import { RootState } from "@/store";
+import { updateSetting } from "@/store/slices/SettingSlice";
 import { DoubleLeftOutlined, DoubleRightOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
-import ChatWidget from "../Chat/ChatWidget";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { settingSlice, updateSetting } from "@/store/slices/SettingSlice";
+import ChatWidget from "../Chat/ChatWidget";
+import { usePathname } from "next/navigation";
 
 export default function DefaultLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   const dispatch = useDispatch();
   const admin = useSelector((state: RootState) => state.admin);
 
@@ -68,7 +71,7 @@ export default function DefaultLayout({
         </div>
 
         {/* Chat */}
-        {admin && <ChatWidget />}
+        {admin && !pathname.includes("/chat") && <ChatWidget />}
       </div>
     </>
   );

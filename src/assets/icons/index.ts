@@ -13,3 +13,6 @@ export * from "./TopicIcon";
 export * from "./VocabularyIcon";
 export * from "./NumberIcon";
 export * from "./SearchIcon";
+export * from "./ExamIcon";
+export * from "./CollectDataIcon";
+export * from "./ChatIcon";
