@@ -3,7 +3,6 @@
 import { colors } from "@/assets/colors";
 import { CallIcon, MessageIcon } from "@/assets/icons";
 import { SocketContext } from "@/hooks/useContext";
-import { useSocket } from "@/hooks/useSocket";
 import Conversations from "@/model/Conversations";
 import User from "@/model/User";
 import { RootState } from "@/store";
@@ -15,11 +14,10 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import CallVideoModal from "./components/CallVideoModal";
 import ChatInput from "./components/ChatInput";
 import ContactButton from "./components/ContactButton";
 import ContentMessage from "./components/ContentMessage";
-import CallVideoModal from "./components/CallVideoModal";
-import VideoCall from "./components/VideoCall";
 
 const item = {
   hidden: { opacity: 0, scale: 0.6 },
@@ -116,7 +114,7 @@ const ChatWidget = () => {
     sendStopTypingEvent,
     isTyping,
     setIsTyping,
-  } = useSocket(selectedContact.conversationId, selectedContact.contactId);
+  }: any = useContext(SocketContext);
   // open call video
   const [openCall, setOpenCall] = useState<boolean>(false);
   const {

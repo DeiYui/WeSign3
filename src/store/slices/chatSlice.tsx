@@ -14,12 +14,12 @@ export const chatSlice = createSlice({
   name: "chat",
   initialState: initialRegisterState,
   reducers: {
-    reset: () => initialRegisterState,
+    resetChat: () => initialRegisterState,
     chatAndCall: (state, action: PayloadAction<ChatState>) => {
       return (state = action.payload);
     },
   },
 });
-export const { reset, chatAndCall } = chatSlice.actions;
+export const { resetChat, chatAndCall } = chatSlice.actions;
 
 export default chatSlice.reducer;

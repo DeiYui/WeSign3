@@ -127,6 +127,6 @@ export const navigationAdmin = [
         hidden: false,
       },
     ],
-    hidden: admin.role !== "ADMIN",
+    hidden: admin?.role !== "ADMIN",
   },
 ]?.filter((item) => !item.hidden);

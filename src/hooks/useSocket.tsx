@@ -55,39 +55,41 @@ export const useSocket = (conversationId: number, contactId: number) => {
   }, [socket, conversationId]);
 
   useEffect(() => {
-    const socketBaseUrl = "https://chat-call-app.onrender.com";
-    // const socketBaseUrl = "http://localhost:8017";
-    const s = io(socketBaseUrl, {
-      query: { conversationId, contactId },
-    });
+    if (conversationId && contactId) {
+      const socketBaseUrl = "https://chat-call-app.onrender.com";
+      // const socketBaseUrl = "http://localhost:8017";
+      const s = io(socketBaseUrl, {
+        query: { conversationId, contactId },
+      });
 
-    setSocket(s);
+      setSocket(s);
 
-    s.on("connect", () => {
-      setConnected(true);
-    });
+      s.on("connect", () => {
+        setConnected(true);
+      });
 
-    s.on("connect_error", (error: any) => {
-      console.error("SOCKET CONNECTION ERROR", error);
-    });
+      s.on("connect_error", (error: any) => {
+        console.error("SOCKET CONNECTION ERROR", error);
+      });
 
-    s.on("get_message", (res: SocketResponse) => {
-      setSocketResponse({ ...res, createdAt: new Date() });
-    });
+      s.on("get_message", (res: SocketResponse) => {
+        setSocketResponse({ ...res, createdAt: new Date() });
+      });
 
-    s.on("typing", (data: { contactId: number }) => {
-      if (data.contactId !== contactId) {
-        setIsTyping(true);
-      }
-    });
+      s.on("typing", (data: { contactId: number }) => {
+        if (data.contactId !== contactId) {
+          setIsTyping(true);
+        }
+      });
 
-    s.on("stop_typing", () => {
-      setIsTyping(false);
-    });
+      s.on("stop_typing", () => {
+        setIsTyping(false);
+      });
 
-    return () => {
-      s.disconnect();
-    };
+      return () => {
+        s.disconnect();
+      };
+    }
   }, [conversationId, contactId]);
 
   return {

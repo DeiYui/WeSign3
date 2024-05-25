@@ -1,13 +1,61 @@
-import { RootState } from "@/store";
-import { createContext, useEffect, useRef, useState, useContext } from "react";
+// contexts/SocketContext.tsx
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import { useSelector } from "react-redux";
-import { Socket, io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
+import { RootState } from "@/store";
+
+type SocketContextProps = {
+  isConnected: boolean;
+  socketResponse: SocketResponse;
+  sendData: (payload: Payload) => void;
+  sendTypingEvent: (payload: TypingPayload) => void;
+  sendStopTypingEvent: () => void;
+  isTyping: boolean;
+  setIsTyping: React.Dispatch<React.SetStateAction<boolean>>;
+  call: Call;
+  callAccepted: boolean;
+  myVideo: React.RefObject<HTMLVideoElement>;
+  userVideo: React.RefObject<HTMLVideoElement>;
+  stream: MediaStream | undefined;
+  name: string;
+  setName: React.Dispatch<React.SetStateAction<string>>;
+  callEnded: boolean;
+  callUser: (currentStream?: MediaStream) => void;
+  leaveCall: () => void;
+  answerCall: () => void;
+  toggleAudio: () => void;
+  toggleVideo: () => void;
+  isAudioMuted: boolean;
+  isVideoOff: boolean;
+  startVideo: (callback?: (stream: MediaStream) => void) => void;
+};
 
 const SocketContext = createContext<SocketContextProps | undefined>(undefined);
 
-const ContextProvider = ({ children }: ContextProviderProps) => {
+const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const chat = useSelector((state: RootState) => state.chat);
   const { conversationId, contactId } = chat;
+
+  // Chat socket states
+  const [socket, setSocket] = useState<Socket | undefined>(undefined);
+  const [socketResponse, setSocketResponse] = useState<SocketResponse>({
+    contactId: "",
+    content: "",
+    messageType: "",
+    mediaLocation: "",
+    createdAt: "",
+  });
+  const [isConnected, setConnected] = useState<boolean>(false);
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+
+  // Video call states
   const [callAccepted, setCallAccepted] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
   const [stream, setStream] = useState<MediaStream | undefined>();
@@ -18,22 +66,84 @@ const ContextProvider = ({ children }: ContextProviderProps) => {
   const myVideo = useRef<HTMLVideoElement | null>(null);
   const userVideo = useRef<HTMLVideoElement | null>(null);
   const connectionRef = useRef<RTCPeerConnection | null>(null);
-  const [socket, setSocket] = useState<Socket | null>(null);
+
+  const sendData = useCallback(
+    (payload: Payload) => {
+      if (socket) {
+        socket.emit("stop_typing", conversationId);
+        socket.emit("send_message", {
+          contactId: payload.contactId,
+          content: payload.content,
+          messageType: payload.messageType,
+          mediaLocation: payload.mediaLocation,
+        });
+      } else {
+        console.error("Socket is not initialized");
+      }
+    },
+    [socket, conversationId],
+  );
+
+  const sendTypingEvent = useCallback(
+    (payload: TypingPayload) => {
+      if (socket) {
+        socket.emit("typing", {
+          contactId: payload.contactId,
+          avatarLocation: payload.avatarLocation,
+        });
+      } else {
+        console.error("Socket is not initialized");
+      }
+    },
+    [socket],
+  );
+
+  const sendStopTypingEvent = useCallback(() => {
+    if (socket) {
+      console.log("Sending stop_typing event");
+      setIsTyping(false);
+      socket.emit("stop_typing", conversationId);
+    } else {
+      console.error("Socket is not initialized");
+    }
+  }, [socket, conversationId]);
 
   useEffect(() => {
     if (conversationId && contactId) {
-      // const socketBaseUrl = "http://localhost:8017";
       const socketBaseUrl = "https://chat-call-app.onrender.com";
-      const socketInstance = io(socketBaseUrl, {
+      const s = io(socketBaseUrl, {
         query: { conversationId, contactId },
       });
-      setSocket(socketInstance);
 
-      socketInstance.on("offer", (offer) => {
+      setSocket(s);
+
+      s.on("connect", () => {
+        setConnected(true);
+      });
+
+      s.on("connect_error", (error: any) => {
+        console.error("SOCKET CONNECTION ERROR", error);
+      });
+
+      s.on("get_message", (res: SocketResponse) => {
+        setSocketResponse({ ...res, createdAt: new Date() });
+      });
+
+      s.on("typing", (data: { contactId: number }) => {
+        if (data.contactId !== contactId) {
+          setIsTyping(true);
+        }
+      });
+
+      s.on("stop_typing", () => {
+        setIsTyping(false);
+      });
+
+      s.on("offer", (offer) => {
         setCall({ isReceivingCall: true, signal: offer });
       });
 
-      socketInstance.on("answer", (answer) => {
+      s.on("answer", (answer) => {
         setCallAccepted(true);
         const peerConnection = connectionRef.current;
         if (peerConnection) {
@@ -50,7 +160,7 @@ const ContextProvider = ({ children }: ContextProviderProps) => {
         }
       });
 
-      socketInstance.on("candidate", (candidate) => {
+      s.on("candidate", (candidate) => {
         if (candidate && candidate.candidate) {
           const peerConnection = connectionRef.current;
           if (peerConnection && peerConnection.remoteDescription) {
@@ -72,7 +182,7 @@ const ContextProvider = ({ children }: ContextProviderProps) => {
         }
       });
 
-      socketInstance.on("leave", () => {
+      s.on("leave", () => {
         setCallEnded(true);
 
         if (myVideo.current?.srcObject) {
@@ -88,6 +198,10 @@ const ContextProvider = ({ children }: ContextProviderProps) => {
         connectionRef.current?.close();
         connectionRef.current = null;
       });
+
+      return () => {
+        s.disconnect();
+      };
     }
   }, [conversationId, contactId]);
 
@@ -174,6 +288,7 @@ const ContextProvider = ({ children }: ContextProviderProps) => {
       console.error("Stream or socket is not available");
     }
   };
+
   const leaveCall = () => {
     setCallEnded(true);
     if (socket) {
@@ -215,6 +330,13 @@ const ContextProvider = ({ children }: ContextProviderProps) => {
   return (
     <SocketContext.Provider
       value={{
+        isConnected,
+        socketResponse,
+        sendData,
+        sendTypingEvent,
+        sendStopTypingEvent,
+        isTyping,
+        setIsTyping,
         call,
         callAccepted,
         myVideo,
@@ -238,4 +360,4 @@ const ContextProvider = ({ children }: ContextProviderProps) => {
   );
 };
 
-export { ContextProvider, SocketContext };
+export { SocketProvider, SocketContext };
