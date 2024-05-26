@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 import { colors } from "@/assets/colors";
 import { CallIcon, MessageIcon } from "@/assets/icons";
@@ -50,7 +49,7 @@ const ChatWidget = () => {
   }: any = useContext(SocketContext);
 
   useEffect(() => {
-    if (selectedContact.contactId) {
+    if (selectedContact.contactId && !chatOpen) {
       setChatOpen(true);
     }
   }, [selectedContact]);
