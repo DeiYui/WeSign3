@@ -65,4 +65,5 @@ interface ContentMessageProps {
   isFetching?: boolean;
   isTyping?: boolean;
   userInfo?: User | null;
+  contactId?: number;
 }

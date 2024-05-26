@@ -93,11 +93,17 @@ const ChatInput = ({
     return typeof file === "string" || file.type.startsWith("image/");
   };
 
+  const handleSendMessage = () => {
+    if (message.trim()) {
+      isFunction(onKeyDown) && onKeyDown(message);
+      setMessage("");
+    }
+  };
+
   // handle Keydown
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && message.trim()) {
-      isFunction(onKeyDown) && onKeyDown(message);
-      setMessage("");
+      handleSendMessage();
     }
   };
 
@@ -139,7 +145,10 @@ const ChatInput = ({
                     <EmojiIcon size={22} />
                   </div>
                 </Popover>
-                <SendOutlined className="cursor-pointer" />
+                <SendOutlined
+                  className="cursor-pointer"
+                  onClick={handleSendMessage}
+                />
               </div>
             }
             value={message}

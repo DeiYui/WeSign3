@@ -72,6 +72,14 @@ const SearchInput: React.FC = () => {
     setParams({ ...params, size: params.size + 5 });
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
+
+  const handleSearchFocus = () => {
+    setShowLstFriend(true);
+  };
+
   const loadMore =
     !isFetching && totalElements > results?.length ? (
       <div
@@ -82,7 +90,9 @@ const SearchInput: React.FC = () => {
           lineHeight: "32px",
         }}
       >
-        <Button onClick={onLoadMore}>Xem thêm</Button>
+        <Button onMouseDown={handleMouseDown} onClick={onLoadMore}>
+          Xem thêm
+        </Button>
       </div>
     ) : null;
 
@@ -100,7 +110,7 @@ const SearchInput: React.FC = () => {
         onBlur={() => {
           setShowLstFriend(false);
         }}
-        onFocus={() => setShowLstFriend(true)}
+        onFocus={handleSearchFocus}
         enterButton
       />
       {showLstFriend && params.text && (

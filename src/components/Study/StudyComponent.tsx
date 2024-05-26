@@ -134,7 +134,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
                       }}
                     >
                       <div className="absolute right-0 top-0 h-full w-full translate-x-0 transform bg-neutral-50 bg-opacity-75 transition-transform duration-500 hover:translate-x-30 group-hover:-translate-x-[100%]">
-                        <p className="ml-2 py-2 text-xl font-semibold text-black">
+                        <p className="ml-2 py-2 text-2xl font-semibold text-black">
                           {item?.content}
                         </p>
                       </div>
@@ -172,7 +172,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
             {allVocabulary[fileIndex]?.content}
           </div>
         }
-        width={1300}
+        width={1400}
         key={allVocabulary[fileIndex]?.content}
         centered
       >

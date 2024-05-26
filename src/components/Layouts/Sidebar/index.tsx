@@ -1,12 +1,13 @@
 import { colors } from "@/assets/colors";
 import { Logo } from "@/assets/icons";
-import { navigation, navigationAdmin } from "@/config/navigation";
+import { AdminSystem } from "@/config/adminNavigation";
+import { MenuSystem } from "@/config/userNavigation";
+import { VerticalNavItem } from "@/interface/Navigation";
+import { RootState, store } from "@/store";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import SidebarLinkGroup from "./SidebarLinkGroup";
-import { VerticalNavItem } from "@/interface/Navigation";
-import { RootState, store } from "@/store";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -17,6 +18,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const pathname = usePathname();
   const state: RootState = store.getState();
   const admin = state.admin;
+
   const sidebar = useRef(null);
 
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -135,7 +137,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
             {/* Menu */}
             <ul className="mb-6 flex flex-col gap-1.5">
-              {navigation?.map((item: any) => (
+              {MenuSystem()?.map((item: any) => (
                 <React.Fragment key={item.label}>
                   {item?.children?.length
                     ? renderParentItem(item)
@@ -151,7 +153,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 </h3>
 
                 <ul className="mb-6 flex flex-col gap-1.5">
-                  {navigationAdmin?.map((item: any) => (
+                  {AdminSystem()?.map((item: any) => (
                     <React.Fragment key={item.label}>
                       {item?.children?.length
                         ? renderParentItem(item)

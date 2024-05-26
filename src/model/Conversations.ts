@@ -12,6 +12,11 @@ class Conversations extends Base {
     const res = await this.apiGet(`/messages/${id}`);
     return res.data;
   };
+  // Lấy hội thoại
+  getConversationContactId = async (contactId: number) => {
+    const res = await this.apiGet(`/conversations/${contactId}`);
+    return res.data;
+  };
 }
 
 export default new Conversations("service-chat");

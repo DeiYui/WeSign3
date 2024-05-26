@@ -1,4 +1,5 @@
 // pages/index.tsx
+import VideoCall from "@/components/Chat/components/VideoCall";
 import HomePage from "@/components/Home/Home";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
@@ -25,6 +26,7 @@ export default function Home() {
   return (
     <DefaultLayout>
       <HomePage />
+      {/* <VideoCall /> */}
     </DefaultLayout>
   );
 }

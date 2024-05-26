@@ -4,6 +4,7 @@ import { isImage } from "@/components/common/constants";
 import { UserOutlined } from "@ant-design/icons";
 import { Avatar, Image, Modal, Spin } from "antd";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
+import vi from "date-fns/locale/vi";
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
@@ -50,6 +51,7 @@ export default function ContentMessage({
   isFetching,
   isTyping,
   userInfo,
+  contactId,
 }: ContentMessageProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [openPreview, setOpenPreview] = useState<boolean>(false);
@@ -68,7 +70,7 @@ export default function ContentMessage({
 
   useEffect(() => {
     scrollToBottom();
-  }, [isTyping]);
+  }, [isTyping, contactId]);
 
   const renderMess = messages.map((mes, index) => (
     <div
@@ -187,9 +189,6 @@ export default function ContentMessage({
               Tin nhắn cuối:{" "}
               {formatDistanceToNow(
                 new Date(messages[messages.length - 1].createdAt),
-                {
-                  addSuffix: true,
-                },
               )}
             </div>
           )}

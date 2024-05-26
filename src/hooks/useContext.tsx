@@ -1,15 +1,8 @@
-// contexts/SocketContext.tsx
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-} from "react";
-import { useSelector } from "react-redux";
-import { io, Socket } from "socket.io-client";
+import CallModal from "@/components/Chat/components/CallModal";
 import { RootState } from "@/store";
+import { createContext, useCallback, useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import { Socket, io } from "socket.io-client";
 
 type SocketContextProps = {
   isConnected: boolean;
@@ -24,8 +17,8 @@ type SocketContextProps = {
   myVideo: React.RefObject<HTMLVideoElement>;
   userVideo: React.RefObject<HTMLVideoElement>;
   stream: MediaStream | undefined;
-  name: string;
-  setName: React.Dispatch<React.SetStateAction<string>>;
+  name: any;
+  setName: React.Dispatch<React.SetStateAction<any>>;
   callEnded: boolean;
   callUser: (currentStream?: MediaStream) => void;
   leaveCall: () => void;
@@ -34,16 +27,16 @@ type SocketContextProps = {
   toggleVideo: () => void;
   isAudioMuted: boolean;
   isVideoOff: boolean;
-  startVideo: (callback?: (stream: MediaStream) => void) => void;
+  selectedContact: any;
+  setSelectedContact: any;
 };
 
 const SocketContext = createContext<SocketContextProps | undefined>(undefined);
 
 const SocketProvider = ({ children }: { children: React.ReactNode }) => {
+  const user: User = useSelector((state: RootState) => state.admin);
   const chat = useSelector((state: RootState) => state.chat);
-  const { conversationId, contactId } = chat;
 
-  // Chat socket states
   const [socket, setSocket] = useState<Socket | undefined>(undefined);
   const [socketResponse, setSocketResponse] = useState<SocketResponse>({
     contactId: "",
@@ -55,17 +48,36 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnected, setConnected] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState<boolean>(false);
 
-  // Video call states
   const [callAccepted, setCallAccepted] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
   const [stream, setStream] = useState<MediaStream | undefined>();
-  const [name, setName] = useState("");
+  const [name, setName] = useState<{
+    myUser: any;
+    remoteUser: any;
+  }>({ myUser: {}, remoteUser: {} });
   const [call, setCall] = useState<Call>({});
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const myVideo = useRef<HTMLVideoElement | null>(null);
   const userVideo = useRef<HTMLVideoElement | null>(null);
   const connectionRef = useRef<RTCPeerConnection | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Lấy thông tin liên hệ cần chat, call
+  const [selectedContact, setSelectedContact] = useState<{
+    contactId: number;
+    contactName: string;
+    conversationId: number;
+  }>({
+    contactId: 0,
+    contactName: "",
+    conversationId: 0,
+  });
+  const { conversationId, contactId } = selectedContact;
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
   const sendData = useCallback(
     (payload: Payload) => {
@@ -139,8 +151,23 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         setIsTyping(false);
       });
 
+      s.on("ready", (data) => {
+        setName({ ...name, remoteUser: data });
+        setCallAccepted(false);
+        openModal();
+      });
+
       s.on("offer", (offer) => {
         setCall({ isReceivingCall: true, signal: offer });
+        setCallEnded(false);
+        navigator.mediaDevices
+          .getUserMedia({ video: true, audio: true })
+          .then((currentStream) => {
+            setStream(currentStream);
+            if (myVideo.current) {
+              myVideo.current.srcObject = currentStream;
+            }
+          });
       });
 
       s.on("answer", (answer) => {
@@ -161,42 +188,23 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       s.on("candidate", (candidate) => {
-        if (candidate && candidate.candidate) {
-          const peerConnection = connectionRef.current;
-          if (peerConnection && peerConnection.remoteDescription) {
-            peerConnection
-              .addIceCandidate(new RTCIceCandidate(candidate))
-              .then(() => {
-                console.log("ICE candidate added successfully");
-              })
-              .catch((error) => {
-                console.error("Error adding ICE candidate:", error);
-              });
-          } else {
-            console.error(
-              "Peer connection or remote description is not available",
-            );
-          }
-        } else {
-          console.error("Invalid candidate data:", candidate);
+        const peerConnection = connectionRef.current;
+        if (peerConnection && candidate) {
+          peerConnection
+            .addIceCandidate(new RTCIceCandidate(candidate))
+            .then(() => {
+              console.log("ICE candidate added successfully");
+            })
+            .catch((error) => {
+              console.error("Error adding ICE candidate:", error);
+            });
         }
       });
 
       s.on("leave", () => {
         setCallEnded(true);
-
-        if (myVideo.current?.srcObject) {
-          (myVideo.current.srcObject as MediaStream)
-            .getTracks()
-            .forEach((track) => track.stop());
-        }
-        if (userVideo.current?.srcObject) {
-          (userVideo.current.srcObject as MediaStream)
-            .getTracks()
-            .forEach((track) => track.stop());
-        }
-        connectionRef.current?.close();
-        connectionRef.current = null;
+        endCallCleanup();
+        closeModal();
       });
 
       return () => {
@@ -205,29 +213,8 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [conversationId, contactId]);
 
-  const startVideo = (callback?: (stream: MediaStream) => void) => {
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then((currentStream) => {
-        setStream(currentStream);
-        if (myVideo.current) {
-          myVideo.current.srcObject = currentStream;
-        }
-        if (socket) {
-          socket.emit("ready");
-        }
-        if (callback) {
-          callback(currentStream);
-        }
-      })
-      .catch((error) => {
-        console.error("Error accessing media devices:", error);
-      });
-  };
-
   const answerCall = () => {
     setCallAccepted(true);
-
     const peer = new RTCPeerConnection();
 
     peer.onicecandidate = (event) => {
@@ -245,48 +232,93 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     if (stream) {
       stream.getTracks().forEach((track) => peer.addTrack(track, stream));
     }
-    peer.setRemoteDescription(new RTCSessionDescription(call.signal));
-    peer.createAnswer().then((answer) => {
-      peer.setLocalDescription(answer);
-      if (socket) {
-        socket.emit("answer", answer);
-      }
-    });
+
+    peer
+      .setRemoteDescription(new RTCSessionDescription(call.signal))
+      .then(() => {
+        return peer.createAnswer();
+      })
+      .then((answer) => {
+        return peer.setLocalDescription(answer);
+      })
+      .then(() => {
+        if (socket) {
+          socket.emit("answer", peer.localDescription);
+        }
+      })
+      .catch((error) => {
+        console.error("Error handling answer call:", error);
+      });
 
     connectionRef.current = peer;
   };
 
-  const callUser = (currentStream?: MediaStream) => {
-    const activeStream = currentStream || stream;
-    if (activeStream && socket) {
-      const peer = new RTCPeerConnection();
-
-      peer.onicecandidate = (event) => {
-        if (event.candidate) {
-          socket.emit("candidate", event.candidate);
+  const callUser = () => {
+    openModal();
+    setCallEnded(false);
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: true })
+      .then((currentStream) => {
+        setStream(currentStream);
+        if (myVideo.current) {
+          myVideo.current.srcObject = currentStream;
+          if (socket) {
+            socket.emit("ready", user);
+          }
         }
-      };
+        const peer = new RTCPeerConnection();
 
-      peer.ontrack = (event) => {
-        if (userVideo.current) {
-          userVideo.current.srcObject = event.streams[0];
-        }
-      };
+        peer.onicecandidate = (event) => {
+          if (event.candidate && socket) {
+            socket.emit("candidate", event.candidate);
+          }
+        };
 
-      activeStream
-        .getTracks()
-        .forEach((track) => peer.addTrack(track, activeStream));
+        peer.ontrack = (event) => {
+          if (userVideo.current) {
+            userVideo.current.srcObject = event.streams[0];
+          }
+        };
 
-      peer.createOffer().then((offer) => {
-        peer.setLocalDescription(offer).then(() => {
-          socket.emit("offer", offer);
+        currentStream.getTracks().forEach((track) => {
+          peer.addTrack(track, currentStream);
         });
-      });
 
-      connectionRef.current = peer;
-    } else {
-      console.error("Stream or socket is not available");
+        peer
+          .createOffer()
+          .then((offer) => {
+            return peer.setLocalDescription(offer);
+          })
+          .then(() => {
+            if (socket) {
+              socket.emit("offer", peer.localDescription);
+            }
+          })
+          .catch((error) => {
+            console.error("Error handling call user:", error);
+          });
+
+        connectionRef.current = peer;
+      })
+      .catch((error) => {
+        console.error("Error accessing media devices.", error);
+      });
+  };
+
+  const endCallCleanup = () => {
+    if (myVideo.current?.srcObject) {
+      const tracks = (myVideo.current.srcObject as MediaStream).getTracks();
+      tracks.forEach((track) => track.stop());
+      myVideo.current.srcObject = null;
     }
+    if (userVideo.current?.srcObject) {
+      const tracks = (userVideo.current.srcObject as MediaStream).getTracks();
+      tracks.forEach((track) => track.stop());
+      userVideo.current.srcObject = null;
+    }
+    connectionRef.current?.close();
+    connectionRef.current = null;
+    setStream(undefined);
   };
 
   const leaveCall = () => {
@@ -294,27 +326,16 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     if (socket) {
       socket.emit("leave");
     }
-    if (myVideo.current?.srcObject) {
-      (myVideo.current.srcObject as MediaStream)
-        .getTracks()
-        .forEach((track) => track.stop());
-    }
-    if (userVideo.current?.srcObject) {
-      (userVideo.current.srcObject as MediaStream)
-        .getTracks()
-        .forEach((track) => track.stop());
-    }
-    connectionRef.current?.close();
-    connectionRef.current = null;
+    endCallCleanup();
+    closeModal();
   };
 
   const toggleAudio = () => {
-    if (stream && socket) {
+    if (stream) {
       stream.getAudioTracks().forEach((track) => {
         track.enabled = !track.enabled;
       });
       setIsAudioMuted(!isAudioMuted);
-      socket.emit("toggleAudio", { room: 1, isAudioOn: !isAudioMuted });
     }
   };
 
@@ -352,12 +373,32 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         toggleVideo,
         isAudioMuted,
         isVideoOff,
-        startVideo,
+        selectedContact,
+        setSelectedContact,
       }}
     >
       {children}
+
+      {/* Modal call */}
+      <CallModal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        myVideoRef={myVideo}
+        userVideoRef={userVideo}
+        callAccepted={callAccepted}
+        callUser={callUser}
+        answerCall={answerCall}
+        call={call}
+        callEnded={callEnded}
+        leaveCall={leaveCall}
+        toggleAudio={toggleAudio}
+        isAudioMuted={isAudioMuted}
+        toggleVideo={toggleVideo}
+        isVideoOff={isVideoOff}
+        name={name}
+      />
     </SocketContext.Provider>
   );
 };
 
-export { SocketProvider, SocketContext };
+export { SocketContext, SocketProvider };

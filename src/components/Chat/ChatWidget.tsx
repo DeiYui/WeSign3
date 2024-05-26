@@ -14,7 +14,6 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import CallVideoModal from "./components/CallVideoModal";
 import ChatInput from "./components/ChatInput";
 import ContactButton from "./components/ContactButton";
 import ContentMessage from "./components/ContentMessage";
@@ -26,25 +25,35 @@ const item = {
 
 const ChatWidget = () => {
   const dispatch = useDispatch();
-  const user = useSelector((state: RootState) => state.admin);
+  const user: User = useSelector((state: RootState) => state.admin);
   // trạng thái mơ chat
   const [chatOpen, setChatOpen] = useState(false);
-  // Select user
-  const [selectedContact, setSelectedContact] = useState<{
-    contactId: number;
-    contactName: string;
-    conversationId: number;
-  }>({
-    contactId: 0,
-    contactName: "",
-    conversationId: 0,
-  });
-
   // danh sách tin nhắn
   const [messageList, setMessageList] = useState<any[]>([]);
 
   // files
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
+
+  //socket
+  const {
+    socketResponse,
+    sendData,
+    sendTypingEvent,
+    sendStopTypingEvent,
+    isTyping,
+    setIsTyping,
+    // Call
+    callUser,
+    setName,
+    selectedContact,
+    setSelectedContact,
+  }: any = useContext(SocketContext);
+
+  useEffect(() => {
+    if (selectedContact.contactId) {
+      setChatOpen(true);
+    }
+  }, [selectedContact]);
 
   // API lấy danh sách hội thoại
   const { data: lstConversations } = useQuery({
@@ -101,30 +110,10 @@ const ChatWidget = () => {
     queryKey: ["getUserInfo", selectedContact.contactId],
     queryFn: async () => {
       const res = await User.getUserInfo(selectedContact.contactId);
-      return res.data;
+      return res.data as User;
     },
     enabled: !!selectedContact.contactId,
   });
-
-  //socket
-  const {
-    socketResponse,
-    sendData,
-    sendTypingEvent,
-    sendStopTypingEvent,
-    isTyping,
-    setIsTyping,
-  }: any = useContext(SocketContext);
-  // open call video
-  const [openCall, setOpenCall] = useState<boolean>(false);
-  const {
-    callAccepted,
-    myVideo,
-    userVideo,
-    callUser,
-    leaveCall,
-    startVideo,
-  }: any = useContext(SocketContext);
 
   useEffect(() => {
     if (socketResponse) {
@@ -189,10 +178,11 @@ const ChatWidget = () => {
                 <div
                   className="hover:cursor-pointer"
                   onClick={() => {
-                    setOpenCall(true);
-                    startVideo((currentStream: any) => {
-                      callUser(currentStream);
+                    setName({
+                      myUser: user,
+                      remoteUser: userInfo,
                     });
+                    callUser();
                   }}
                 >
                   <CallIcon size={24} color="white" />
@@ -207,7 +197,10 @@ const ChatWidget = () => {
         </div>
         {/* content */}
         <div className="relative flex w-full ">
-          <div className="custom-scrollbar flex h-[700px] w-[60px] shrink-0 flex-col">
+          <div
+            className="custom-scrollbar flex h-[700px] w-[60px] shrink-0 flex-col"
+            style={{ borderRight: "1px solid #cccc" }}
+          >
             {lstConversations &&
               lstConversations.map((contact) => {
                 return (
@@ -250,6 +243,7 @@ const ChatWidget = () => {
                 userInfo={userInfo}
                 isFetching={isFetchingMessage}
                 isTyping={isTyping}
+                contactId={selectedContact.contactId}
               />
             </div>
           ) : (
@@ -287,17 +281,6 @@ const ChatWidget = () => {
           </div>
         ) : null}
       </div>
-
-      {/* Call video */}
-      <CallVideoModal
-        openModal={openCall}
-        setOpenModal={setOpenCall}
-        userInfo={userInfo}
-        currentUserVideoRef={myVideo}
-        remoteVideoRef={userVideo}
-        endCall={leaveCall}
-        callAccepted={callAccepted}
-      />
     </div>
   );
 };

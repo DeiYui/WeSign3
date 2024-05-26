@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Modal, Button, Avatar, Image, message, Spin } from "antd";
 import {
   UserOutlined,
@@ -9,6 +9,8 @@ import {
 } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import User from "@/model/User";
+import Conversations from "@/model/Conversations";
+import { SocketContext } from "@/hooks/useContext";
 
 interface ProfileModalProps {
   visible: boolean;
@@ -24,6 +26,9 @@ const DetailFriend: React.FC<ProfileModalProps> = ({
   showFooter = true,
 }) => {
   const queryClient = useQueryClient();
+
+  const { selectedContact, setSelectedContact }: any =
+    useContext(SocketContext);
 
   // Thông tin user
   const { data: userInfo, isFetching } = useQuery({
@@ -150,7 +155,21 @@ const DetailFriend: React.FC<ProfileModalProps> = ({
               </Button>
             )}
 
-            <Button type="default">Chat</Button>
+            <Button
+              type="default"
+              onClick={async () => {
+                const res =
+                  await Conversations.getConversationContactId(userId);
+                setSelectedContact({
+                  conversationId: res.data.conversationId,
+                  contactId: userInfo?.userId,
+                  contactName: userInfo?.name,
+                });
+                onClose();
+              }}
+            >
+              Chat
+            </Button>
           </div>
         ) : null}
       </Spin>
