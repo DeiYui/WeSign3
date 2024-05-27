@@ -8,7 +8,7 @@ import { RootState } from "@/store";
 import { chatAndCall } from "@/store/slices/chatSlice";
 import { CloseOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Typography } from "antd";
+import { Spin, Typography } from "antd";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useContext, useEffect, useState } from "react";
@@ -35,6 +35,7 @@ const ChatWidget = () => {
 
   //socket
   const {
+    isLoading,
     socketResponse,
     sendData,
     sendTypingEvent,
@@ -236,14 +237,16 @@ const ChatWidget = () => {
                 overflowY: "auto",
               }}
             >
-              <ContentMessage
-                messages={messageList}
-                user={user}
-                userInfo={userInfo}
-                isFetching={isFetchingMessage}
-                isTyping={isTyping}
-                contactId={selectedContact.contactId}
-              />
+              <Spin spinning={isLoading}>
+                <ContentMessage
+                  messages={messageList}
+                  user={user}
+                  userInfo={userInfo}
+                  isFetching={isFetchingMessage}
+                  isTyping={isTyping}
+                  contactId={selectedContact.contactId}
+                />
+              </Spin>
             </div>
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center">

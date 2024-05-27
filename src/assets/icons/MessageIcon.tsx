@@ -13,7 +13,7 @@ export const MessageIcon: React.FC<IconProps> = ({
       height={size}
       viewBox="0 0 32 32"
     >
-      <g fill="none" fill-rule="evenodd">
+      <g fill="none" fillRule="evenodd">
         <circle cx="16" cy="16" r="16" fill={color} />
         <path
           fill="#fff"

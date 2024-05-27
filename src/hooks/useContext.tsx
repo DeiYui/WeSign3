@@ -29,6 +29,7 @@ type SocketContextProps = {
   isVideoOff: boolean;
   selectedContact: any;
   setSelectedContact: any;
+  isLoading?: boolean;
 };
 
 const SocketContext = createContext<SocketContextProps | undefined>(undefined);
@@ -61,7 +62,7 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const myVideo = useRef<HTMLVideoElement | null>(null);
   const userVideo = useRef<HTMLVideoElement | null>(null);
   const connectionRef = useRef<RTCPeerConnection | null>(null);
-
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Lấy thông tin liên hệ cần chat, call
@@ -122,6 +123,7 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (conversationId && contactId) {
+      setIsLoading(true);
       const socketBaseUrl = "https://chat-call-app.onrender.com";
       const s = io(socketBaseUrl, {
         query: { conversationId, contactId },
@@ -131,6 +133,7 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
       s.on("connect", () => {
         setConnected(true);
+        setIsLoading(false);
       });
 
       s.on("connect_error", (error: any) => {
@@ -351,6 +354,7 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <SocketContext.Provider
       value={{
+        isLoading,
         isConnected,
         socketResponse,
         sendData,

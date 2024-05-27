@@ -68,7 +68,7 @@ export const TopicIcon: React.FC<IconProps> = ({
         fill="none"
         stroke="#424242"
         stroke-miterlimit="10"
-        stroke-width="2.07"
+        strokeWidth="2.07"
         d="M45.21 83.7L19.1 46.76"
       />
       <path

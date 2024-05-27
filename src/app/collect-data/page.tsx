@@ -1,6 +1,7 @@
 // pages/auth/login.tsx
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
+import CollectData from "./CollectData";
 
 export const metadata: Metadata = {
   title: "Collect-data - We_sign",
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 export default function CollectDataPage() {
   return (
     <DefaultLayout>
-      <div className="">Thu thập dữ liệu</div>
+      <CollectData />
     </DefaultLayout>
   );
 }

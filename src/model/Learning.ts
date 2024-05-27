@@ -9,7 +9,7 @@ class Learning extends Base {
   };
 
   // Danh sách từ vựng theo topics
-  getVocabularyTopic = async (topicId: number) => {
+  getVocabularyTopic = async (topicId: number | string) => {
     const res = await this.apiGet(`/vocabularies/${topicId}`);
     return res.data;
   };
@@ -17,6 +17,18 @@ class Learning extends Base {
   // Tìm kiếm tử
   searchVocabulary = async (params: any) => {
     const res = await this.apiPost(`/vocabularies/search`, params);
+    return res.data;
+  };
+
+  // Danh sách nội dung tình nguyện viền đăng
+  getTableDataVolunteer = async (body: any) => {
+    const res = await this.apiPost(`/data-collection/search-for-me`, body);
+    return res.data;
+  };
+
+  // Thêm data tình nguyện viên đăng
+  sendData = async (body: any) => {
+    const res = await this.apiPost(`/data-collection`, body);
     return res.data;
   };
 }
