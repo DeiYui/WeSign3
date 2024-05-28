@@ -1,7 +1,7 @@
-import Chart from "@/components/Charts/page";
-import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import { Metadata } from "next";
 import React from "react";
+import ExamListPage from "./ExamListPage";
 
 export const metadata: Metadata = {
   title: "Exam - We_sign",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 const ExamPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <div className="">Kiểm tra</div>
+      <ExamListPage />
     </DefaultLayout>
   );
 };

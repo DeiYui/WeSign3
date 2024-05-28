@@ -190,7 +190,10 @@ const ChatWidget = () => {
               ) : null}
               <CloseOutlined
                 style={{ color: "white", fontWeight: "bold" }}
-                onClick={() => setChatOpen(false)}
+                onClick={() => {
+                  setChatOpen(false);
+                  setSelectedContact({ ...selectedContact, contactId: 0 });
+                }}
               />
             </div>
           )}

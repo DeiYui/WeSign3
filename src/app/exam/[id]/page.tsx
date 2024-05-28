@@ -1,10 +1,11 @@
-import DashboardApp from "@/components/Dashboard/DashboardApp";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
+import React from "react";
+import ExamDetailPage from "./QuestionsPage";
 
 export const metadata: Metadata = {
-  title: "Dashboard - We_sign",
-  description: "Dashboard page for We_sign",
+  title: "ExamDetail - We_sign",
+  description: "ExamDetail page for We_sign",
   icons: {
     icon: [
       {
@@ -20,12 +21,13 @@ export const metadata: Metadata = {
     ],
   },
 };
-const Dashboard = () => {
+
+const ExamDetail: React.FC = () => {
   return (
     <DefaultLayout>
-      <DashboardApp />
+      <ExamDetailPage />
     </DefaultLayout>
   );
 };
 
-export default Dashboard;
+export default ExamDetail;

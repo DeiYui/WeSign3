@@ -1,5 +1,4 @@
 "use client";
-
 import { CallIcon } from "@/assets/icons";
 import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
 import Learning from "@/model/Learning";
@@ -36,6 +35,7 @@ interface FilterParams {
   status: number;
   createdFrom: string;
   createdTo: string;
+  score: number;
 }
 
 const optionStatus = [
@@ -50,6 +50,53 @@ const optionStatus = [
   {
     label: "Từ chối",
     value: 300,
+  },
+];
+
+const optionScore = [
+  {
+    label: "0",
+    value: 0,
+  },
+  {
+    label: "1",
+    value: 1,
+  },
+  {
+    label: "2",
+    value: 2,
+  },
+  {
+    label: "3",
+    value: 3,
+  },
+  {
+    label: "4",
+    value: 4,
+  },
+  {
+    label: "5",
+    value: 5,
+  },
+  {
+    label: "6",
+    value: 6,
+  },
+  {
+    label: "7",
+    value: 7,
+  },
+  {
+    label: "8",
+    value: 8,
+  },
+  {
+    label: "9",
+    value: 9,
+  },
+  {
+    label: "10",
+    value: 10,
   },
 ];
 
@@ -72,6 +119,7 @@ export default function CollectData() {
     status: 100,
     createdFrom: "",
     createdTo: "",
+    score: 0,
   });
 
   //Modal
@@ -351,8 +399,6 @@ export default function CollectData() {
     }
   };
 
-  console.log("modalVideo.previewVideo", modalVideo.previewVideo);
-
   return (
     <div className="">
       {/* Heding */}
@@ -417,6 +463,13 @@ export default function CollectData() {
             });
           }}
         />
+        <Select
+          className="w-full"
+          allowClear
+          placeholder="Điểm"
+          options={optionScore}
+          onChange={(e) => setFilterParams({ ...filterParams, score: e })}
+        />
       </div>
       <div className="w-full text-right">
         <ButtonSecondary
@@ -451,9 +504,10 @@ export default function CollectData() {
             status: 0,
             createdFrom: "",
             createdTo: "",
+            score: 0,
           });
         }}
-        width={1200}
+        width={1300}
         footer={null}
         destroyOnClose
       >
@@ -572,11 +626,11 @@ export default function CollectData() {
                   mediaBlobUrl,
                 }) => (
                   <div>
-                    <p>Recording Status: {status}</p>
+                    <p>Trạng thái quay video: {status}</p>
                     <Button
                       onClick={() => handleStartRecording(startRecording)}
                       disabled={
-                        status === "idle" ||
+                        status === "recording" ||
                         !modalVideo.previewImg ||
                         !modalVideo.previewVideo
                       }
@@ -616,7 +670,7 @@ export default function CollectData() {
                     >
                       Chụp ảnh
                     </Button>
-                    <Button>Tải lên</Button>
+                    <Button onClick={handleDownload}>Tải lên</Button>
                     <Button
                       disabled={!mediaBlobUrl}
                       onClick={() => {

@@ -17,3 +17,4 @@ export * from "./ExamIcon";
 export * from "./CollectDataIcon";
 export * from "./ChatIcon";
 export * from "./EndCallIcon";
+export * from "./ClassIcon";

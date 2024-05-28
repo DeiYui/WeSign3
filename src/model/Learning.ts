@@ -8,6 +8,12 @@ class Learning extends Base {
     return res.data;
   };
 
+  // Danh sách từ vựng
+  getAllVocabulary = async () => {
+    const res = await this.apiGet("/vocabularies/all");
+    return res.data;
+  };
+
   // Danh sách từ vựng theo topics
   getVocabularyTopic = async (topicId: number | string) => {
     const res = await this.apiGet(`/vocabularies/${topicId}`);
@@ -21,8 +27,8 @@ class Learning extends Base {
   };
 
   // Danh sách nội dung tình nguyện viền đăng
-  getTableDataVolunteer = async (body: any) => {
-    const res = await this.apiPost(`/data-collection/search-for-me`, body);
+  getTableDataVolunteer = async (params: any) => {
+    const res = await this.apiGet(`/data-collection/search-for-me/v2`, params);
     return res.data;
   };
 

@@ -5,7 +5,7 @@ import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
 import { default as Learning, default as Topic } from "@/model/Learning";
 import { useQuery } from "@tanstack/react-query";
 import { Avatar, Button, Image, Input, List, Modal, Skeleton } from "antd";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 
 export interface SectionHero2Props {
@@ -30,6 +30,9 @@ export const HERO2_DEMO_DATA: Hero2DataType[] = [
 ];
 
 const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
+  const searchParams = useSearchParams();
+  const topicId = Number(searchParams.get("topicId"));
+
   const [showModal, setShowModal] = useState<{
     open: boolean;
     topicId: number;
@@ -61,12 +64,18 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
     enabled: !!showModal.topicId,
   });
 
+  useEffect(() => {
+    if (topicId) {
+      setShowModal({ open: false, topicId });
+    }
+  }, [topicId]);
+
   // Tìm kiếm
   useEffect(() => {
     if (allTopics) {
       setFilteredTopics(
         allTopics.filter((topic) =>
-          topic.content.toLowerCase().includes(searchText.toLowerCase()),
+          topic?.content?.toLowerCase().includes(searchText.toLowerCase()),
         ),
       );
     }

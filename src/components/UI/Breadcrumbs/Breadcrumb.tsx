@@ -32,7 +32,9 @@ const Breadcrumb = ({ itemBreadcrumb, pageName }: BreadcrumbProps) => {
                         : "",
                   }}
                 >
-                  {item.name} /
+                  {index === itemBreadcrumb?.length - 1
+                    ? item.name
+                    : `${item.name} /`}
                 </div>
               </Link>
             </li>
