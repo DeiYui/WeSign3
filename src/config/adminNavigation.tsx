@@ -25,9 +25,9 @@ export const AdminSystem = () => {
           hidden: false,
         },
         {
-          key: "/learning-management/exam",
+          key: "/learning-management/check-list",
           label: "Bài kiểm tra",
-          path: "/learning-management/exam",
+          path: "/learning-management/check-list",
           hidden: false,
         },
       ],

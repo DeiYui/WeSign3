@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Input, Select, Table } from "antd";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { CustomTable } from "../(admin)/learning-management/check-list/ExamList";
 
 interface Exam {
   key: string;
@@ -82,7 +83,7 @@ const ExamListPage: React.FC = () => {
       key: "status",
       render: (status: number) =>
         status === 1 ? (
-          <div className="caption-12-medium flex w-[120px] items-center justify-center rounded bg-green-200 px-4 py-2 text-green-700">
+          <div className="caption-12-medium flex w-[120px] items-center justify-center rounded bg-green-100 px-4 py-2 text-green-700">
             Đã hoàn thành
           </div>
         ) : (
@@ -116,7 +117,7 @@ const ExamListPage: React.FC = () => {
           onChange={(e) => setFilterParams({ ...filterParams, status: e })}
         />
       </div>
-      <Table dataSource={exams} columns={columns} />
+      <CustomTable dataSource={exams} columns={columns as any} />
     </div>
   );
 };

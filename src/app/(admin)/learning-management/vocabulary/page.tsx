@@ -2,6 +2,7 @@ import Chart from "@/components/Charts/page";
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React from "react";
+import VocabularyList from "./VocabularyList";
 
 export const metadata: Metadata = {
   title: "Management-vocabulary- We_sign",
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
 const ManagementVocabularyPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <div className="">Quản lý ký hiệu</div>
+      <VocabularyList />
     </DefaultLayout>
   );
 };

@@ -1,6 +1,8 @@
 /* eslint-disable react/display-name */
-import React, { InputHTMLAttributes, useRef } from "react";
+import React, { InputHTMLAttributes, useRef, useState, useEffect } from "react";
 import styled from "styled-components";
+import { CloseCircleOutlined } from "@ant-design/icons";
+import { isFunction } from "lodash";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   sizeClass?: string;
@@ -8,6 +10,8 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   rounded?: string;
   suffixIcon?: React.ReactNode;
   onSuffixClick?: (value: string) => void;
+  allowClear?: boolean;
+  onClear?: () => void;
 }
 
 const InputWrapper = styled.div`
@@ -24,6 +28,14 @@ const SuffixIcon = styled.div`
   align-items: center;
 `;
 
+const ClearIcon = styled(CloseCircleOutlined)`
+  position: absolute;
+  right: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+`;
+
 const InputPrimary = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
@@ -34,11 +46,14 @@ const InputPrimary = React.forwardRef<HTMLInputElement, InputProps>(
       type = "text",
       suffixIcon,
       onSuffixClick,
+      allowClear = false,
+      onClear,
       ...args
     },
     ref,
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
+    const [value, setValue] = useState(args.value || "");
 
     const handleSuffixClick = () => {
       if (inputRef.current) {
@@ -49,17 +64,45 @@ const InputPrimary = React.forwardRef<HTMLInputElement, InputProps>(
       }
     };
 
+    const handleClearClick = () => {
+      if (inputRef.current) {
+        inputRef.current.value = "";
+        setValue("");
+        isFunction(onClear) && onClear();
+        if (args.onChange) {
+          const event = new Event("input", { bubbles: true });
+          inputRef.current.dispatchEvent(event);
+        }
+      }
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setValue(e.target.value);
+      if (args.onChange) {
+        args.onChange(e);
+      }
+    };
+
+    useEffect(() => {
+      if (args.value !== undefined) {
+        setValue(args.value);
+      }
+    }, [args.value]);
+
     return (
       <InputWrapper className={className}>
         <input
           ref={inputRef}
           type={type}
           className={`focus:border-primary-300 focus:ring-primary-200 dark:focus:ring-primary-6000 relative block w-full border-neutral-200 bg-white focus:ring focus:ring-opacity-50 disabled:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:ring-opacity-25 dark:disabled:bg-neutral-800 ${rounded} ${fontClass} ${sizeClass}`}
+          value={value}
+          onChange={handleInputChange}
           {...args}
         />
         {suffixIcon && (
           <SuffixIcon onClick={handleSuffixClick}>{suffixIcon}</SuffixIcon>
         )}
+        {allowClear && value && <ClearIcon onClick={handleClearClick} />}
       </InputWrapper>
     );
   },
