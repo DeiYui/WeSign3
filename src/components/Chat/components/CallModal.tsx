@@ -171,7 +171,7 @@ const CallModal: React.FC<CallModalProps> = ({
                 className="cursor-pointer rounded-full bg-neutral-500 p-2.5"
                 onClick={toggleAudio}
               >
-                {isAudioMuted ? (
+                {!isAudioMuted ? (
                   <AudioMutedOutlined
                     style={{ fontSize: 20, color: "white" }}
                   />
