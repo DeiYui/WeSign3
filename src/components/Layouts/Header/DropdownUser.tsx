@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Avatar, Button, Form, Image, Input, Modal, message } from "antd";
@@ -119,6 +120,8 @@ const DropdownUser = ({ admin }: { admin: User }) => {
           className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
           onClick={() => {
             dispatch(logout());
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
             router.push("/login");
           }}
         >
