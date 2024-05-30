@@ -38,6 +38,12 @@ class Learning extends Base {
     return res.data;
   };
 
+  // Thêm từ vựng mới
+  addVocabulary = async (body: any) => {
+    const res = await this.apiPost("/vocabularies", body);
+    return res.data;
+  };
+
   // Danh sách từ vựng theo topics
   getVocabularyTopic = async (topicId: number | string) => {
     const res = await this.apiGet(`/vocabularies/${topicId}`);

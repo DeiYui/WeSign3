@@ -27,6 +27,7 @@ import React, { useState } from "react";
 import { CustomTable } from "../check-list/ExamList";
 
 interface Topic {
+  topicId?: number;
   content: string;
   imageLocation: string;
   videoLocation?: string;
@@ -82,6 +83,7 @@ const TopicList: React.FC = () => {
         `${modalCreate.typeModal === "create" ? "Thêm mới thành công" : "Cập nhật thành công"}`,
       );
       refetch();
+      setModalCreate({ ...modalCreate, open: false, file: "" });
     },
   });
 
@@ -148,6 +150,7 @@ const TopicList: React.FC = () => {
               form.setFieldsValue({
                 content: record.content,
                 file: record.imageLocation,
+                topicId: record.topicId,
               });
               setModalCreate({
                 ...modalCreate,
@@ -286,14 +289,24 @@ const TopicList: React.FC = () => {
           <Form
             form={form}
             layout="vertical"
-            onFinish={(value) =>
-              mutationCreateUpdate.mutate({
-                content: value.content,
-                imageLocation: value.file,
-                videoLocation: "",
-              })
-            }
+            onFinish={(value) => {
+              if (modalCreate.typeModal === "create") {
+                mutationCreateUpdate.mutate({
+                  content: value.content,
+                  imageLocation: value.file,
+                  videoLocation: "",
+                });
+              } else {
+                mutationCreateUpdate.mutate({
+                  topicId: value?.topicId,
+                  content: value.content,
+                  imageLocation: value.file,
+                  videoLocation: "",
+                });
+              }
+            }}
           >
+            <Form.Item name="topicId" hidden />
             <Form.Item
               name="content"
               label="Tên chủ đề"
