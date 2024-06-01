@@ -38,9 +38,33 @@ class Learning extends Base {
     return res.data;
   };
 
+  // CHi tiết từ vựng
+  getDetailVocabulary = async (id?: string) => {
+    const res = await this.apiGet(`/vocabularies/${id}`);
+    return res.data;
+  };
+
   // Thêm từ vựng mới
   addVocabulary = async (body: any) => {
     const res = await this.apiPost("/vocabularies", body);
+    return res.data;
+  };
+
+  // edit
+  editVocabulary = async (body: any) => {
+    const res = await this.apiPut("/vocabularies", body);
+    return res.data;
+  };
+
+  // Thêm từ nhiều video, hình ảnh
+  addLstVocabulary = async (body: any) => {
+    const res = await this.apiPost("/vocabularies/add-list", body);
+    return res.data;
+  };
+
+  // Xoá từ vựng
+  deleteVocabulary = async (id: any) => {
+    const res = await this.apiDelete(`/vocabularies/${id}`);
     return res.data;
   };
 

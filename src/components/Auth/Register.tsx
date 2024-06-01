@@ -149,6 +149,7 @@ const Register: React.FC = () => {
           name="role"
           required
           rules={[validateRequireInput("Quyền không được bỏ trống")]}
+          initialValue={"ADMIN"}
         >
           <Select
             defaultValue={"ADMIN"}

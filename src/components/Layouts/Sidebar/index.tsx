@@ -35,6 +35,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     localStorage.setItem("sidebarExpanded", `${!sidebarExpanded}`);
   };
 
+  console.log("pathname", pathname);
+
   // Render sideBar có children
   const renderParentItem = (item: VerticalNavItem) => (
     <SidebarLinkGroup activeCondition={pathname.includes(item.path)}>

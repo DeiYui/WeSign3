@@ -1,20 +1,35 @@
 "use client";
 import { colors } from "@/assets/colors";
+import BasicDrawer from "@/components/UI/draw/BasicDraw";
 import Learning from "@/model/Learning";
-import { EyeOutlined, PlusOutlined } from "@ant-design/icons";
+import UploadModel from "@/model/UploadModel";
+import { validateRequireInput } from "@/utils/validation/validtor";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  EyeOutlined,
+  PlusOutlined,
+  UploadOutlined,
+} from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Button,
+  Form,
   Image,
   Input,
   Modal,
   Select,
+  Upload,
   UploadProps,
   message,
 } from "antd";
+import { useForm } from "antd/es/form/Form";
+import TextArea from "antd/es/input/TextArea";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { CustomTable } from "../check-list/ExamList";
-import { useRouter } from "next/navigation";
+import { isImageLocation } from "./create-edit/VocabularyCreateUpdate";
+import { CloseIcon } from "@/assets/icons";
 
 interface FilterParams {
   page: number;
@@ -26,6 +41,8 @@ interface FilterParams {
 const VocabularyList: React.FC = () => {
   //Hooks
   const router = useRouter();
+  const [form] = useForm();
+
   // danh sách topics
   const [filterParams, setFilterParams] = useState<FilterParams>({
     page: 1,
@@ -41,6 +58,17 @@ const VocabularyList: React.FC = () => {
   }>({
     open: false,
     file: "",
+  });
+
+  const [openEdit, setOpenEdit] = useState<boolean>(false);
+
+  // Modal thêm mới
+  const [preview, setPreview] = useState<{
+    fileImage: string;
+    fileVideo: string;
+  }>({
+    fileImage: "",
+    fileVideo: "",
   });
 
   const handleTableChange = (newPage: number) => {
@@ -62,7 +90,11 @@ const VocabularyList: React.FC = () => {
   });
 
   // API lấy danh sách từ vựng
-  const { data: allVocabulary, isFetching } = useQuery({
+  const {
+    data: allVocabulary,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ["getAllVocalizations", filterParams],
     queryFn: async () => {
       const res = await Learning.getAllVocabulary(filterParams);
@@ -92,9 +124,56 @@ const VocabularyList: React.FC = () => {
 
   // Xoá chủ đề
   const mutationDel = useMutation({
-    mutationFn: Learning.deleteTopics,
+    mutationFn: Learning.deleteVocabulary,
     onSuccess: () => {
-      message.success("Xoá chủ đề thành công");
+      message.success("Xoá từ vựng thành công");
+      refetch();
+    },
+  });
+
+  // Thêm mới / chỉnh sửa  topics
+  const mutationCreate = useMutation({
+    mutationFn: Learning.editVocabulary,
+    onSuccess: () => {
+      message.success("Cập nhật từ thành công");
+      router.back();
+    },
+    onError: () => {
+      message.error("Cập nhật từ vựng thất bại");
+    },
+  });
+
+  // Upload file
+  const uploadFileMutation = useMutation({
+    mutationFn: UploadModel.uploadFile,
+    onSuccess: async (res: any) => {
+      if (isImageLocation(res)) {
+        setPreview({
+          ...preview,
+          fileImage: res,
+        });
+        form.setFieldValue("vocabularyImageReqs", [
+          {
+            imageLocation: res,
+            primary: true,
+          },
+        ]);
+      } else {
+        setPreview({
+          ...preview,
+          fileVideo: res,
+        });
+        form.setFieldValue("vocabularyVideoReqs", [
+          {
+            videoLocation: res,
+            primary: true,
+          },
+        ]);
+      }
+    },
+    onError: (error: Error) => {
+      console.error(error);
+      message.error("File đã được lưu trước đó");
     },
   });
 
@@ -180,10 +259,56 @@ const VocabularyList: React.FC = () => {
     },
     {
       title: "Hành động",
-      dataIndex: "action",
-      key: "action",
+      dataIndex: "vocabularyId",
+      key: "vocabularyId",
+      render: (value: any, record: any) => (
+        <div className="flex space-x-2">
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => {
+              setOpenEdit(true);
+              setPreview({
+                fileImage: record?.vocabularyImageResList[0].imageLocation,
+                fileVideo: record?.vocabularyVideoResList[0].videoLocation,
+              });
+
+              form.setFieldsValue(record);
+            }}
+          />
+          <Button
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => mutationDel.mutate(value)}
+          />
+        </div>
+      ),
     },
   ];
+
+  // upload
+  const props: UploadProps = {
+    name: "file",
+    onChange(info) {
+      if (info.file.status === "done") {
+        message.success(`${info.file.name} file uploaded successfully`);
+      } else if (info.file.status === "error") {
+        message.error(`${info.file.name} file upload failed.`);
+      }
+    },
+    customRequest: ({ file }: { file: any }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      uploadFileMutation.mutate(formData);
+    },
+    progress: {
+      strokeColor: {
+        "0%": "#108ee9",
+        "100%": "#87d068",
+      },
+      strokeWidth: 3,
+      format: (percent) => percent && `${parseFloat(percent.toFixed(2))}%`,
+    },
+  };
 
   const isLoading = isFetching;
 
@@ -234,6 +359,104 @@ const VocabularyList: React.FC = () => {
           position: ["bottomCenter"],
         }}
       />
+
+      {/* Edit */}
+      <BasicDrawer
+        width={680}
+        title="Chỉnh sửa từ vựng"
+        onClose={() => setOpenEdit(false)}
+        open={openEdit}
+        destroyOnClose
+        onOk={() => {
+          form.submit();
+        }}
+        maskClosable={false}
+        extra={
+          <div className="flex items-center gap-x-4">
+            <Button
+              className="hover:opacity-60 "
+              onClick={() => {
+                setOpenEdit(false);
+                form.resetFields();
+              }}
+              type="link"
+              style={{ padding: 0 }}
+            >
+              <CloseIcon size={20} />
+            </Button>
+          </div>
+        }
+      >
+        <div className="">
+          <Form
+            form={form}
+            layout="vertical"
+            className="px-4 pb-4"
+            onFinish={(value) => {
+              mutationCreate.mutate(value);
+            }}
+          >
+            <Form.Item
+              name="topicId"
+              label="Chủ đề liên quan"
+              required
+              rules={[
+                validateRequireInput("Chủ đề liên quan không được bỏ trống"),
+              ]}
+              className="mb-2"
+            >
+              <Select
+                size="large"
+                className="w-full"
+                allowClear
+                placeholder="Chọn chủ đề"
+                options={allTopics}
+              />
+            </Form.Item>
+            <Form.Item
+              name="content"
+              label="Ngôn ngữ văn bản"
+              required
+              rules={[
+                validateRequireInput("Chủ đề liên quan không được bỏ trống"),
+              ]}
+              className="mb-2"
+            >
+              <Input maxLength={50} placeholder="Nhập từ vựng" />
+            </Form.Item>
+            <Form.Item name="note" label="Mô tả">
+              <TextArea maxLength={200} showCount placeholder="Nhập mô tả" />
+            </Form.Item>
+            <Form.Item name="vocabularyType" hidden />
+            <div className="flex flex-col gap-4">
+              <Form.Item name="vocabularyImageReqs" noStyle />
+              <Form.Item name="vocabularyVideoReqs" noStyle />
+
+              <Upload {...props} showUploadList={false} accept="image/*">
+                <Button icon={<UploadOutlined />}>Tải file ảnh</Button>
+              </Upload>
+              <Upload {...props} showUploadList={false} accept="video/*">
+                <Button icon={<UploadOutlined />}>Tải file video</Button>
+              </Upload>
+            </div>
+            <div className="mb-3 flex items-center justify-center gap-4">
+              {preview.fileImage ? (
+                <Image
+                  className=""
+                  src={preview.fileImage}
+                  alt="Ảnh chủ đề"
+                  style={{ width: 300 }}
+                />
+              ) : null}
+              {preview.fileVideo ? (
+                <video controls style={{ width: 400, height: "auto" }}>
+                  <source src={preview.fileVideo} />
+                </video>
+              ) : null}
+            </div>
+          </Form>
+        </div>
+      </BasicDrawer>
 
       {/* Modal preview */}
       <Modal

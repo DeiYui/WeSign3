@@ -16,6 +16,15 @@ class UploadModel extends Base {
     );
     return res.data;
   };
+
+  // upload List
+  upLoadList = async (body: any) => {
+    const res = await this.apiUploadFile(
+      "/upload-vocabularies/upload-list",
+      body,
+    );
+    return res.data;
+  };
 }
 
 export default new UploadModel("data-collection-service");
