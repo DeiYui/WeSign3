@@ -104,13 +104,17 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
 
   if (allVocabulary?.length === 0) {
     return (
-      <Empty style={{ width: "100%" }} description={`Không có dữ liệu `} />
+      <Empty
+        className="bg-white p-12"
+        style={{ width: "100%" }}
+        description={`Không có dữ liệu `}
+      />
     );
   }
 
   return (
     <>
-      <div>
+      <div className="">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {allVocabulary &&
             allVocabulary?.length > 0 &&
@@ -216,7 +220,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
                     controls
                     ref={videoRef}
                     autoPlay={autoplayEnabled}
-                    className="w-full"
+                    style={{ width: "100%", height: 550 }}
                     onEnded={() => setAutoplay(false)}
                   >
                     <source src={videoCurrent} type="video/mp4" />

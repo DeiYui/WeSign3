@@ -1,7 +1,10 @@
 "use client";
 import LearnHome from "@/components/Study/LearnHome";
+import StudyComponent from "@/components/Study/StudyComponent";
+import Learning from "@/model/Learning";
 import { HistoryOutlined } from "@ant-design/icons";
-import { Empty, Image } from "antd";
+import { useMutation } from "@tanstack/react-query";
+import { Empty, Image, message } from "antd";
 import React, { useEffect, useState } from "react";
 
 export interface letter {
@@ -28,7 +31,12 @@ const ListAlphabet = Array.from({ length: 26 }).map((_, index) => ({
 const ProjectItems = ({ item }: { item: letter }) => {
   return (
     <div className="flex justify-center">
-      <Image className="mb-2 w-full rounded-lg" src={item.image} alt="" />
+      <Image
+        style={{ width: 120 }}
+        className="mb-2  rounded-lg "
+        src={item.image}
+        alt=""
+      />
     </div>
   );
 };
@@ -37,6 +45,18 @@ const Projects: React.FC = () => {
   const [alphabet, setAlphabet] = useState<string>("All");
   const [lstLetter, setLstLetter] = useState<letter[]>([]);
   const [active, setActive] = useState<number>(0);
+  const [recordLstAlphabet, setRecordLstAlphabet] = useState([]);
+
+  const mutation = useMutation({
+    mutationFn: Learning.getAlphabet,
+    onSuccess: (res) => {
+      setRecordLstAlphabet(res.data);
+    },
+    onError: () => {
+      setRecordLstAlphabet([]);
+      message.warning(`Không có dữ liệu theo từ ${alphabet} `);
+    },
+  });
 
   useEffect(() => {
     if (alphabet === "All") {
@@ -51,6 +71,7 @@ const Projects: React.FC = () => {
 
   const handleClick = (e: any, index: number) => {
     setAlphabet(e);
+    mutation.mutate({ content: e });
     setActive(index);
   };
 
@@ -72,7 +93,7 @@ const Projects: React.FC = () => {
       {alphabet === "All" ? (
         <LearnHome />
       ) : (
-        <div className="grid justify-center gap-8">
+        <div className="grid justify-center gap-8 ">
           {lstLetter?.length ? (
             lstLetter.map((item) => (
               <ProjectItems item={item} key={item.name} />
@@ -82,6 +103,11 @@ const Projects: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* API trả ra kết quả */}
+      {recordLstAlphabet?.length ? (
+        <StudyComponent allVocabulary={recordLstAlphabet} />
+      ) : null}
     </div>
   );
 };

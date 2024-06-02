@@ -1,10 +1,11 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
-import Topics from "./Topics";
+import React from "react";
+import CreateAndEditExamPage from "./ExamCreate";
 
 export const metadata: Metadata = {
-  title: "LearnTopics - We_sign",
-  description: "LearnTopics page for We_sign",
+  title: "create-update-exam- We_sign",
+  description: "createUpdate-exam page for We_sign",
   icons: {
     icon: [
       {
@@ -21,13 +22,12 @@ export const metadata: Metadata = {
   },
 };
 
-const LearnTopics = () => {
+const CreateExamPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <Topics />
-      {/* <StudyComponent /> */}
+      <CreateAndEditExamPage />
     </DefaultLayout>
   );
 };
 
-export default LearnTopics;
+export default CreateExamPage;

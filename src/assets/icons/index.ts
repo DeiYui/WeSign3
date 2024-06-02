@@ -19,3 +19,4 @@ export * from "./ChatIcon";
 export * from "./EndCallIcon";
 export * from "./ClassIcon";
 export * from "./CloseIcon";
+export * from "./RoomIcon";

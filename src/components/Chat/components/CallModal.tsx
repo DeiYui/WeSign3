@@ -122,14 +122,14 @@ const CallModal: React.FC<CallModalProps> = ({
             style={{ height: "200px", display: isVideoOff ? "none" : "block" }}
             playsInline
           />
-          {/* {callAccepted && !callEnded && ( */}
-          <CustomVideo
-            className="bg-black"
-            autoPlay
-            playsInline
-            ref={userVideoRef}
-          />
-          {/* )} */}
+          {callAccepted && !callEnded && (
+            <CustomVideo
+              className="bg-black"
+              autoPlay
+              playsInline
+              ref={userVideoRef}
+            />
+          )}
         </div>
 
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 transform">

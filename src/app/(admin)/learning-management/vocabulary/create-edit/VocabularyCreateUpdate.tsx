@@ -100,8 +100,6 @@ const VocabularyCreateUpdate: React.FC = () => {
     },
   });
 
-  console.log("preview", previewFile, isLoadingFile);
-
   // Thêm mới / chỉnh sửa  topics
   const mutationCreate = useMutation({
     mutationFn: Learning.addVocabulary,

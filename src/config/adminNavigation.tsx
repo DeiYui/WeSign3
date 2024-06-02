@@ -13,20 +13,26 @@ export const AdminSystem = () => {
       icon: <AdminIcon color="white" size={20} />,
       children: [
         {
+          key: "/learning-management/class",
+          label: "Lớp học",
+          path: "/learning-management/class",
+          hidden: false,
+        },
+        {
           key: "/learning-management/topics",
-          label: "Chủ đề",
+          label: "Chủ đề ",
           path: "/learning-management/topics",
           hidden: false,
         },
         {
           key: "/learning-management/vocabulary",
-          label: "Ký hiệu",
+          label: "Ký hiệu ",
           path: "/learning-management/vocabulary",
           hidden: false,
         },
         {
           key: "/learning-management/check-list",
-          label: "Bài kiểm tra",
+          label: "Bài kiểm tra ",
           path: "/learning-management/check-list",
           hidden: false,
         },

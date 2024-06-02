@@ -20,6 +20,17 @@ const config: Config = {
     },
     extend: {
       colors: {
+        "primary-100": "#ECF4FE",
+        "primary-200": "#CDE4FE",
+        "primary-300": "#9BCBFD",
+        "primary-400": "#60A8FA",
+        "primary-500": "#3B85F6",
+        "primary-600": "#2A6AEB",
+        "primary-700": "#225DE5",
+        "primary-800": "#1D51D8",
+        "primary-900": "#1E43AF",
+        "primary-1000": "#1E3C8A",
+        "primary-1100": "#172654",
         current: "currentColor",
         transparent: "transparent",
         white: "#FFFFFF",

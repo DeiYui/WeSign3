@@ -1,6 +1,9 @@
 "use client";
 import LearnHome from "@/components/Study/LearnHome";
-import { Empty, Image } from "antd";
+import StudyComponent from "@/components/Study/StudyComponent";
+import Learning from "@/model/Learning";
+import { useMutation } from "@tanstack/react-query";
+import { Empty, Image, message } from "antd";
 import React, { useEffect, useState } from "react";
 
 export interface letter {
@@ -12,18 +15,22 @@ const numbers = ["All", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 const ListAlphanumeric = [] as letter[];
 
-const ProjectItems = ({ item }: { item: letter }) => {
-  return (
-    <div className="flex justify-center">
-      <Image className="mb-2 w-full rounded-lg" src={item.image} alt="" />
-    </div>
-  );
-};
-
 const Alphanumeric: React.FC = () => {
   const [alphabet, setAlphabet] = useState<string>("All");
   const [lstLetter, setLstLetter] = useState<letter[]>([]);
   const [active, setActive] = useState<number>(0);
+  const [recordLstAlphabet, setRecordLstAlphabet] = useState([]);
+
+  const mutation = useMutation({
+    mutationFn: Learning.getAlphabet,
+    onSuccess: (res) => {
+      setRecordLstAlphabet(res.data);
+    },
+    onError: () => {
+      setRecordLstAlphabet([]);
+      message.warning(`Không có dữ liệu theo số ${alphabet} `);
+    },
+  });
 
   useEffect(() => {
     if (alphabet === "All") {
@@ -38,6 +45,7 @@ const Alphanumeric: React.FC = () => {
 
   const handleClick = (e: any, index: number) => {
     setAlphabet(e);
+    mutation.mutate({ content: e });
     setActive(index);
   };
 
@@ -59,15 +67,7 @@ const Alphanumeric: React.FC = () => {
       {alphabet === "All" ? (
         <LearnHome />
       ) : (
-        <div className="grid justify-center gap-8">
-          {ListAlphanumeric?.length ? (
-            ListAlphanumeric.map((item) => (
-              <ProjectItems item={item} key={item.name} />
-            ))
-          ) : (
-            <Empty description="Không có dữ liệu" />
-          )}
-        </div>
+        <StudyComponent allVocabulary={recordLstAlphabet} />
       )}
     </div>
   );

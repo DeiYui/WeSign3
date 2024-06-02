@@ -173,7 +173,14 @@ const ExamListPage: React.FC = () => {
         />
       </div>
       <div className="mb-3 flex justify-end">
-        <Button type="primary">Thêm mới</Button>
+        <Button
+          type="primary"
+          onClick={() =>
+            router.push("/learning-management/check-list/create-edit")
+          }
+        >
+          Thêm mới
+        </Button>
       </div>
       <CustomTable
         dataSource={exams}

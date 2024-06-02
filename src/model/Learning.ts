@@ -8,6 +8,18 @@ class Learning extends Base {
     return res.data;
   };
 
+  // Topic chung
+  getAllTopicsShared = async (classRoomId: number) => {
+    const res = await this.apiGet(`/topics/all-common/${classRoomId}`);
+    return res.data;
+  };
+
+  // Topic Riêng
+  getAllTopicsPrivate = async (classRoomId: number) => {
+    const res = await this.apiGet(`/topics/all-private/${classRoomId}`);
+    return res.data;
+  };
+
   // Tìm kiếm chủ đề
   searchTopics = async (params: any) => {
     const res = await this.apiGet("/topics/search/v2", params);
@@ -80,15 +92,57 @@ class Learning extends Base {
     return res.data;
   };
 
+  // Tìm kiếm theo bảng chữ cái
+  getAlphabet = async (body: any) => {
+    const res = await this.apiPost(`/vocabularies/get-by-content`, body);
+    return res.data;
+  };
+
   // Danh sách nội dung tình nguyện viền đăng
   getTableDataVolunteer = async (params: any) => {
-    const res = await this.apiGet(`/data-collection/search-for-me/v2`, params);
+    const res = await this.apiGet(`/data-collection/options-list-me`, params);
     return res.data;
   };
 
   // Thêm data tình nguyện viên đăng
   sendData = async (body: any) => {
     const res = await this.apiPost(`/data-collection`, body);
+    return res.data;
+  };
+
+  // Sửa nội dung tnv đăng
+  editData = async (body: any) => {
+    const res = await this.apiPut(`/data-collection`, body);
+    return res.data;
+  };
+
+  // Xoá nội dung tnv đăng
+  deleteData = async (id: any) => {
+    const res = await this.apiDelete(`/data-collection/${id}`);
+    return res.data;
+  };
+
+  //* CLass
+  getListClass = async (params?: any) => {
+    const res = await this.apiGet(`/classrooms/all`, params);
+    return res.data;
+  };
+
+  // Thêm mới lớp
+  createClass = async (body?: any) => {
+    const res = await this.apiPost(`/classrooms`, body);
+    return res.data;
+  };
+
+  // Chỉnh sửa mới lớp
+  editClass = async (body?: any) => {
+    const res = await this.apiPut(`/classrooms`, body);
+    return res.data;
+  };
+
+  // Xoá  lớp
+  deleteClass = async (id?: number) => {
+    const res = await this.apiDelete(`/classrooms/${id}`);
     return res.data;
   };
 }

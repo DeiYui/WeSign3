@@ -1,10 +1,10 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
-import Topics from "./Topics";
+import Rooms from "./Room";
 
 export const metadata: Metadata = {
-  title: "LearnTopics - We_sign",
-  description: "LearnTopics page for We_sign",
+  title: "LearnRoom- We_sign",
+  description: "LearnRoom page for We_sign",
   icons: {
     icon: [
       {
@@ -20,14 +20,12 @@ export const metadata: Metadata = {
     ],
   },
 };
-
-const LearnTopics = () => {
+const LearnAlphabet = () => {
   return (
     <DefaultLayout>
-      <Topics />
-      {/* <StudyComponent /> */}
+      <Rooms />
     </DefaultLayout>
   );
 };
 
-export default LearnTopics;
+export default LearnAlphabet;

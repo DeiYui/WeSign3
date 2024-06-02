@@ -4,7 +4,16 @@ import ButtonPrimary from "@/components/UI/Button/ButtonPrimary";
 import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
 import { default as Learning, default as Topic } from "@/model/Learning";
 import { useQuery } from "@tanstack/react-query";
-import { Avatar, Button, Image, Input, List, Modal, Skeleton } from "antd";
+import {
+  Avatar,
+  Button,
+  Image,
+  Input,
+  List,
+  Modal,
+  Select,
+  Skeleton,
+} from "antd";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 
@@ -18,17 +27,20 @@ interface Hero2DataType {
   subHeading: string;
   btnText: string;
 }
+const { Option } = Select;
 
-const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
+const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
   const searchParams = useSearchParams();
   const topicId = Number(searchParams.get("topicId"));
 
   const [showModal, setShowModal] = useState<{
     open: boolean;
     topicId: number;
+    classRoomId: number;
   }>({
     open: false,
     topicId: 0,
+    classRoomId: 0,
   });
 
   const [searchText, setSearchText] = useState<string>("");
@@ -36,12 +48,26 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
 
   // API lấy danh sách topics
   const { data: allTopics, isFetching } = useQuery({
-    queryKey: ["getAllTopics"],
+    queryKey: ["getAllTopics", showModal.classRoomId],
     queryFn: async () => {
-      const res = await Learning.getAllTopics();
-      return res.data as Topic[];
+      const res = await Learning.getAllTopicsPrivate(showModal.classRoomId);
+      return res.data;
     },
-    enabled: showModal.open,
+    enabled: !!showModal.classRoomId,
+  });
+
+  const { data: allCLass, isFetching: isFetchingClass } = useQuery({
+    queryKey: ["getListClass"],
+    queryFn: async () => {
+      const res = await Learning.getListClass();
+      return res.data?.map(
+        (e: { content: any; classRoomId: any; imageLocation: string }) => ({
+          label: e.content,
+          value: e.classRoomId,
+          imageLocation: e.imageLocation,
+        }),
+      );
+    },
   });
 
   // API lấy danh sách từ theo topics
@@ -54,17 +80,17 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
     enabled: !!showModal.topicId,
   });
 
-  useEffect(() => {
-    if (topicId) {
-      setShowModal({ open: false, topicId });
-    }
-  }, [topicId]);
+  // useEffect(() => {
+  //   if (topicId) {
+  //     setShowModal({ open: false, topicId });
+  //   }
+  // }, [topicId]);
 
   // Tìm kiếm
   useEffect(() => {
     if (allTopics) {
       setFilteredTopics(
-        allTopics.filter((topic) =>
+        allTopics.filter((topic: any) =>
           topic?.content?.toLowerCase().includes(searchText.toLowerCase()),
         ),
       );
@@ -73,13 +99,44 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
 
   return (
     <>
-      <ButtonSecondary
-        className="mb-4 border border-solid border-neutral-700"
-        onClick={() => setShowModal({ ...showModal, open: true })}
-      >
-        Lựa chọn chủ đề
-      </ButtonSecondary>
-      <StudyComponent allVocabulary={allVocabulary} />
+      <div className="flex flex-col gap-4">
+        <Select
+          className="w-2/3"
+          placeholder="Lựa chọn lớp học"
+          size="large"
+          // options={allCLass}
+          loading={isFetchingClass}
+          onSelect={(value) => {
+            setShowModal({ ...showModal, classRoomId: value });
+          }}
+          optionLabelProp="label"
+        >
+          {allCLass?.map((item: any) => (
+            <Option key={item.value} value={item.value} label={item.label}>
+              <div className="">
+                <Avatar
+                  size={40}
+                  src={item.imageLocation}
+                  alt={item.label}
+                  className=""
+                />
+                <span className="ml-2">{item.label}</span>
+              </div>
+            </Option>
+          ))}
+        </Select>
+        {allTopics?.length ? (
+          <ButtonSecondary
+            disabled={isFetching}
+            className="mb-4 w-1/4 border border-solid border-neutral-700"
+            onClick={() => setShowModal({ ...showModal, open: true })}
+          >
+            Lựa chọn chủ đề
+          </ButtonSecondary>
+        ) : null}
+
+        <StudyComponent allVocabulary={allVocabulary} />
+      </div>
 
       {/* Modal */}
       <Modal
@@ -107,7 +164,11 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
             <List.Item
               className={`${showModal.topicId === topic.topicId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
               onClick={() => {
-                setShowModal({ topicId: topic.topicId, open: false });
+                setShowModal({
+                  ...showModal,
+                  topicId: topic.topicId,
+                  open: false,
+                });
               }}
             >
               <Skeleton avatar title={false} loading={isFetching} active>
@@ -135,4 +196,4 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
   );
 };
 
-export default Topics;
+export default Rooms;

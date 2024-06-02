@@ -17,29 +17,28 @@ import {
   Form,
   Image,
   Input,
-  Popover,
-  Select,
   Table,
   Upload,
   UploadProps,
   message,
 } from "antd";
 import { useForm } from "antd/es/form/Form";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { CustomTable } from "../check-list/ExamList";
-import styled from "styled-components";
+import { debounce } from "lodash";
 
-interface Topic {
-  topicId?: number;
+interface Class {
+  classRoomId?: number;
   content: string;
   imageLocation: string;
   videoLocation?: string;
 }
 
-const TopicList: React.FC = () => {
+const ClassList: React.FC = () => {
   const [form] = useForm();
-  // danh sách topics
-  const [lstTopics, setLstTopics] = useState([]);
+  // danh sách lớp
+  const [lstClass, setLstClass] = useState([]);
+  const [filteredLstClass, setFilteredLstClass] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   // Modal thêm mới
@@ -47,70 +46,47 @@ const TopicList: React.FC = () => {
     open: boolean;
     file: string;
     typeModal: string;
-    type?: string;
   }>({
     open: false,
     file: "",
     typeModal: "create",
-    type: "topic",
   });
 
   const handleTableChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
-  // API lấy danh sách topics
-  const { isFetching, refetch } = useQuery({
-    queryKey: ["getAllTopics"],
-    queryFn: async () => {
-      const res = await Learning.getAllTopics();
-      setLstTopics(res.data);
-      return res.data as Topic[];
-    },
-  });
-
   // API lấy danh sách lớp
-  const { data: optionClass } = useQuery({
-    queryKey: ["getOptionClass", modalCreate.type],
+  const { isFetching, refetch } = useQuery({
+    queryKey: ["getListClass"],
     queryFn: async () => {
       const res = await Learning.getListClass();
-
-      return res.data?.map((e: { content: any; classRoomId: any }) => ({
-        label: e.content,
-        value: e.classRoomId,
-      }));
-    },
-    enabled: modalCreate.type === "class",
-  });
-
-  // Tìm kiếm
-  const mutation = useMutation({
-    mutationFn: Learning.searchTopics,
-    onSuccess: (res) => {
-      setLstTopics(res.data.data);
+      setLstClass(res.data);
+      setFilteredLstClass(res.data);
+      return res.data as Class[];
     },
   });
 
-  // Thêm mới / chỉnh sửa  topics
+  // Thêm mới / chỉnh sửa  lớp
   const mutationCreateUpdate = useMutation({
     mutationFn:
       modalCreate.typeModal === "create"
-        ? Learning.addTopics
-        : Learning.editTopics,
+        ? Learning.createClass
+        : Learning.editClass,
     onSuccess: (res) => {
       message.success(
-        `${modalCreate.typeModal === "create" ? "Thêm mới thành công" : "Cập nhật thành công"}`,
+        `${modalCreate.typeModal === "create" ? "Thêm mới lớp học thành công" : "Cập nhật lớp học thành công"}`,
       );
       refetch();
       setModalCreate({ ...modalCreate, open: false, file: "" });
     },
   });
 
-  // Xoá chủ đề
+  // Xoá lớp
   const mutationDel = useMutation({
-    mutationFn: Learning.deleteTopics,
+    mutationFn: Learning.deleteClass,
     onSuccess: () => {
-      message.success("Xoá chủ đề thành công");
+      message.success("Xoá lớp học thành công");
       refetch();
     },
   });
@@ -137,7 +113,7 @@ const TopicList: React.FC = () => {
       width: 50,
     },
     {
-      title: "Tên chủ đề",
+      title: "Tên lớp học",
       dataIndex: "content",
       key: "content",
       render: (value: string) => <div className="text-lg">{value}</div>,
@@ -159,23 +135,23 @@ const TopicList: React.FC = () => {
     },
     {
       title: "Hành động",
-      key: "topicId",
-      dataIndex: "topicId",
-      render: (value: any, record: any) => (
+      key: "classRoomId",
+      dataIndex: "classRoomId",
+      render: (value: any, record: Class) => (
         <div className="flex space-x-2">
           <Button
             icon={<EditOutlined />}
             onClick={() => {
               form.setFieldsValue({
-                ...record,
+                content: record.content,
                 file: record.imageLocation,
+                classRoomId: record.classRoomId,
               });
               setModalCreate({
                 ...modalCreate,
                 open: true,
                 file: record.imageLocation,
                 typeModal: "edit",
-                type: record.classRoomId ? "class" : "topic",
               });
             }}
           />
@@ -215,11 +191,29 @@ const TopicList: React.FC = () => {
     },
   };
 
+  // search
+  const handleSearch = useCallback(
+    debounce((searchText: string) => {
+      if (searchText) {
+        setFilteredLstClass(
+          lstClass.filter((item: any) =>
+            (item?.content ?? "")
+              .toLowerCase()
+              .includes(searchText.toLowerCase()),
+          ),
+        );
+      } else {
+        setFilteredLstClass(lstClass);
+      }
+    }, 300),
+    [lstClass],
+  );
+
   const isLoading = isFetching || mutationCreateUpdate.isPending;
 
   return (
     <div className="w-full p-4">
-      <h1 className="mb-4 text-2xl font-bold">Danh sách chủ đề</h1>
+      <h1 className="mb-4 text-2xl font-bold">Danh sách lớp học</h1>
       <div className="mb-4 flex  items-center justify-between">
         <InputPrimary
           allowClear
@@ -229,69 +223,28 @@ const TopicList: React.FC = () => {
           }}
           className="mb-4"
           style={{ width: 400 }}
-          placeholder="Tìm kiếm chủ đề"
+          placeholder="Tìm kiếm tên lớp học"
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              if (e.currentTarget.value) {
-                mutation.mutate({
-                  page: 1,
-                  size: 999999,
-                  text: e.currentTarget.value,
-                  ascending: true,
-                  orderBy: "",
-                });
-              } else {
-                refetch();
-              }
+              handleSearch(e.currentTarget.value);
             }
           }}
         />
-        <Popover
-          placement="bottom"
-          arrow={false}
-          style={{ padding: 0, margin: 0 }}
-          content={
-            <div className="text-white">
-              <PopoverButtonStyled
-                onClick={() => {
-                  setModalCreate({
-                    ...modalCreate,
-                    open: true,
-                    typeModal: "create",
-                    type: "topic",
-                  });
-                  form.resetFields();
-                }}
-                className="h-12 items-center"
-              >
-                Chủ đề chung
-              </PopoverButtonStyled>
 
-              <PopoverButtonStyled
-                className="h-12 items-center"
-                onClick={() => {
-                  setModalCreate({
-                    ...modalCreate,
-                    open: true,
-                    typeModal: "create",
-                    type: "class",
-                  });
-                  form.resetFields();
-                }}
-              >
-                Chủ đề theo lớp học
-              </PopoverButtonStyled>
-            </div>
-          }
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => {
+            setModalCreate({ ...modalCreate, open: true, typeModal: "create" });
+            form.resetFields();
+          }}
         >
-          <Button type="primary" icon={<PlusOutlined />}>
-            Thêm mới
-          </Button>
-        </Popover>
+          Thêm mới
+        </Button>
       </div>
       <CustomTable
         columns={columns as any}
-        dataSource={lstTopics}
+        dataSource={filteredLstClass}
         loading={isLoading}
         pagination={{
           pageSize: pageSize,
@@ -302,13 +255,13 @@ const TopicList: React.FC = () => {
         }}
       />
 
-      {/* Thêm chủ đề */}
+      {/* Thêm lớp */}
       <BasicDrawer
         width={460}
         title={
           modalCreate.typeModal === "create"
-            ? "Thêm mới chủ đề"
-            : "Chỉnh sửa chủ đề"
+            ? "Thêm mới lớp học"
+            : "Chỉnh sửa lớp học"
         }
         onClose={() => {
           setModalCreate({ ...modalCreate, open: false, file: "" });
@@ -341,54 +294,33 @@ const TopicList: React.FC = () => {
             form={form}
             layout="vertical"
             onFinish={(value) => {
-              let payload: any = {
-                content: value.content,
-                imageLocation: value.file,
-                videoLocation: "",
-              };
-
               if (modalCreate.typeModal === "create") {
-                if (modalCreate.type === "topics") {
-                  mutationCreateUpdate.mutate(payload);
-                } else {
-                  payload.classRoomId = value.classRoomId;
-                  payload.private = true;
-                  mutationCreateUpdate.mutate(payload);
-                }
+                mutationCreateUpdate.mutate({
+                  content: value.content,
+                  imageLocation: value.file,
+                });
               } else {
-                payload.topicId = value?.topicId;
-                if (modalCreate.type === "topic") {
-                  mutationCreateUpdate.mutate(payload);
-                } else {
-                  payload.classRoomId = value.classRoomId;
-                  mutationCreateUpdate.mutate(payload);
-                }
+                mutationCreateUpdate.mutate({
+                  classRoomId: value?.classRoomId,
+                  content: value.content,
+                  imageLocation: value.file,
+                });
               }
             }}
           >
-            <Form.Item name="topicId" hidden />
-            <Form.Item
-              hidden={modalCreate.type === "topic"}
-              name="classRoomId"
-              label="Lớp học"
-              className="mb-2"
-              required
-              rules={[validateRequireInput("Lớp học không được bỏ trống")]}
-            >
-              <Select options={optionClass} placeholder="Lựa chọn lớp học" />
-            </Form.Item>
+            <Form.Item name="classRoomId" hidden />
             <Form.Item
               name="content"
-              label="Tên chủ đề"
+              label="Tên lớp học"
               className="mb-2"
               required
-              rules={[validateRequireInput("Tên chủ đề không được bỏ trống")]}
+              rules={[validateRequireInput("Tên lớp học không được bỏ trống")]}
             >
-              <Input placeholder="Nhập tên chủ đề muốn thêm" />
+              <Input placeholder="Nhập tên lớp học muốn thêm" />
             </Form.Item>
             <Form.Item name="file" label="Ảnh">
               <Upload {...props} showUploadList={false}>
-                <Button icon={<UploadOutlined />}>Tải file lên</Button>
+                <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
               </Upload>
             </Form.Item>
             <div className="flex w-full items-center justify-center">
@@ -408,26 +340,4 @@ const TopicList: React.FC = () => {
   );
 };
 
-export default TopicList;
-
-export const PopoverButtonStyled = styled(Button)`
-  &.ant-btn-default {
-    background-color: unset;
-    border: none;
-    box-shadow: unset;
-    border-radius: 8px;
-    color: #181c25;
-    width: 100%;
-    display: flex;
-    height: 44px;
-    align-items: center;
-  }
-  &.ant-btn-default:not(:disabled):not(.ant-btn-disabled):hover {
-    background-color: #2a6aeb;
-    color: white;
-  }
-  &.ant-btn-default:not(:disabled):not(.ant-btn-disabled):active {
-    background-color: #c9dafb;
-    color: #0958d9;
-  }
-`;
+export default ClassList;

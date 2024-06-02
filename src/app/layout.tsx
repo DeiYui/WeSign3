@@ -1,6 +1,6 @@
 "use client";
 import Loader from "@/components/UI/Loader";
-import "@/css/style.css";
+import "@/css/style.scss";
 import { persistor, store } from "@/store";
 import { injectStore } from "@/utils/api/http";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

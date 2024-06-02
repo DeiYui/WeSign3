@@ -2,6 +2,7 @@ import { colors } from "@/assets/colors";
 import {
   AlphabetIcon,
   NumberIcon,
+  RoomIcon,
   TopicIcon,
   VocabularyIcon,
 } from "@/assets/icons";
@@ -29,6 +30,11 @@ const iconsData = [
     icon: <VocabularyIcon size={38} color={colors.yellow900} />,
     tooltipText: "Theo từ vựng",
     link: "/study/vocabulary",
+  },
+  {
+    icon: <RoomIcon size={38} color={colors.green500} />,
+    tooltipText: "Theo lớp học",
+    link: "/study/room",
   },
 ];
 

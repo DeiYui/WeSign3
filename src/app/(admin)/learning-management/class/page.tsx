@@ -1,10 +1,12 @@
-import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import Chart from "@/components/Charts/page";
 import { Metadata } from "next";
-import Topics from "./Topics";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import React from "react";
+import ClassList from "./ClassList";
 
 export const metadata: Metadata = {
-  title: "LearnTopics - We_sign",
-  description: "LearnTopics page for We_sign",
+  title: "Management-class  - We_sign",
+  description: "Management-class page for We_sign",
   icons: {
     icon: [
       {
@@ -21,13 +23,12 @@ export const metadata: Metadata = {
   },
 };
 
-const LearnTopics = () => {
+const ManagementClassPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <Topics />
-      {/* <StudyComponent /> */}
+      <ClassList />
     </DefaultLayout>
   );
 };
 
-export default LearnTopics;
+export default ManagementClassPage;
