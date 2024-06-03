@@ -3,8 +3,8 @@ import { Base } from "./Base";
 
 class Learning extends Base {
   // Danh sách topic
-  getAllTopics = async () => {
-    const res = await this.apiGet("/topics/all");
+  getAllTopics = async (params?: any) => {
+    const res = await this.apiGet("/topics/all", params);
     return res.data;
   };
 
@@ -51,6 +51,12 @@ class Learning extends Base {
   };
 
   // CHi tiết từ vựng
+  getDetailVocabularyById = async (id?: string) => {
+    const res = await this.apiGet(`/vocabularies/get-by-id/${id}`);
+    return res.data;
+  };
+
+  // Chi tiết nội dung media của từ
   getDetailVocabulary = async (id?: string) => {
     const res = await this.apiGet(`/vocabularies/${id}`);
     return res.data;

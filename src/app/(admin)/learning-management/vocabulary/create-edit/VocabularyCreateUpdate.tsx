@@ -269,7 +269,11 @@ const VocabularyCreateUpdate: React.FC = () => {
         ]}
       />
       <div className="w-full bg-white">
-        <Tabs activeKey={tabKey} onChange={(key) => setTabKey(key)}>
+        <Tabs
+          className="px-4"
+          activeKey={tabKey}
+          onChange={(key) => setTabKey(key)}
+        >
           <TabPane tab="Thêm một" key="1">
             <Form
               form={form}

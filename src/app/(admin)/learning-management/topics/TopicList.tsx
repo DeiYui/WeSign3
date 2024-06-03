@@ -55,17 +55,37 @@ const TopicList: React.FC = () => {
     type: "topic",
   });
 
+  // filter params
+  const [filterParams, setFilterParams] = useState<{
+    classRoomId: number;
+  }>({
+    classRoomId: 0,
+  });
+
   const handleTableChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
   // API lấy danh sách topics
   const { isFetching, refetch } = useQuery({
-    queryKey: ["getAllTopics"],
+    queryKey: ["getAllTopics", filterParams],
     queryFn: async () => {
-      const res = await Learning.getAllTopics();
+      const res = await Learning.getAllTopics(filterParams);
       setLstTopics(res.data);
       return res.data as Topic[];
+    },
+  });
+
+  // API lấy danh sách lớp học
+  const { data: allClass, isFetching: isFetchingClass } = useQuery({
+    queryKey: ["getListClass"],
+    queryFn: async () => {
+      const res = await Learning.getListClass();
+
+      return res.data?.map((item: { content: any; classRoomId: any }) => ({
+        label: item.content,
+        value: item.classRoomId,
+      }));
     },
   });
 
@@ -158,6 +178,14 @@ const TopicList: React.FC = () => {
       width: 200,
     },
     {
+      title: "Thuộc lớp",
+      dataIndex: "classRoomContent",
+      key: "classRoomContent",
+      render: (value: string) => (
+        <div className="text-lg">{value || "Chủ đề chung"}</div>
+      ),
+    },
+    {
       title: "Hành động",
       key: "topicId",
       dataIndex: "topicId",
@@ -221,31 +249,44 @@ const TopicList: React.FC = () => {
     <div className="w-full p-4">
       <h1 className="mb-4 text-2xl font-bold">Danh sách chủ đề</h1>
       <div className="mb-4 flex  items-center justify-between">
-        <InputPrimary
-          allowClear
-          onClear={() => {
-            refetch();
-            setCurrentPage(1);
-          }}
-          className="mb-4"
-          style={{ width: 400 }}
-          placeholder="Tìm kiếm chủ đề"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              if (e.currentTarget.value) {
-                mutation.mutate({
-                  page: 1,
-                  size: 999999,
-                  text: e.currentTarget.value,
-                  ascending: true,
-                  orderBy: "",
-                });
-              } else {
-                refetch();
+        <div className="flex items-center gap-4">
+          <InputPrimary
+            allowClear
+            onClear={() => {
+              refetch();
+              setCurrentPage(1);
+            }}
+            style={{ width: 300 }}
+            placeholder="Tìm kiếm chủ đề"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (e.currentTarget.value) {
+                  mutation.mutate({
+                    page: 1,
+                    size: 999999,
+                    text: e.currentTarget.value,
+                    ascending: true,
+                    orderBy: "",
+                  });
+                } else {
+                  refetch();
+                }
               }
+            }}
+          />
+          {/* Lớp */}
+          <Select
+            allowClear
+            style={{ height: 44, width: 260 }}
+            size="large"
+            placeholder="Tìm kiếm chủ đề theo lớp học"
+            options={allClass}
+            onChange={(value) =>
+              setFilterParams({ ...filterParams, classRoomId: value })
             }
-          }}
-        />
+          />
+        </div>
+
         <Popover
           placement="bottom"
           arrow={false}
