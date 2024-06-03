@@ -26,7 +26,7 @@ import {
 import { useForm } from "antd/es/form/Form";
 import TextArea from "antd/es/input/TextArea";
 import { useRouter } from "next/navigation";
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState } from "react";
 import { CustomTable } from "../check-list/ExamList";
 import { isImageLocation } from "./create-edit/VocabularyCreateUpdate";
 import { CloseIcon } from "@/assets/icons";
@@ -72,7 +72,6 @@ const VocabularyList: React.FC = () => {
     fileVideo: "",
   });
 
-  // Modal chi tiết từ vựng
   const [detailVocabulary, setDetailVocabulary] = useState<{
     open: boolean;
     record: any;
@@ -81,9 +80,9 @@ const VocabularyList: React.FC = () => {
     record: "",
   });
 
-  const handleTableChange = useCallback((newPage: number) => {
+  const handleTableChange = (newPage: number) => {
     setCurrentPage(newPage);
-  }, []);
+  };
 
   // API lấy danh sách  topics
   const { data: allTopics } = useQuery({
@@ -146,9 +145,7 @@ const VocabularyList: React.FC = () => {
     mutationFn: Learning.editVocabulary,
     onSuccess: () => {
       message.success("Cập nhật từ thành công");
-      setOpenEdit(false);
-      form.resetFields();
-      refetch();
+      router.back();
     },
     onError: () => {
       message.error("Cập nhật từ vựng thất bại");
@@ -190,114 +187,113 @@ const VocabularyList: React.FC = () => {
   });
 
   // Column
-  const columns = useMemo(
-    () => [
-      {
-        title: "Từ vựng",
-        dataIndex: "content",
-        key: "content",
-        render: (content: any, record: any) => (
-          <span
-            className="cursor-pointer "
-            style={{ fontWeight: 500, color: colors.primary600 }}
-            onClick={() => setDetailVocabulary({ open: true, record: record })}
-          >
-            {content}
-          </span>
-        ),
-      },
-      {
-        title: "Chủ đề",
-        dataIndex: "topicContent",
-        key: "topicContent",
-        render: (content: string) => (
-          <span style={{ fontWeight: 500 }}>{content}</span>
-        ),
-      },
-      {
-        title: "Ảnh minh hoạ",
-        dataIndex: "imageLocation",
-        key: "imageLocation",
-        render: (
-          imageLocation: any,
-          record: {
-            vocabularyImageResList: string | any[];
-            content: string | undefined;
-          },
-        ) => {
-          if (
-            record.vocabularyImageResList?.length &&
-            record.vocabularyImageResList[0].imageLocation
-          ) {
-            return (
-              <Image
-                width={100}
-                src={record.vocabularyImageResList[0].imageLocation}
-                alt={record.content}
-              />
-            );
-          } else {
-            return <span>Không có minh họa</span>;
-          }
+  const columns = [
+    {
+      title: "Từ vựng",
+      dataIndex: "content",
+      key: "content",
+      render: (content: any, record: any) => (
+        <span
+          className="cursor-pointer "
+          style={{ fontWeight: 500, color: colors.primary600 }}
+          onClick={() => setDetailVocabulary({ open: true, record: record })}
+        >
+          {content}
+        </span>
+      ),
+    },
+    {
+      title: "Chủ đề",
+      dataIndex: "topicContent",
+      key: "topicContent",
+      render: (content: string) => (
+        <span style={{ fontWeight: 500 }}>{content}</span>
+      ),
+    },
+    {
+      title: "Ảnh minh hoạ",
+      dataIndex: "imageLocation",
+      key: "imageLocation",
+      render: (
+        imageLocation: any,
+        record: {
+          vocabularyImageResList: string | any[];
+          content: string | undefined;
         },
+      ) => {
+        if (
+          record.vocabularyImageResList?.length &&
+          record.vocabularyImageResList[0].imageLocation
+        ) {
+          return (
+            <Image
+              width={100}
+              src={record.vocabularyImageResList[0].imageLocation}
+              alt={record.content}
+            />
+          );
+        } else {
+          return <span>Không có minh họa</span>;
+        }
       },
-      {
-        title: "Video minh hoạ",
-        dataIndex: "videoLocation",
-        key: "videoLocation",
-        align: "center",
-        render: (record: { vocabularyVideoResList: string | any[] }) => {
-          if (
-            record?.vocabularyVideoResList?.length &&
-            record?.vocabularyVideoResList[0]?.videoLocation
-          ) {
-            return (
-              <EyeOutlined
-                style={{ fontSize: "1.5rem" }}
-                onClick={() => {
-                  setModalPreview({
-                    open: true,
-                    file: record.vocabularyVideoResList[0].videoLocation,
-                  });
-                }}
-              />
-            );
-          } else {
-            setModalPreview({ ...modalPreview, file: "" });
-            return <span>Không video có minh họa</span>;
-          }
-        },
-        width: 200,
+    },
+    {
+      title: "Video minh hoạ",
+      dataIndex: "videoLocation",
+      key: "videoLocation",
+      align: "center",
+      render: (
+        videoLocation: any,
+        record: { vocabularyVideoResList: string | any[] },
+      ) => {
+        if (
+          record.vocabularyVideoResList?.length &&
+          record.vocabularyVideoResList[0].videoLocation
+        ) {
+          return (
+            <EyeOutlined
+              style={{ fontSize: "1.5rem" }}
+              onClick={() =>
+                setModalPreview({
+                  open: true,
+                  file: record.vocabularyVideoResList[0].videoLocation,
+                })
+              }
+            />
+          );
+        } else {
+          return <span>Không video có minh họa</span>;
+        }
       },
-      {
-        title: "Hành động",
-        dataIndex: "vocabularyId",
-        key: "vocabularyId",
-        render: (value: any, record: any) => (
-          <div className="flex space-x-2">
-            <Button
-              icon={<EditOutlined />}
-              onClick={() => {
-                setOpenEdit(true);
-                setPreview({
-                  fileImage: record?.vocabularyImageResList[0]?.imageLocation,
-                  fileVideo: record?.vocabularyVideoResList[0]?.videoLocation,
-                });
+      width: 200,
+    },
+    {
+      title: "Hành động",
+      dataIndex: "vocabularyId",
+      key: "vocabularyId",
+      render: (value: any, record: any) => (
+        <div className="flex space-x-2">
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => {
+              setOpenEdit(true);
+              setPreview({
+                fileImage: record?.vocabularyImageResList[0].imageLocation,
+                fileVideo: record?.vocabularyVideoResList[0].videoLocation,
+              });
 
-                form.setFieldsValue(record);
-              }}
-            />
-            <Button
-              icon={<DeleteOutlined />}
-              danger
-              onClick={() => mutationDel.mutate(value)}
-            />
-          </div>
-        ),
-      },
-    ],
-    [form, mutationDel, preview],
-  );
+              form.setFieldsValue(record);
+            }}
+          />
+          <Button
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => mutationDel.mutate(value)}
+          />
+        </div>
+      ),
+    },
+  ];
 
   // upload
   const props: UploadProps = {
@@ -339,18 +335,12 @@ const VocabularyList: React.FC = () => {
             placeholder="Chọn chủ đề"
             options={allTopics}
             onChange={(value, option: any) =>
-              setFilterParams((prevParams) => ({
-                ...prevParams,
-                topicId: value,
-              }))
+              setFilterParams({ ...filterParams, topicId: value })
             }
           />
           <Input
             onChange={(e) => {
-              setFilterParams((prevParams) => ({
-                ...prevParams,
-                content: e.target.value,
-              }));
+              setFilterParams({ ...filterParams, content: e.target.value });
             }}
             size="large"
             allowClear
@@ -498,7 +488,7 @@ const VocabularyList: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Modal chi tiết từ */}
+      {/* Modal chi tiết nội dung từ */}
       <ModalListMedia
         showModalLstMedia={detailVocabulary.open}
         record={detailVocabulary.record}
