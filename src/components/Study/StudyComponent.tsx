@@ -17,6 +17,12 @@ const CustomSlider = styled(Carousel)`
   }
 `;
 
+const TYPE_VOCABULARY = {
+  WORD: "WORD",
+  SENTENCE: "SENTENCE",
+  PARAGRAPH: "PARAGRAPH",
+};
+
 const StudyComponent = ({ allVocabulary = [] }: any) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showFileDetail, setShowFileDetail] = useState(false);
@@ -112,6 +118,8 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
     );
   }
 
+  console.log("allVocabulary", allVocabulary);
+
   return (
     <>
       <div className="">
@@ -122,34 +130,72 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
               ?.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
               ?.map((item: any, i: number) => {
                 return (
-                  <div key={i} style={{ height: "max-content" }}>
-                    <div
-                      key={i}
-                      className=" border-gray-300 group relative flex h-40 items-center  overflow-hidden rounded-lg border bg-cover bg-center bg-no-repeat object-contain  hover:shadow-3"
-                      style={{
-                        backgroundImage: `url(${
-                          item?.vocabularyImageResList[0]?.imageLocation !== ""
-                            ? item?.vocabularyImageResList[0]?.imageLocation
-                            : "/images/study/defaultvideo.png"
-                        })`,
-                        backgroundSize: "contain",
-                        backgroundPosition: "center center",
-                        backgroundRepeat: "no-repeat",
-                      }}
-                    >
-                      <div className="absolute right-0 top-0 h-full w-full translate-x-0 transform bg-neutral-50 bg-opacity-75 transition-transform duration-500 hover:translate-x-30 group-hover:-translate-x-[100%]">
-                        <p className="ml-2 py-2 text-2xl font-semibold text-black">
-                          {item?.content}
-                        </p>
+                  <>
+                    {/* Từ */}
+                    {item.vocabularyType === TYPE_VOCABULARY.WORD && (
+                      <div key={i} style={{ height: "max-content" }}>
+                        <div
+                          key={i}
+                          className=" border-gray-300 group relative flex h-40 items-center  overflow-hidden rounded-lg border bg-cover bg-center bg-no-repeat object-contain  hover:shadow-3"
+                          style={{
+                            backgroundImage: `url(${
+                              item?.vocabularyImageResList[0]?.imageLocation !==
+                              ""
+                                ? item?.vocabularyImageResList[0]?.imageLocation
+                                : "/images/study/defaultvideo.png"
+                            })`,
+                            backgroundSize: "contain",
+                            backgroundPosition: "center center",
+                            backgroundRepeat: "no-repeat",
+                          }}
+                        >
+                          <div className="absolute right-0 top-0 h-full w-full translate-x-0 transform bg-neutral-50 bg-opacity-75 transition-transform duration-500 hover:translate-x-30 group-hover:-translate-x-[100%]">
+                            <p className="ml-2 line-clamp-2 py-2 text-2xl font-semibold text-black">
+                              {item?.content}
+                            </p>
+                          </div>
+                          <button
+                            className="absolute right-0 flex h-full w-full translate-x-[100%] items-center justify-center bg-black bg-opacity-50 text-white  duration-500 group-hover:translate-x-0"
+                            onClick={() => handleViewDetail(i)}
+                          >
+                            Bấm để xem!!!
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        className="absolute right-0 flex h-full w-full translate-x-[100%] items-center justify-center bg-black bg-opacity-50 text-white  duration-500 group-hover:translate-x-0"
-                        onClick={() => handleViewDetail(i)}
-                      >
-                        Bấm để xem!!!
-                      </button>
-                    </div>
-                  </div>
+                    )}
+                    {/* Câu, đoạn */}
+                    {item.vocabularyType !== TYPE_VOCABULARY.WORD && (
+                      <div key={i} style={{ height: "max-content" }}>
+                        <div
+                          key={i}
+                          className=" border-gray-300 group relative flex h-40 items-center  overflow-hidden rounded-lg border bg-cover bg-center bg-no-repeat object-contain  hover:shadow-3"
+                          style={{
+                            backgroundImage: `url(${
+                              item?.vocabularyImageResList[0]?.imageLocation !==
+                              ""
+                                ? item?.vocabularyImageResList[0]?.imageLocation
+                                : "/images/study/defaultvideo.png"
+                            })`,
+                            backgroundSize: "contain",
+                            backgroundPosition: "center center",
+                            backgroundRepeat: "no-repeat",
+                          }}
+                        >
+                          <div className="absolute right-0 top-0 h-full w-full translate-x-0 transform bg-neutral-50 bg-opacity-75 transition-transform duration-500 hover:translate-x-30 group-hover:-translate-x-[100%]">
+                            <p className="ml-2 line-clamp-2 py-2 text-2xl font-semibold text-black">
+                              {item?.content}
+                            </p>
+                          </div>
+                          <button
+                            className="absolute right-0 flex h-full w-full translate-x-[100%] items-center justify-center bg-black bg-opacity-50 text-white  duration-500 group-hover:translate-x-0"
+                            onClick={() => handleViewDetail(i)}
+                          >
+                            Bấm để xem!!!
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 );
               })}
         </div>
@@ -172,9 +218,28 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
         footer={null}
         onCancel={onCloseDetail}
         title={
-          <div className="text-[32px] font-bold">
-            {allVocabulary[fileIndex]?.content}
-          </div>
+          <>
+            {/* Từ */}
+            {allVocabulary[fileIndex].vocabularyType ===
+            TYPE_VOCABULARY.WORD ? (
+              <div className="line-clamp-1 text-[32px] font-bold">
+                {allVocabulary[fileIndex]?.content}
+              </div>
+            ) : (
+              <div>
+                {allVocabulary[fileIndex].vocabularyType ===
+                TYPE_VOCABULARY.SENTENCE ? (
+                  <div className="line-clamp-1 text-[32px] font-bold">
+                    Học tập theo câu văn
+                  </div>
+                ) : (
+                  <div className="line-clamp-1 text-[32px] font-bold">
+                    Học tập theo đoạn văn
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         }
         width={1400}
         key={allVocabulary[fileIndex]?.content}
@@ -186,7 +251,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
               {/* image */}
               <CustomSlider
                 ref={slider}
-                className="flex w-full items-center justify-center"
+                className=" flex w-full items-center justify-center"
                 dots={false}
               >
                 {allVocabulary[fileIndex]?.vocabularyImageResList?.map(
@@ -196,12 +261,20 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
                   ) => (
                     <div key={index}>
                       {item.imageLocation ? (
-                        <Image
-                          preview={false}
-                          src={item.imageLocation}
-                          alt="imageLocation"
-                          className="flex max-h-[400px] w-[400px] items-center justify-center object-scale-down "
-                        />
+                        <div className="text-center">
+                          <Image
+                            preview={false}
+                            src={item.imageLocation}
+                            alt="imageLocation"
+                            className="flex max-h-[400px] w-[400px] items-center justify-center object-scale-down "
+                          />
+                          {allVocabulary[fileIndex].vocabularyType !==
+                            TYPE_VOCABULARY.WORD && (
+                            <div className="line-clamp-[10] w-[420px] overflow-y-auto text-left text-base">
+                              {allVocabulary[fileIndex]?.content}
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         <div className="text-center text-xl">
                           Chưa có hình ảnh minh hoạ

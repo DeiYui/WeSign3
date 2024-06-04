@@ -68,6 +68,15 @@ class Learning extends Base {
     return res.data;
   };
 
+  // Thêm từ vựng vào topic
+  addVocabularyTopic = async (body: any) => {
+    const res = await this.apiPost(
+      "/vocabularies/add-vocab-list-to-new-topic/v2",
+      body,
+    );
+    return res.data;
+  };
+
   // edit
   editVocabulary = async (body: any) => {
     const res = await this.apiPut("/vocabularies", body);
@@ -107,6 +116,15 @@ class Learning extends Base {
   // Danh sách nội dung tình nguyện viền đăng
   getTableDataVolunteer = async (params: any) => {
     const res = await this.apiGet(`/data-collection/options-list-me`, params);
+    return res.data;
+  };
+
+  // Danh sách nội dung cần phê duyệt
+  getPendingData = async (params?: any) => {
+    const res = await this.apiGet(
+      `/data-collection/pending-list-admin`,
+      params,
+    );
     return res.data;
   };
 

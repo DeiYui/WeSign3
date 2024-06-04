@@ -265,6 +265,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
         align: "center",
         render: (value: boolean, record: any) => (
           <Switch
+            disabled={value}
             checked={value}
             onChange={(item) => {
               mutationSetPrimaryImage.mutate({
@@ -283,6 +284,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
         align: "center",
         render: (value: boolean, record: any) => (
           <Switch
+            disabled={value}
             checked={value}
             onChange={(item) => {
               mutationSetPrimaryVideo.mutate({
@@ -325,25 +327,27 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
                 <EditOutlined />
               </Button>
             </Popover>
-            <Popover content="Xóa" placement="left">
-              <Popconfirm
-                placement="topRight"
-                title={"Bạn có muốn xoá hình ảnh này không?"}
-                onConfirm={() => {
-                  if (record?.imageLocation) {
-                    mutationDelImage.mutate(record?.vocabularyImageId);
-                  } else {
-                    mutationDelVideo.mutate(record?.vocabularyVideoId);
-                  }
-                }}
-                okText="Có"
-                cancelText="Không"
-              >
-                <Button danger>
-                  <DeleteOutlined />
-                </Button>
-              </Popconfirm>
-            </Popover>
+            {record?.primary ? null : (
+              <Popover content="Xóa" placement="left">
+                <Popconfirm
+                  placement="topRight"
+                  title={"Bạn có muốn xoá hình ảnh này không?"}
+                  onConfirm={() => {
+                    if (record?.imageLocation) {
+                      mutationDelImage.mutate(record?.vocabularyImageId);
+                    } else {
+                      mutationDelVideo.mutate(record?.vocabularyVideoId);
+                    }
+                  }}
+                  okText="Có"
+                  cancelText="Không"
+                >
+                  <Button danger>
+                    <DeleteOutlined />
+                  </Button>
+                </Popconfirm>
+              </Popover>
+            )}
           </>
         ),
       },
@@ -353,6 +357,12 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
   return (
     <div>
       <Modal
+        title={
+          <div>
+            Danh sách hình ảnh / video minh hoạ của từ{" "}
+            <span className="text-xl text-red">{record.content}</span>
+          </div>
+        }
         open={showModalLstMedia}
         onCancel={onClose}
         width={1200}
@@ -440,6 +450,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
               <div className="flex items-center justify-between">
                 Hiển thị minh hoạ chính
                 <Switch
+                  disabled={state.primaryMedia}
                   checked={state.primaryMedia}
                   onChange={(item) => {
                     dispatch({ type: "SET_PRIMARY_MEDIA", payload: item });

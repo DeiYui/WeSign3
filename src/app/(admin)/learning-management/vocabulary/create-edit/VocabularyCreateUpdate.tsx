@@ -82,6 +82,9 @@ const VocabularyCreateUpdate: React.FC = () => {
 
   const [isLoadingFile, setIsLoadingFile] = useState<boolean>(false);
 
+  // Loại từ vựng
+  const vocabularyType = Form.useWatch("vocabularyType", form);
+
   useEffect(() => {
     form.resetFields();
   }, [tabKey]);
@@ -255,6 +258,8 @@ const VocabularyCreateUpdate: React.FC = () => {
     }
   };
 
+  console.log("vocabularyType", vocabularyType);
+
   return (
     <div className="w-full p-4">
       <Breadcrumb
@@ -301,16 +306,55 @@ const VocabularyCreateUpdate: React.FC = () => {
                 />
               </Form.Item>
               <Form.Item
-                name="content"
-                label="Ngôn ngữ văn bản"
+                name="vocabularyType"
+                label="Loại từ vựng"
                 required
                 rules={[
-                  validateRequireInput("Chủ đề liên quan không được bỏ trống"),
+                  validateRequireInput("Loại từ vựng không được bỏ trống"),
                 ]}
                 className="mb-2"
               >
-                <Input maxLength={50} placeholder="Nhập từ vựng" />
+                <Select
+                  size="large"
+                  className="w-full"
+                  allowClear
+                  placeholder="Chọn loại từ vựng"
+                  options={[
+                    {
+                      label: "Từ",
+                      value: "WORD",
+                    },
+                    {
+                      label: "Câu",
+                      value: "SENTENCE",
+                    },
+                    {
+                      label: "Đoạn",
+                      value: "PARAGRAPH",
+                    },
+                  ]}
+                />
               </Form.Item>
+              {vocabularyType ? (
+                <Form.Item
+                  name="content"
+                  label="Ngôn ngữ văn bản"
+                  required
+                  rules={[
+                    validateRequireInput(
+                      "Chủ đề liên quan không được bỏ trống",
+                    ),
+                  ]}
+                  className="mb-2"
+                >
+                  <TextArea
+                    maxLength={200}
+                    showCount
+                    placeholder="Nhập từ vựng"
+                  />
+                </Form.Item>
+              ) : null}
+
               <Form.Item name="note" label="Mô tả">
                 <TextArea maxLength={200} showCount placeholder="Nhập mô tả" />
               </Form.Item>

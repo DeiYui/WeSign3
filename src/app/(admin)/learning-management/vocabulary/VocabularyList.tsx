@@ -8,6 +8,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
+  FileAddFilled,
   PlusOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
@@ -31,6 +32,7 @@ import { CustomTable } from "../check-list/ExamList";
 import { isImageLocation } from "./create-edit/VocabularyCreateUpdate";
 import { CloseIcon } from "@/assets/icons";
 import ModalListMedia from "./create-edit/ModalListMedia";
+import { ConfirmModal } from "@/components/UI/Modal/ConfirmModal";
 
 interface FilterParams {
   page: number;
@@ -63,6 +65,15 @@ const VocabularyList: React.FC = () => {
 
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
+  // modal xác nhận xoá
+  const [modalConfirm, setModalConfirm] = useState<{
+    open: boolean;
+    rowId: string | string[];
+  }>({
+    open: false,
+    rowId: "",
+  });
+
   // Modal thêm mới
   const [preview, setPreview] = useState<{
     fileImage: string;
@@ -72,6 +83,7 @@ const VocabularyList: React.FC = () => {
     fileVideo: "",
   });
 
+  // Chi tiết từ
   const [detailVocabulary, setDetailVocabulary] = useState<{
     open: boolean;
     record: any;
@@ -79,6 +91,15 @@ const VocabularyList: React.FC = () => {
     open: false,
     record: "",
   });
+
+  // Thêm từ vào chủ đề
+  const [modalAddVocabularyTopic, setModalAddVocabularyTopic] = useState<{
+    open: boolean;
+    topicId: number;
+  }>({ open: false, topicId: 0 });
+
+  // lưu những row được chọn
+  const [selectedRowId, setSelectedRowId] = useState<string[]>([]);
 
   const handleTableChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -136,6 +157,9 @@ const VocabularyList: React.FC = () => {
     mutationFn: Learning.deleteVocabulary,
     onSuccess: () => {
       message.success("Xoá từ vựng thành công");
+      setSelectedRowId(
+        selectedRowId.filter((item) => !modalConfirm.rowId?.includes(item)),
+      );
       refetch();
     },
   });
@@ -194,13 +218,19 @@ const VocabularyList: React.FC = () => {
       key: "content",
       render: (content: any, record: any) => (
         <span
-          className="cursor-pointer "
-          style={{ fontWeight: 500, color: colors.primary600 }}
+          className="w-[200px] cursor-pointer truncate "
+          style={{
+            fontWeight: 500,
+            color: colors.primary600,
+            maxWidth: "200px",
+          }}
           onClick={() => setDetailVocabulary({ open: true, record: record })}
         >
           {content}
         </span>
       ),
+      ellipsis: true,
+      width: 200,
     },
     {
       title: "Chủ đề",
@@ -209,6 +239,8 @@ const VocabularyList: React.FC = () => {
       render: (content: string) => (
         <span style={{ fontWeight: 500 }}>{content}</span>
       ),
+      ellipsis: true,
+      width: 100,
     },
     {
       title: "Ảnh minh hoạ",
@@ -236,6 +268,7 @@ const VocabularyList: React.FC = () => {
           return <span>Không có minh họa</span>;
         }
       },
+      width: 120,
     },
     {
       title: "Video minh hoạ",
@@ -271,6 +304,7 @@ const VocabularyList: React.FC = () => {
       title: "Hành động",
       dataIndex: "vocabularyId",
       key: "vocabularyId",
+      align: "center",
       render: (value: any, record: any) => (
         <div className="flex space-x-2">
           <Button
@@ -288,10 +322,11 @@ const VocabularyList: React.FC = () => {
           <Button
             icon={<DeleteOutlined />}
             danger
-            onClick={() => mutationDel.mutate(value)}
+            onClick={() => setModalConfirm({ open: true, rowId: value })}
           />
         </div>
       ),
+      width: 100,
     },
   ];
 
@@ -320,6 +355,12 @@ const VocabularyList: React.FC = () => {
     },
   };
 
+  const rowSelection = {
+    fixed: true,
+    columnWidth: 50,
+    selectedRowKeys: selectedRowId,
+    onChange: (value: any) => setSelectedRowId(value),
+  };
   const isLoading = isFetching;
 
   return (
@@ -357,10 +398,38 @@ const VocabularyList: React.FC = () => {
           Thêm mới
         </Button>
       </div>
+      {/* Xóa nhiều */}
+      {selectedRowId?.length > 0 && (
+        <div className="mb-1 flex items-center gap-x-3 rounded-lg bg-neutral-200 px-4 py-1">
+          <div
+            onClick={() =>
+              setModalConfirm({ open: true, rowId: selectedRowId })
+            }
+            aria-hidden="true"
+            className="body-14-medium flex cursor-pointer select-none items-center gap-x-2 p-1 text-primary-600"
+          >
+            <DeleteOutlined color={colors.primary600} />
+            Xoá gói dịch vụ
+          </div>
+          <div
+            onClick={() =>
+              setModalAddVocabularyTopic({ open: true, topicId: 0 })
+            }
+            aria-hidden="true"
+            className="body-14-medium flex cursor-pointer select-none items-center gap-x-2 p-1 text-primary-600"
+          >
+            <FileAddFilled color={colors.primary600} />
+            Thêm từ vào chủ đề
+          </div>
+        </div>
+      )}
       <CustomTable
+        rowSelection={rowSelection}
         columns={columns as any}
         dataSource={allVocabulary}
         loading={isLoading}
+        rowKey={(record) => record.vocabularyId}
+        // scroll={{ x: 600 }}
         pagination={{
           pageSize: pageSize,
           current: currentPage,
@@ -424,6 +493,34 @@ const VocabularyList: React.FC = () => {
               />
             </Form.Item>
             <Form.Item
+              name="vocabularyType"
+              label="Loại từ vựng"
+              required
+              rules={[validateRequireInput("Loại từ vựng không được bỏ trống")]}
+              className="mb-2"
+            >
+              <Select
+                size="large"
+                className="w-full"
+                allowClear
+                placeholder="Chọn loại từ vựng"
+                options={[
+                  {
+                    label: "Từ",
+                    value: "WORD",
+                  },
+                  {
+                    label: "Câu",
+                    value: "SENTENCE",
+                  },
+                  {
+                    label: "Đoạn",
+                    value: "PARAGRAPH",
+                  },
+                ]}
+              />
+            </Form.Item>
+            <Form.Item
               name="content"
               label="Ngôn ngữ văn bản"
               required
@@ -432,7 +529,7 @@ const VocabularyList: React.FC = () => {
               ]}
               className="mb-2"
             >
-              <Input maxLength={50} placeholder="Nhập từ vựng" />
+              <TextArea maxLength={200} showCount placeholder="Nhập mô tả" />
             </Form.Item>
             <Form.Item name="note" label="Mô tả">
               <TextArea maxLength={200} showCount placeholder="Nhập mô tả" />
@@ -494,6 +591,65 @@ const VocabularyList: React.FC = () => {
         record={detailVocabulary.record}
         refetch={refetch}
         onClose={() => setDetailVocabulary({ open: false, record: "" })}
+      />
+
+      {/* Modal thêm từ vào chủ đề */}
+      <Modal
+        title="Thêm từ vựng vào chủ đề"
+        open={modalAddVocabularyTopic.open}
+        onCancel={() =>
+          setModalAddVocabularyTopic({
+            ...modalAddVocabularyTopic,
+            open: false,
+          })
+        }
+        onOk={async () => {
+          const req = {
+            ids: selectedRowId,
+            topicId: modalAddVocabularyTopic.topicId,
+          };
+          const res = await Learning.addVocabularyTopic(req);
+          if (res.code === 200) {
+            message.success("Thêm từ vào chủ đề thành công");
+            setModalAddVocabularyTopic({ open: false, topicId: 0 });
+            setSelectedRowId([]);
+          } else {
+            message.success("Thêm từ vào chủ đề thất bại");
+            setModalAddVocabularyTopic({
+              ...modalAddVocabularyTopic,
+              open: false,
+            });
+          }
+        }}
+        cancelText="Huỷ"
+        okText="Thêm"
+        destroyOnClose
+      >
+        <Select
+          size="large"
+          className="w-full"
+          allowClear
+          placeholder="Chọn chủ đề"
+          options={allTopics}
+          onChange={(value) =>
+            setModalAddVocabularyTopic({
+              ...modalAddVocabularyTopic,
+              topicId: value,
+            })
+          }
+        />
+      </Modal>
+
+      <ConfirmModal
+        visible={modalConfirm.open}
+        iconType="DELETE"
+        title="Xóa gói dịch vụ"
+        content="Hành động này sẽ xóa gói dịch vụ vĩnh viễn"
+        confirmButtonText="Xác nhận"
+        onClick={() => {
+          mutationDel.mutate(modalConfirm.rowId);
+        }}
+        onCloseModal={() => setModalConfirm({ ...modalConfirm, open: false })}
       />
     </div>
   );
