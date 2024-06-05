@@ -36,7 +36,8 @@ interface Topic {
   videoLocation?: string;
 }
 
-const TopicList: React.FC = () => {
+const TopicList = (props: any) => {
+  const { isPrivate } = props;
   const [form] = useForm();
   // danh sách topics
   const [lstTopics, setLstTopics] = useState([]);
@@ -111,7 +112,7 @@ const TopicList: React.FC = () => {
     },
   });
 
-  // Thêm mới / chỉnh sửa  topics
+  // Thêm mới / chỉnh sửa topics
   const mutationCreateUpdate = useMutation({
     mutationFn:
       modalCreate.typeModal === "create"
@@ -119,7 +120,11 @@ const TopicList: React.FC = () => {
         : Learning.editTopics,
     onSuccess: (res) => {
       message.success(
-        `${modalCreate.typeModal === "create" ? "Thêm mới thành công" : "Cập nhật thành công"}`,
+        `${
+          modalCreate.typeModal === "create"
+            ? "Thêm mới thành công"
+            : "Cập nhật thành công"
+        }`,
       );
       refetch();
       setModalCreate({ ...modalCreate, open: false, file: "" });
@@ -181,9 +186,7 @@ const TopicList: React.FC = () => {
       title: "Thuộc lớp",
       dataIndex: "classRoomContent",
       key: "classRoomContent",
-      render: (value: string) => (
-        <div className="text-lg">{value || "Chủ đề chung"}</div>
-      ),
+      render: (value: string) => <div className="text-lg">{value}</div>,
     },
     {
       title: "Hành động",
@@ -218,8 +221,7 @@ const TopicList: React.FC = () => {
   ];
 
   //upload
-  // upload
-  const props: UploadProps = {
+  const uploadProps: UploadProps = {
     name: "file",
     onChange(info) {
       if (info.file.status === "done") {
@@ -287,48 +289,21 @@ const TopicList: React.FC = () => {
           />
         </div>
 
-        <Popover
-          placement="bottom"
-          arrow={false}
-          style={{ padding: 0, margin: 0 }}
-          content={
-            <div className="text-white">
-              <PopoverButtonStyled
-                onClick={() => {
-                  setModalCreate({
-                    ...modalCreate,
-                    open: true,
-                    typeModal: "create",
-                    type: "topic",
-                  });
-                  form.resetFields();
-                }}
-                className="h-12 items-center"
-              >
-                Chủ đề chung
-              </PopoverButtonStyled>
-
-              <PopoverButtonStyled
-                className="h-12 items-center"
-                onClick={() => {
-                  setModalCreate({
-                    ...modalCreate,
-                    open: true,
-                    typeModal: "create",
-                    type: "class",
-                  });
-                  form.resetFields();
-                }}
-              >
-                Chủ đề theo lớp học
-              </PopoverButtonStyled>
-            </div>
-          }
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => {
+            setModalCreate({
+              ...modalCreate,
+              open: true,
+              typeModal: "create",
+              type: "class",
+            });
+            form.resetFields();
+          }}
         >
-          <Button type="primary" icon={<PlusOutlined />}>
-            Thêm mới
-          </Button>
-        </Popover>
+          Thêm mới
+        </Button>
       </div>
       <CustomTable
         columns={columns as any}
@@ -393,7 +368,9 @@ const TopicList: React.FC = () => {
                   mutationCreateUpdate.mutate(payload);
                 } else {
                   payload.classRoomId = value.classRoomId;
-                  payload.private = true;
+                  if (isPrivate) {
+                    payload.isPrivate = true;
+                  }
                   mutationCreateUpdate.mutate(payload);
                 }
               } else {
@@ -413,8 +390,12 @@ const TopicList: React.FC = () => {
               name="classRoomId"
               label="Lớp học"
               className="mb-2"
-              required
-              rules={[validateRequireInput("Lớp học không được bỏ trống")]}
+              required={isPrivate}
+              rules={
+                isPrivate && [
+                  validateRequireInput("Lớp học không được bỏ trống"),
+                ]
+              }
             >
               <Select options={optionClass} placeholder="Lựa chọn lớp học" />
             </Form.Item>
@@ -428,7 +409,7 @@ const TopicList: React.FC = () => {
               <Input placeholder="Nhập tên chủ đề muốn thêm" />
             </Form.Item>
             <Form.Item name="file" label="Ảnh">
-              <Upload {...props} showUploadList={false}>
+              <Upload {...uploadProps} showUploadList={false}>
                 <Button icon={<UploadOutlined />}>Tải file lên</Button>
               </Upload>
             </Form.Item>

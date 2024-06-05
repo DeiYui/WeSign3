@@ -2,7 +2,7 @@ import Chart from "@/components/Charts/page";
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React from "react";
-import TopicList from "./TopicList";
+import TopicList from "../TopicList";
 
 export const metadata: Metadata = {
   title: "Management-topics  - We_sign",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 const ManagementTopicsPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <TopicList />
+      <TopicList isPrivate />
     </DefaultLayout>
   );
 };
