@@ -222,6 +222,11 @@ const QuestionCreate: React.FC = () => {
                           <Radio.Group
                             className="w-full"
                             defaultValue={fields[0]?.name}
+                            onChange={(value) => {
+                              console.log("value", value);
+
+                              // form.setFieldValue([[name, "correct"]], value);
+                            }}
                           >
                             {fields.map(
                               ({ key, name, ...restField }, answerIndex) => (
@@ -230,34 +235,33 @@ const QuestionCreate: React.FC = () => {
                                   className="flex w-full items-center gap-4"
                                 >
                                   <div className="mb-2 flex items-center">
-                                    <Radio value={name} />
                                     <Form.Item
                                       {...restField}
-                                      name={[name, "content"]}
+                                      name={[answerIndex, "correct"]}
+                                      className="mb-0 ml-2 w-full"
+                                    />
+                                    <Radio value={name} />
+
+                                    <Form.Item
+                                      {...restField}
+                                      name={[answerIndex, "content"]}
                                       className="mb-0 ml-2 w-full"
                                     >
                                       <Input style={{ width: 700 }} />
                                     </Form.Item>
                                     <Form.Item
                                       {...restField}
-                                      name={[name, "imageLocation"]}
+                                      name={[answerIndex, "imageLocation"]}
                                       className="mb-0 ml-2 w-full"
                                     >
                                       <MediaUpload />
                                     </Form.Item>
                                     <Form.Item
                                       {...restField}
-                                      name={[name, "videoLocation"]}
+                                      name={[answerIndex, "videoLocation"]}
                                       className="mb-0 ml-2 w-full"
                                     >
                                       <MediaUpload />
-                                    </Form.Item>
-                                    <Form.Item
-                                      {...restField}
-                                      name={[name, "correct"]}
-                                      className="mb-0 ml-2 w-full"
-                                    >
-                                      <Checkbox />
                                     </Form.Item>
                                   </div>
 
@@ -286,10 +290,16 @@ const QuestionCreate: React.FC = () => {
                                   className="flex w-full items-center gap-4"
                                 >
                                   <div className="mb-2 flex items-center">
-                                    <Checkbox value={name} />
                                     <Form.Item
                                       {...restField}
-                                      name={[name, "text"]}
+                                      name={[answerIndex, "correct"]}
+                                      className="mb-0 ml-2 w-full"
+                                    >
+                                      <Checkbox value={name} />
+                                    </Form.Item>
+                                    <Form.Item
+                                      {...restField}
+                                      name={[answerIndex, "text"]}
                                       className="mb-0 ml-2 w-full"
                                     >
                                       <Input style={{ width: 700 }} />
