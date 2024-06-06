@@ -10,15 +10,19 @@ import {
   Collapse,
   Form,
   Input,
+  Modal,
   Pagination,
   Radio,
   Select,
+  Spin,
   message,
 } from "antd";
 import { useForm } from "antd/es/form/Form";
 import type { UploadFile } from "antd/es/upload/interface";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import QuestionModal from "./ModalSelectFile";
+import ModalChooseQuestions from "./ModalChooseQuestions";
+import Questions from "@/model/Questions";
 
 interface Answer {
   id: number;
@@ -38,20 +42,16 @@ const { Panel } = Collapse;
 
 const CreateAndEditExamPage: React.FC = () => {
   const [form] = useForm();
-  const [numQuestions, setNumQuestions] = useState<number>(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const questionsPerPage = 10;
 
-  const topicId = Form.useWatch("topicId", form);
-
-  // Modal chọn file
-  const [openChooseVideo, setOpenChooseVideo] = useState<boolean>(false);
-
-  // Kiểu file
-  const [typeFileUpload, setTypeFileUpload] = useState<
-    string | "upload" | "existing"
-  >("");
+  // Modal chọn câu hỏi
+  const [openChooseQuestions, setOpenChooseQuestions] = useState<{
+    open: boolean;
+    topicId: number;
+    size: number;
+  }>({ open: false, topicId: 0, size: 0 });
 
   // API lấy danh sách  topics
   const { data: allTopics } = useQuery({
@@ -67,41 +67,27 @@ const CreateAndEditExamPage: React.FC = () => {
     },
   });
 
-  const handleNumQuestionsChange = (value: number) => {
-    const newValue = Math.min(100, Math.max(0, value));
-    setNumQuestions(newValue);
-    setQuestions(
-      Array.from({ length: newValue }, (_, index) => ({
-        id: index,
-        question: "",
-        files: [],
-        answers: [{ id: 0, text: "", isCorrect: false }],
-        type: "single",
-      })),
-    );
-  };
+  const params = useMemo(() => {
+    return {
+      page: 0,
+      size: openChooseQuestions.size,
+      topicId: openChooseQuestions.topicId,
+    };
+  }, [openChooseQuestions]);
 
-  const handleQuestionChange = (
-    index: number,
-    field: keyof Question,
-    value: any,
-  ) => {
-    const updatedQuestions = questions.map((q, i) =>
-      i === index ? { ...q, [field]: value } : q,
-    );
-    setQuestions(updatedQuestions);
-  };
+  // API lấy danh sách câu hỏi
+  const { data: limitQuestion, isFetching } = useQuery({
+    queryKey: ["getLimitQuestionTopic", params],
+    queryFn: async () => {
+      const res = await Questions.getLimitQuestionTopic(params);
+      return res?.data;
+    },
+    enabled: openChooseQuestions.open,
+  });
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
-
-  const currentQuestions = questions.slice(
-    (currentPage - 1) * questionsPerPage,
-    currentPage * questionsPerPage,
-  );
-
-  console.log("openChooseVideo", openChooseVideo);
 
   return (
     <>
@@ -120,7 +106,13 @@ const CreateAndEditExamPage: React.FC = () => {
             required
             rules={[validateRequire("Chủ đề không được bỏ trống")]}
           >
-            <Select placeholder="Chọn chủ đề" options={allTopics} />
+            <Select
+              placeholder="Chọn chủ đề"
+              options={allTopics}
+              onChange={(e) => {
+                setOpenChooseQuestions({ ...openChooseQuestions, topicId: e });
+              }}
+            />
           </Form.Item>
 
           <Form.Item
@@ -132,242 +124,35 @@ const CreateAndEditExamPage: React.FC = () => {
             <Input
               placeholder="Nhập số lượng câu hỏi"
               type="number"
-              value={numQuestions}
-              onChange={(e) =>
-                handleNumQuestionsChange(parseInt(e.target.value, 10))
+              maxLength={100}
+              onChange={(e) => {
+                setOpenChooseQuestions({
+                  ...openChooseQuestions,
+                  size: Number(e.target.value),
+                });
+              }}
+            />
+          </Form.Item>
+          <Button
+            type="primary"
+            className=""
+            onClick={() =>
+              setOpenChooseQuestions({ ...openChooseQuestions, open: true })
+            }
+          >
+            Chọn câu hỏi
+          </Button>
+          <Form.Item name="questionIds">
+            {/* Modal danh sách các câu hỏi */}
+
+            <ModalChooseQuestions
+              questions={limitQuestion}
+              open={openChooseQuestions.open}
+              onClose={() =>
+                setOpenChooseQuestions({ ...openChooseQuestions, open: false })
               }
             />
           </Form.Item>
-
-          <Collapse accordion className="mb-4 bg-white">
-            {currentQuestions.map((question, index) => (
-              <Panel
-                header={`Câu hỏi ${(currentPage - 1) * questionsPerPage + index + 1}`}
-                key={index}
-              >
-                <div key={index} className="mb-6 rounded border bg-white p-4">
-                  <h2 className="mb-2 text-xl font-bold">
-                    Câu hỏi {(currentPage - 1) * questionsPerPage + index + 1}
-                  </h2>
-                  <Form.Item label="Tên câu hỏi:" name={`question-${index}`}>
-                    <Input
-                      placeholder="Nhập câu hỏi"
-                      value={question.question}
-                      onChange={(e) =>
-                        handleQuestionChange(index, "question", e.target.value)
-                      }
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="file"
-                    label="Lựa chọn file (hình ảnh, video):"
-                  >
-                    <Select
-                      style={{ width: "100%" }}
-                      placeholder="Chọn hoặc tải lên file"
-                      onChange={(value) => setTypeFileUpload(value)}
-                    >
-                      <Select.Option value="upload">
-                        Tải lên file mới
-                      </Select.Option>
-                      <Select.Option value="existing">
-                        Chọn từ dữ liệu có sẵn
-                      </Select.Option>
-                    </Select>
-                    <div className="mt-4">
-                      {typeFileUpload && (
-                        <>
-                          {typeFileUpload === "existing" ? (
-                            <QuestionModal
-                              openChooseVideo={openChooseVideo}
-                              setOpenChooseVideo={setOpenChooseVideo}
-                              topicId={topicId}
-                            >
-                              <div
-                                onClick={() => {
-                                  if (topicId) {
-                                    setOpenChooseVideo(true);
-                                  } else {
-                                    message.warning("Vui lòng chọn chủ đề");
-                                  }
-                                }}
-                              >
-                                <Button disabled={!topicId}>Chọn file</Button>
-                              </div>
-                            </QuestionModal>
-                          ) : (
-                            <MediaUpload />
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </Form.Item>
-
-                  <Form.Item label="Kiểu câu hỏi:">
-                    <Select
-                      value={question.type}
-                      onChange={(value) =>
-                        handleQuestionChange(index, "type", value)
-                      }
-                    >
-                      <Select.Option value="single">Một đáp án</Select.Option>
-                      <Select.Option value="multiple">
-                        Nhiều đáp án
-                      </Select.Option>
-                    </Select>
-                  </Form.Item>
-
-                  <Form.Item label="Đáp án:" className="w-full">
-                    <Form.List name={[`questions`, index, `answers`]}>
-                      {(fields, { add, remove }) => (
-                        <>
-                          {question.type === "single" ? (
-                            <Radio.Group
-                              className="w-full"
-                              onChange={() =>
-                                handleQuestionChange(
-                                  index,
-                                  "answers",
-                                  question.answers.map((answer, i) => ({
-                                    ...answer,
-                                    isCorrect: i === fields[0].name,
-                                  })),
-                                )
-                              }
-                              defaultValue={fields[0]?.name}
-                            >
-                              {fields.map(
-                                ({ key, name, ...restField }, answerIndex) => (
-                                  <div
-                                    key={key}
-                                    className="flex w-full items-center gap-4"
-                                  >
-                                    <div className="mb-2 flex items-center">
-                                      <Radio value={name} />
-                                      <Form.Item
-                                        {...restField}
-                                        name={[name, "text"]}
-                                        className="mb-0 ml-2 w-full"
-                                      >
-                                        <Input
-                                          style={{ width: 700 }}
-                                          value={
-                                            question.answers[answerIndex]?.text
-                                          }
-                                          onChange={(e) =>
-                                            handleQuestionChange(
-                                              index,
-                                              "answers",
-                                              question.answers.map(
-                                                (answer, i) =>
-                                                  i === answerIndex
-                                                    ? {
-                                                        ...answer,
-                                                        text: e.target.value,
-                                                      }
-                                                    : answer,
-                                              ),
-                                            )
-                                          }
-                                        />
-                                      </Form.Item>
-                                    </div>
-
-                                    <MinusCircleOutlined
-                                      style={{ fontSize: 20 }}
-                                      className="dynamic-delete-button"
-                                      onClick={() => remove(name)}
-                                    />
-                                  </div>
-                                ),
-                              )}
-                              <Button
-                                type="dashed"
-                                onClick={() => add()}
-                                icon={<PlusOutlined />}
-                              >
-                                Thêm đáp án
-                              </Button>
-                            </Radio.Group>
-                          ) : (
-                            <Checkbox.Group
-                              onChange={(checkedValues) =>
-                                handleQuestionChange(
-                                  index,
-                                  "answers",
-                                  question.answers.map((answer, i) => ({
-                                    ...answer,
-                                    isCorrect: checkedValues.includes(
-                                      fields[i].name,
-                                    ),
-                                  })),
-                                )
-                              }
-                              defaultValue={[fields[0]?.name]}
-                            >
-                              {fields.map(
-                                ({ key, name, ...restField }, answerIndex) => (
-                                  <div
-                                    key={key}
-                                    className="flex w-full items-center gap-4"
-                                  >
-                                    <div className="mb-2 flex items-center">
-                                      <Checkbox value={name} />
-                                      <Form.Item
-                                        {...restField}
-                                        name={[name, "text"]}
-                                        className="mb-0 ml-2 w-full"
-                                      >
-                                        <Input
-                                          value={
-                                            question.answers[answerIndex]?.text
-                                          }
-                                          style={{ width: 700 }}
-                                          onChange={(e) =>
-                                            handleQuestionChange(
-                                              index,
-                                              "answers",
-                                              question.answers.map(
-                                                (answer, i) =>
-                                                  i === answerIndex
-                                                    ? {
-                                                        ...answer,
-                                                        text: e.target.value,
-                                                      }
-                                                    : answer,
-                                              ),
-                                            )
-                                          }
-                                        />
-                                      </Form.Item>
-                                    </div>
-
-                                    <MinusCircleOutlined
-                                      style={{ fontSize: 20 }}
-                                      className="dynamic-delete-button"
-                                      onClick={() => remove(name)}
-                                    />
-                                  </div>
-                                ),
-                              )}
-                              <Button
-                                type="dashed"
-                                onClick={() => add()}
-                                icon={<PlusOutlined />}
-                              >
-                                Thêm đáp án
-                              </Button>
-                            </Checkbox.Group>
-                          )}
-                        </>
-                      )}
-                    </Form.List>
-                  </Form.Item>
-                </div>
-              </Panel>
-            ))}
-          </Collapse>
 
           <div className="flex items-center justify-center gap-4">
             <Button>Huỷ</Button>
@@ -382,7 +167,7 @@ const CreateAndEditExamPage: React.FC = () => {
           <Pagination
             current={currentPage}
             pageSize={questionsPerPage}
-            total={numQuestions}
+            total={openChooseQuestions.size}
             onChange={handlePageChange}
           />
         ) : null}

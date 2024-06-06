@@ -1,14 +1,18 @@
 "use client";
 import { MediaUpload } from "@/components/UI/Upload/UploadFile";
 import Learning from "@/model/Learning";
-import { validateRequire } from "@/utils/validation/validtor";
+import {
+  validateRequire,
+  validateRequireInput,
+} from "@/utils/validation/validtor";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Button,
   Checkbox,
   Collapse,
   Form,
+  Image,
   Input,
   Pagination,
   Radio,
@@ -19,6 +23,9 @@ import { useForm } from "antd/es/form/Form";
 import type { UploadFile } from "antd/es/upload/interface";
 import React, { useState } from "react";
 import QuestionModal from "../../check-list/create-edit/ModalSelectFile";
+import Questions from "@/model/Questions";
+import { useRouter } from "next/navigation";
+import { isImage } from "@/components/common/constants";
 
 interface Answer {
   content: string;
@@ -38,7 +45,47 @@ interface Question {
 }
 const { Panel } = Collapse;
 
+const initAnswerValue = {
+  content: "",
+  imageLocation: "",
+  videoLocation: "",
+  correct: false,
+};
+
+// conert về data tạo
+function convertQuestions(input: any) {
+  const result: any = [];
+
+  input.questions.forEach((question: any, questionIndex: any) => {
+    const newQuestion: any = {
+      content: question.content,
+      explanation: "",
+      imageLocation: "",
+      videoLocation: "",
+      topicId: input.topicId,
+      answerReqs: [],
+    };
+
+    // Loop through each answer in the current question
+    question.answerReqs.forEach((answer: any, answerIndex: any) => {
+      const newAnswer = {
+        content: answer.content,
+        imageLocation: isImage(answer.file) ? answer.file : "",
+        videoLocation: !isImage(answer.file) ? answer.file : "",
+        correct: answer.correct,
+      };
+
+      newQuestion.answerReqs.push(newAnswer);
+    });
+
+    result.push(newQuestion);
+  });
+
+  return result;
+}
+
 const QuestionCreate: React.FC = () => {
+  const router = useRouter();
   const [form] = useForm();
   const [numQuestions, setNumQuestions] = useState<number>(0);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -56,7 +103,7 @@ const QuestionCreate: React.FC = () => {
   >("");
 
   // API lấy danh sách  topics
-  const { data: allTopics } = useQuery({
+  const { data: allTopics, refetch } = useQuery({
     queryKey: ["getAllTopics"],
     queryFn: async () => {
       const res = await Learning.getAllTopics();
@@ -66,6 +113,15 @@ const QuestionCreate: React.FC = () => {
         label: item.content,
         text: item.content,
       }));
+    },
+  });
+
+  // API tạo câu hỏi
+  const mutationAdd = useMutation({
+    mutationFn: Questions.addQuestion,
+    onSuccess: () => {
+      message.success("Thêm mới câu hỏi thành công");
+      router.push("/learning-management/questions");
     },
   });
 
@@ -79,6 +135,7 @@ const QuestionCreate: React.FC = () => {
         imageLocation: "",
         videoLocation: "",
         topicId: 0,
+        type: "single",
         answerReqs: [
           { content: "", imageLocation: "", videoLocation: "", correct: true },
         ],
@@ -106,14 +163,22 @@ const QuestionCreate: React.FC = () => {
     currentPage * questionsPerPage,
   );
 
+  const lstQuestions = form.getFieldsValue();
+
+  console.log("lstQuestions", lstQuestions);
+
   return (
     <>
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto bg-white p-4">
         <h1 className="mb-4 text-2xl font-bold">Thêm câu hỏi</h1>
         <Form
           form={form}
           onFinish={(value) => {
-            console.log("value", value);
+            // convert
+            const newValue = convertQuestions(value);
+            console.log("newValue: ", value, newValue);
+
+            mutationAdd.mutate(newValue);
           }}
           layout="vertical"
         >
@@ -125,7 +190,6 @@ const QuestionCreate: React.FC = () => {
           >
             <Select placeholder="Chọn chủ đề" options={allTopics} />
           </Form.Item>
-
           <Form.Item
             label="Số câu hỏi muốn tạo (không quá 100):"
             name="numQuestions"
@@ -152,13 +216,21 @@ const QuestionCreate: React.FC = () => {
                   <h2 className="mb-2 text-xl font-bold">
                     Câu hỏi {(currentPage - 1) * questionsPerPage + index + 1}
                   </h2>
-                  <Form.Item label="Tên câu hỏi:" name="content">
+                  <Form.Item
+                    label="Tên câu hỏi:"
+                    name={["questions", index, "content"]}
+                    required
+                    rules={[
+                      validateRequireInput("Tên câu hỏi không được bỏ trống"),
+                    ]}
+                  >
                     <Input placeholder="Nhập câu hỏi" />
                   </Form.Item>
 
                   <Form.Item
-                    name="file"
+                    name={["questions", index, "typeFile"]}
                     label="Lựa chọn file (hình ảnh, video):"
+                    className="mb-0"
                   >
                     <Select
                       style={{ width: "100%" }}
@@ -172,14 +244,22 @@ const QuestionCreate: React.FC = () => {
                         Chọn từ dữ liệu có sẵn
                       </Select.Option>
                     </Select>
+                  </Form.Item>
+
+                  <Form.Item
+                    name={["questions", index, "file"]}
+                    className="mb-2"
+                  >
                     <div className="mt-4">
-                      {typeFileUpload && (
+                      {lstQuestions.questions?.length && (
                         <>
-                          {typeFileUpload === "existing" ? (
+                          {lstQuestions?.questions[index]?.typeFile ===
+                            "existing" && (
                             <QuestionModal
                               openChooseVideo={openChooseVideo}
                               setOpenChooseVideo={setOpenChooseVideo}
                               topicId={topicId}
+                              file={lstQuestions?.questions[index]?.file}
                             >
                               <div
                                 onClick={() => {
@@ -191,132 +271,183 @@ const QuestionCreate: React.FC = () => {
                                 }}
                               >
                                 <Button disabled={!topicId}>Chọn file</Button>
+                                {lstQuestions?.questions[index]?.file && (
+                                  <div className="">
+                                    {isImage(
+                                      lstQuestions?.questions[index]?.file,
+                                    ) ? (
+                                      <Image
+                                        preview={false}
+                                        alt="example"
+                                        style={{
+                                          width: 200,
+                                          height: 200,
+                                          objectFit: "contain",
+                                        }}
+                                        src={
+                                          lstQuestions?.questions[index]?.file
+                                        }
+                                      />
+                                    ) : (
+                                      <video
+                                        controls
+                                        style={{ width: 200, height: 200 }}
+                                      >
+                                        <source
+                                          src={
+                                            lstQuestions?.questions[index]?.file
+                                          }
+                                          type="video/mp4"
+                                        />
+                                      </video>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             </QuestionModal>
-                          ) : (
-                            <MediaUpload />
                           )}
+                          {lstQuestions?.questions[index]?.typeFile ===
+                            "upload" && <MediaUpload />}
                         </>
                       )}
                     </div>
                   </Form.Item>
 
-                  <Form.Item label="Kiểu câu hỏi:">
+                  <Form.Item
+                    name={["questions", index, "type"]}
+                    label="Kiểu câu hỏi:"
+                    required
+                    rules={[validateRequireInput("Vui lòng chọn loại đáp án")]}
+                    initialValue={"single"}
+                  >
                     <Select
                       value={question.type}
                       onChange={(value) =>
                         handleQuestionChange(index, "type", value)
                       }
-                    >
-                      <Select.Option value="single">Một đáp án</Select.Option>
-                      <Select.Option value="multiple">
-                        Nhiều đáp án
-                      </Select.Option>
-                    </Select>
+                      placeholder="Chọn loại đáp án"
+                      options={[
+                        { label: "Một đáp án", value: "single" },
+                        { label: "Nhiều đáp án", value: "multiple" },
+                      ]}
+                    />
                   </Form.Item>
 
-                  <Form.List name="answerReqs">
+                  <Form.List name={["questions", index, "answerReqs"]}>
                     {(fields, { add, remove }) => (
                       <>
                         {question.type === "single" ? (
-                          <Radio.Group
-                            className="w-full"
-                            defaultValue={fields[0]?.name}
-                            onChange={(value) => {
-                              console.log("value", value);
+                          <Radio.Group className="w-full" defaultValue={0}>
+                            {fields.map((field, answerIndex) => (
+                              <div
+                                key={field.key}
+                                className="flex w-full items-center gap-4"
+                              >
+                                <div className="mb-2 flex items-center">
+                                  <Form.Item
+                                    name={[field.name, "correct"]}
+                                    className="mb-0 ml-2 w-full"
+                                    valuePropName="checked"
+                                    required
+                                    rules={[
+                                      validateRequire(
+                                        "Vui lòng nhập chọn đáp án đúng",
+                                      ),
+                                    ]}
+                                    initialValue={0}
+                                  >
+                                    <Radio value={answerIndex} />
+                                  </Form.Item>
 
-                              // form.setFieldValue([[name, "correct"]], value);
-                            }}
-                          >
-                            {fields.map(
-                              ({ key, name, ...restField }, answerIndex) => (
-                                <div
-                                  key={key}
-                                  className="flex w-full items-center gap-4"
-                                >
-                                  <div className="mb-2 flex items-center">
-                                    <Form.Item
-                                      {...restField}
-                                      name={[answerIndex, "correct"]}
-                                      className="mb-0 ml-2 w-full"
+                                  <Form.Item
+                                    name={[field.name, "content"]}
+                                    className="mb-0 ml-2 w-full"
+                                    required
+                                    rules={[
+                                      validateRequireInput(
+                                        "Vui lòng nhập đáp án",
+                                      ),
+                                    ]}
+                                  >
+                                    <Input
+                                      placeholder="Nhập đáp án"
+                                      style={{ width: 500 }}
                                     />
-                                    <Radio value={name} />
-
-                                    <Form.Item
-                                      {...restField}
-                                      name={[answerIndex, "content"]}
-                                      className="mb-0 ml-2 w-full"
-                                    >
-                                      <Input style={{ width: 700 }} />
-                                    </Form.Item>
-                                    <Form.Item
-                                      {...restField}
-                                      name={[answerIndex, "imageLocation"]}
-                                      className="mb-0 ml-2 w-full"
-                                    >
-                                      <MediaUpload />
-                                    </Form.Item>
-                                    <Form.Item
-                                      {...restField}
-                                      name={[answerIndex, "videoLocation"]}
-                                      className="mb-0 ml-2 w-full"
-                                    >
-                                      <MediaUpload />
-                                    </Form.Item>
-                                  </div>
-
-                                  <MinusCircleOutlined
-                                    style={{ fontSize: 20 }}
-                                    className="dynamic-delete-button"
-                                    onClick={() => remove(name)}
-                                  />
+                                  </Form.Item>
+                                  {/* <Form.Item
+                                    name={[field.name, "imageLocation"]}
+                                    className="mb-0 ml-2 w-full"
+                                  >
+                                    <MediaUpload />
+                                  </Form.Item>
+                                  <Form.Item
+                                    name={[field.name, "videoLocation"]}
+                                    className="mb-0 ml-2 w-full"
+                                  >
+                                    <MediaUpload />
+                                  </Form.Item> */}
                                 </div>
-                              ),
-                            )}
+
+                                <MinusCircleOutlined
+                                  style={{ fontSize: 20 }}
+                                  className="dynamic-delete-button"
+                                  onClick={() => remove(field.name)}
+                                />
+                              </div>
+                            ))}
                             <Button
                               type="dashed"
-                              onClick={() => add()}
+                              onClick={() =>
+                                add({
+                                  ...initAnswerValue,
+                                  correct: fields?.length === 0,
+                                })
+                              }
                               icon={<PlusOutlined />}
                             >
                               Thêm đáp án
                             </Button>
                           </Radio.Group>
                         ) : (
-                          <Checkbox.Group defaultValue={[fields[0]?.name]}>
-                            {fields.map(
-                              ({ key, name, ...restField }, answerIndex) => (
-                                <div
-                                  key={key}
-                                  className="flex w-full items-center gap-4"
-                                >
-                                  <div className="mb-2 flex items-center">
-                                    <Form.Item
-                                      {...restField}
-                                      name={[answerIndex, "correct"]}
-                                      className="mb-0 ml-2 w-full"
-                                    >
-                                      <Checkbox value={name} />
-                                    </Form.Item>
-                                    <Form.Item
-                                      {...restField}
-                                      name={[answerIndex, "text"]}
-                                      className="mb-0 ml-2 w-full"
-                                    >
-                                      <Input style={{ width: 700 }} />
-                                    </Form.Item>
-                                  </div>
-
-                                  <MinusCircleOutlined
-                                    style={{ fontSize: 20 }}
-                                    className="dynamic-delete-button"
-                                    onClick={() => remove(name)}
-                                  />
+                          <Checkbox.Group className="w-full" defaultValue={[0]}>
+                            {fields.map((field, answerIndex) => (
+                              <div
+                                key={field.key}
+                                className="flex w-full items-center gap-4"
+                              >
+                                <div className="mb-2 flex items-center">
+                                  <Form.Item
+                                    {...field}
+                                    name={[field.name, "correct"]}
+                                    className="mb-0 ml-2 w-full"
+                                    valuePropName="checked"
+                                  >
+                                    <Checkbox value={field.name} />
+                                  </Form.Item>
+                                  <Form.Item
+                                    {...field}
+                                    name={[field.name, "content"]}
+                                    className="mb-0 ml-2 w-full"
+                                  >
+                                    <Input style={{ width: 700 }} />
+                                  </Form.Item>
                                 </div>
-                              ),
-                            )}
+
+                                <MinusCircleOutlined
+                                  style={{ fontSize: 20 }}
+                                  className="dynamic-delete-button"
+                                  onClick={() => remove(field.name)}
+                                />
+                              </div>
+                            ))}
                             <Button
                               type="dashed"
-                              onClick={() => add()}
+                              onClick={() =>
+                                add({
+                                  ...initAnswerValue,
+                                  correct: fields?.length === 0,
+                                })
+                              }
                               icon={<PlusOutlined />}
                             >
                               Thêm đáp án
@@ -330,7 +461,6 @@ const QuestionCreate: React.FC = () => {
               </Panel>
             ))}
           </Collapse>
-
           <div className="flex items-center justify-center gap-4">
             <Button>Huỷ</Button>
             <Button type="primary" htmlType="submit">

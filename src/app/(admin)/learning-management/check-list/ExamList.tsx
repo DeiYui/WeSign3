@@ -217,7 +217,7 @@ export const CustomTable = styled(Table)`
   .ant-table-thead .ant-table-cell {
     background-color: ${colors.neutral200};
     color: ${colors.neutral800};
-    font-size: 12px;
+    font-size: 14px;
     font-style: normal;
     font-weight: 600;
     line-height: 16px;
