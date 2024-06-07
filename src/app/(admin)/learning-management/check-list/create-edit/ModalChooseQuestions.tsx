@@ -1,18 +1,11 @@
-import {
-  Collapse,
-  Modal,
-  Input,
-  Table,
-  Checkbox,
-  Button,
-  Tag,
-  Empty,
-} from "antd";
-import React, { useState } from "react";
-import { UploadFile } from "antd/es/upload/interface";
-import { CustomTable } from "../ExamList";
-import { PlusOutlined } from "@ant-design/icons";
 import { colors } from "@/assets/colors";
+import { CaretRightIcon } from "@/assets/icons";
+import { isImage } from "@/components/common/constants";
+import { PlusOutlined } from "@ant-design/icons";
+import { Button, Collapse, Empty, Image, Input, Modal, Table, Tag } from "antd";
+import { UploadFile } from "antd/es/upload/interface";
+import React, { useState } from "react";
+import { CustomTable } from "../ExamList";
 
 interface Answer {
   id: number;
@@ -36,6 +29,26 @@ interface ModalChooseQuestionsProps {
 
 const { Panel } = Collapse;
 
+export const renderAnswerValue = (listValue: any) => {
+  const columns = [
+    {
+      dataIndex: "content",
+      align: "left",
+    },
+  ];
+
+  return (
+    <div className="flex w-full flex-col gap-y-3 bg-white ">
+      <CustomTable
+        showHeader={false}
+        pagination={false}
+        columns={columns as any}
+        dataSource={listValue}
+      />
+    </div>
+  );
+};
+
 const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
   open,
   onClose,
@@ -43,8 +56,24 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
 }) => {
   const [searchValue, setSearchValue] = useState<string>("");
 
+  // Lưu rowKey của những row đang được mở
+  const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([]);
+
   // lưu những row được chọn
   const [selectedRowId, setSelectedRowId] = useState<string[]>([]);
+
+  // preview
+  const [preview, setPreview] = useState<{ open: boolean; file: string }>({
+    open: false,
+    file: "",
+  });
+
+  const handleViewImage = (record: any) => {
+    setPreview({
+      open: true,
+      file: record?.imageLocation || record?.videoLocation,
+    });
+  };
 
   const columns = [
     Table.SELECTION_COLUMN,
@@ -60,7 +89,7 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
       key: "imageLocation",
       render: (imageLocation: string, record: any) => (
         <div>
-          {/* <Button onClick={() => handleViewImage(record)}>Xem</Button> */}
+          <Button onClick={() => handleViewImage(imageLocation)}>Xem</Button>
         </div>
       ),
     },
@@ -89,12 +118,14 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
     // Logic to handle adding question with id
   };
 
-  const expandedRowRender = (record: Question) => (
-    <div>
-      <p>{record.question}</p>
-      {/* Render any additional content related to the question */}
-    </div>
-  );
+  // hàm toggle đóng mở 1 hàng
+  const toggleExpandRow = (key: number) => {
+    if (expandedRowKeys.includes(key)) {
+      setExpandedRowKeys(expandedRowKeys.filter((item) => item !== key));
+    } else {
+      setExpandedRowKeys([...expandedRowKeys, key]);
+    }
+  };
 
   const rowSelection = {
     fixed: true,
@@ -137,28 +168,55 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
             columns={columns}
             dataSource={questions}
             pagination={false}
-            // expandable={{
-            //   rowExpandable: (record: any) => !!record.variantInfo,
-            //   expandedRowKeys,
-            //   expandedRowRender: (record: any) => (
-            //     <RenderVariantInfo variant={record} key={record.variantGenId} variantConfig={variantConfig} />
-            //   ),
-            //   expandIcon: ({ expanded, record }: any) => {
-            //     if (!record.variantInfo) return <div className="w-5" />
-            //     return (
-            //       <div
-            //         className={`flex items-center justify-center transform ${
-            //           expanded ? 'rotate-90' : ''
-            //         } duration-300 transition-all`}
-            //         onClick={() => toggleExpandRow(record.variantGenId)}
-            //       >
-            //         <CaretRightIcon />
-            //       </div>
-            //     )
-            //   },
-            // }}
+            expandable={{
+              rowExpandable: (record: any) => !!record.answerResList,
+              expandedRowKeys,
+              expandedRowRender: (record: any) =>
+                renderAnswerValue(record.answerResList),
+              expandIcon: ({ expanded, record }: any) => {
+                if (!record.answerResList) return <div className="w-5" />;
+                return (
+                  <div
+                    className={`flex transform items-center justify-center ${
+                      expanded ? "rotate-90" : ""
+                    } transition-all duration-300`}
+                    onClick={() => toggleExpandRow(record.questionId)}
+                  >
+                    <CaretRightIcon />
+                  </div>
+                );
+              },
+            }}
             locale={{ emptyText: <Empty description="Không có dữ liệu" /> }}
           />
+        </div>
+      </Modal>
+
+      <Modal
+        open={preview.open}
+        onCancel={() => setPreview({ file: "", open: false })}
+        footer={null}
+        width={1000}
+        centered
+      >
+        <div className="flex w-full items-center justify-center p-4">
+          {preview.file && (
+            <div className="w-full">
+              {isImage(preview.file) ? (
+                <Image
+                  preview={false}
+                  className=""
+                  src={preview.file}
+                  alt="Ảnh chủ đề"
+                  style={{ width: 400, height: 400, objectFit: "contain" }}
+                />
+              ) : (
+                <video controls style={{ width: "100%", height: "auto" }}>
+                  <source src={preview.file} />
+                </video>
+              )}
+            </div>
+          )}
         </div>
       </Modal>
     </>
