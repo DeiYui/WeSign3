@@ -3,7 +3,7 @@ import { MediaUpload } from "@/components/UI/Upload/UploadFile";
 import Learning from "@/model/Learning";
 import { validateRequire } from "@/utils/validation/validtor";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Button,
   Checkbox,
@@ -23,6 +23,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import QuestionModal from "./ModalSelectFile";
 import ModalChooseQuestions from "./ModalChooseQuestions";
 import Questions from "@/model/Questions";
+import Exam from "@/model/Exam";
+import { useRouter } from "next/navigation";
 
 interface Answer {
   id: number;
@@ -41,10 +43,21 @@ interface Question {
 const { Panel } = Collapse;
 
 const CreateAndEditExamPage: React.FC = () => {
+  const router = useRouter();
   const [form] = useForm();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const questionsPerPage = 10;
+
+  // list câu hỏi
+  const lstQuestions = Form.useWatch("lstQuestions", form);
+
+  useEffect(() => {
+    form.setFieldValue(
+      "questionIds",
+      lstQuestions?.map((item: any) => item.questionId),
+    );
+  }, [form, lstQuestions]);
 
   // Modal chọn câu hỏi
   const [openChooseQuestions, setOpenChooseQuestions] = useState<{
@@ -85,6 +98,19 @@ const CreateAndEditExamPage: React.FC = () => {
     enabled: openChooseQuestions.open,
   });
 
+  // Thêm bài kiểm tra
+  const addExam = useMutation({
+    mutationFn: Exam.addExam,
+    onSuccess: async () => {
+      // Thông báo thành công
+      message.success("Thêm bài kiểm tra thành công thành công");
+      router.push("/learning-management/check-list");
+    },
+    onError: () => {
+      message.error("Thêm bài kiểm tra thất bại");
+    },
+  });
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -96,7 +122,14 @@ const CreateAndEditExamPage: React.FC = () => {
         <Form
           form={form}
           onFinish={(value) => {
-            console.log("value", value);
+            // convert
+            const req = {
+              name: value.name,
+              questionIds: value.questionIds,
+              topicId: value.topicId,
+              private: true,
+            };
+            addExam.mutate(req);
           }}
           layout="vertical"
         >
@@ -111,12 +144,13 @@ const CreateAndEditExamPage: React.FC = () => {
               options={allTopics}
               onChange={(e) => {
                 setOpenChooseQuestions({ ...openChooseQuestions, topicId: e });
+                form.setFieldValue("lstQuestions", []);
               }}
             />
           </Form.Item>
 
           <Form.Item
-            label="Số câu hỏi muốn tạo (không quá 100):"
+            label="Số câu hỏi"
             name="numQuestions"
             required
             rules={[validateRequire("Số lượng câu hỏi không được bỏ trống")]}
@@ -142,7 +176,7 @@ const CreateAndEditExamPage: React.FC = () => {
           >
             Chọn câu hỏi
           </Button>
-          <Form.Item name="questionIds">
+          <Form.Item name="questionIds" noStyle>
             {/* Modal danh sách các câu hỏi */}
 
             <ModalChooseQuestions
@@ -154,8 +188,30 @@ const CreateAndEditExamPage: React.FC = () => {
             />
           </Form.Item>
 
-          <div className="flex items-center justify-center gap-4">
-            <Button>Huỷ</Button>
+          <Form.Item name="lstQuestions" hidden noStyle />
+          {lstQuestions?.length ? (
+            <div className="mt-2 flex flex-col gap-y-2 bg-white p-2">
+              <div className="text-xl font-bold">Danh sách câu hỏi </div>
+
+              {lstQuestions?.map((e: any) => (
+                <>
+                  <div
+                    key={e}
+                    className="body-14-regular rounded-lg p-2 hover:cursor-default hover:bg-primary-200"
+                  >
+                    {e.content}
+                  </div>
+                </>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="mt-3 flex items-center justify-center gap-4">
+            <Button
+              onClick={() => router.push("/learning-management/check-list")}
+            >
+              Huỷ
+            </Button>
             <Button type="primary" htmlType="submit">
               Tạo
             </Button>

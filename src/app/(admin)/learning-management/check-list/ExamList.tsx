@@ -1,5 +1,6 @@
 "use client";
 import { colors } from "@/assets/colors";
+import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
 import {
   DeleteFilled,
@@ -51,14 +52,30 @@ const optionStatus = [
 const ExamListPage: React.FC = () => {
   const router = useRouter();
 
-  const [filterParams, setFilterParams] = useState<FilterParams>({
-    page: 1,
-    size: 999999,
-    topicId: 0,
-    status: -1,
-  });
   // xử lý khi hover vào row
   const [hoveredRow, setHoveredRow] = useState("");
+  const [filterParams, setFilterParams] = useState<{
+    topicId: number;
+    nameSearch: string;
+    page: number;
+    size: number;
+    private: boolean;
+  }>({
+    topicId: 0,
+    nameSearch: "",
+    page: 0,
+    size: 10,
+    private: true,
+  });
+
+  // API lấy danh sách  bài kiểm tra
+  const { data: allExams } = useQuery({
+    queryKey: ["getLstExam", filterParams],
+    queryFn: async () => {
+      const res = await Exam.getLstExam(filterParams);
+      return res?.data;
+    },
+  });
 
   // API lấy danh sách  topics
   const { data: allTopics } = useQuery({
@@ -163,14 +180,6 @@ const ExamListPage: React.FC = () => {
             setFilterParams({ ...filterParams, topicId: value })
           }
         />
-
-        <Select
-          className="w-full"
-          allowClear
-          placeholder="Trạng thái"
-          options={optionStatus}
-          onChange={(e) => setFilterParams({ ...filterParams, status: e })}
-        />
       </div>
       <div className="mb-3 flex justify-end">
         <Button
@@ -204,6 +213,7 @@ export const CustomTable = styled(Table)`
   }
   .ant-table-tbody > tr > td {
     padding: 10px 16px 10px 16px;
+    background-color: white;
   }
   .ant-table-cell.ant-table-cell-with-append {
     display: flex;

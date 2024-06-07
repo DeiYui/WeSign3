@@ -3,8 +3,8 @@ import { Base } from "./Base";
 
 class Questions extends Base {
   // Danh sách câu hỏi
-  getQuestionTopic = async (params?: any) => {
-    const res = await this.apiGet(`/questions/limits-topic/v2`, params);
+  getQuestionTopic = async (topicId: number) => {
+    const res = await this.apiGet(`/questions/${topicId}`);
     return res.data;
   };
 
@@ -27,7 +27,7 @@ class Questions extends Base {
   };
 
   // Xoá câu bỏi
-  deleteQuestion = async (id?: number) => {
+  deleteQuestion = async (id?: any) => {
     const res = await this.apiDelete(`/questions/${id}`);
     return res.data;
   };

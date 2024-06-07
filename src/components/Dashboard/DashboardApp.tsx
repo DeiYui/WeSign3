@@ -1,5 +1,5 @@
 "use client";
-import { AlphabetIcon, ClassIcon, TopicIcon } from "@/assets/icons";
+import { AlphabetIcon, ClassIcon, ExamIcon, TopicIcon } from "@/assets/icons";
 import React, { useState } from "react";
 import CardDataStats from "../CardDataStats";
 import { useQuery } from "@tanstack/react-query";
@@ -72,9 +72,11 @@ const DashboardApp: React.FC = () => {
   return (
     <>
       <div className="mb-3 flex justify-between text-xl font-semibold uppercase">
-        <div className="font-bold ">Lớp học & Chủ đề & Từ vựng </div>
+        <div className="font-bold ">
+          Lớp học & Chủ đề & Từ vựng & Bài kiểm tra{" "}
+        </div>
       </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:gap-7.5">
+      <div className="grid grid-cols-4 gap-4">
         <CardDataStats title="Lớp học" total="2">
           <ClassIcon size={24} color="#3C50E0" />
         </CardDataStats>
@@ -83,6 +85,9 @@ const DashboardApp: React.FC = () => {
         </CardDataStats>
         <CardDataStats title="Từ vựng" total={`${totalVocabulary}`}>
           <AlphabetIcon size={24} color="#3C50E0" />
+        </CardDataStats>
+        <CardDataStats title="Bài kiểm tra" total="2">
+          <ExamIcon size={24} color="#3C50E0" />
         </CardDataStats>
       </div>
       <div className="my-3 flex flex-col justify-between text-xl font-semibold ">

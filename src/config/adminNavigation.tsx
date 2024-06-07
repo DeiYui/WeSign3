@@ -49,6 +49,22 @@ export const AdminSystem = () => {
           path: "/learning-management/vocabulary",
           hidden: false,
           icon: <DotIcon color="white" size={20} />,
+          // children: [
+          //   {
+          //     key: "/learning-management/vocabulary/public",
+          //     label: "Chung",
+          //     path: "/learning-management/vocabulary/public",
+          //     hidden: false,
+          //     icon: <DotIcon color="white" size={20} />,
+          //   },
+          //   {
+          //     key: "/learning-management/vocabulary/private",
+          //     label: "Riêng",
+          //     path: "/learning-management/vocabulary/private",
+          //     hidden: false,
+          //     icon: <DotIcon color="white" size={20} />,
+          //   },
+          // ],
         },
         {
           key: "/learning-management/questions",

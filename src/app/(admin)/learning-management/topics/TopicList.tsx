@@ -71,7 +71,9 @@ const TopicList = (props: any) => {
   const { isFetching, refetch } = useQuery({
     queryKey: ["getAllTopics", filterParams],
     queryFn: async () => {
-      const res = await Learning.getAllTopics(filterParams);
+      const res = !isPrivate
+        ? await Learning.getAllTopics(filterParams)
+        : await Learning.getAllTopicsPrivate(filterParams.classRoomId);
       setLstTopics(res.data);
       return res.data as Topic[];
     },
@@ -397,7 +399,11 @@ const TopicList = (props: any) => {
                 ]
               }
             >
-              <Select options={optionClass} placeholder="Lựa chọn lớp học" />
+              <Select
+                disabled={isPrivate && modalCreate.typeModal === "edit"}
+                options={optionClass}
+                placeholder="Lựa chọn lớp học"
+              />
             </Form.Item>
             <Form.Item
               name="content"

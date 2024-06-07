@@ -22,3 +22,4 @@ export * from "./CloseIcon";
 export * from "./RoomIcon";
 export * from "./RequestIcon";
 export * from "./DotIcon";
+export * from "./CaretRightIcon";

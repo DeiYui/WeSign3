@@ -110,7 +110,12 @@ const VocabularyCreateUpdate: React.FC = () => {
       message.success("Thêm mới từ thành công");
       router.back();
     },
-    onError: () => {
+    onError: ({ response }: any) => {
+      const { data } = response;
+      if (data.code === 409) {
+        message.error("Từ vựng đã tồn tại");
+        return;
+      }
       message.error("Thêm mới từ vựng thất bại");
     },
   });
@@ -285,7 +290,11 @@ const VocabularyCreateUpdate: React.FC = () => {
               layout="vertical"
               className="px-4 pb-4"
               onFinish={(value) => {
-                mutationCreate.mutate(value);
+                mutationCreate.mutate({
+                  ...value,
+                  vocabularyImageReqs: value?.vocabularyImageReqs || "",
+                  vocabularyVideoReqs: value?.vocabularyVideoReqs || "",
+                });
               }}
             >
               <Form.Item

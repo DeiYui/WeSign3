@@ -90,8 +90,8 @@ class Learning extends Base {
   };
 
   // Xoá từ vựng
-  deleteVocabulary = async (id: any) => {
-    const res = await this.apiDelete(`/vocabularies/${id}`);
+  deleteVocabulary = async (body: any) => {
+    const res = await this.apiDeleteBody(`/vocabularies/delete-list`, body);
     return res.data;
   };
 

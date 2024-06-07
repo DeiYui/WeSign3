@@ -1,6 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { useRouter } from "next/navigation";
-import { useReducer } from "react";
 
 export type AdminState = any | null;
 
@@ -12,7 +10,6 @@ export const adminSlice = createSlice({
   reducers: {
     login: (state, action) => {
       state = action.payload;
-
       return state;
     },
     logout: (state) => {

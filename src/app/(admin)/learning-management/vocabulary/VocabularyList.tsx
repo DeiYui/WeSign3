@@ -409,7 +409,7 @@ const VocabularyList: React.FC = () => {
             className="body-14-medium flex cursor-pointer select-none items-center gap-x-2 p-1 text-primary-600"
           >
             <DeleteOutlined color={colors.primary600} />
-            Xoá gói dịch vụ
+            Xoá từ vựng
           </div>
           <div
             onClick={() =>
@@ -643,11 +643,11 @@ const VocabularyList: React.FC = () => {
       <ConfirmModal
         visible={modalConfirm.open}
         iconType="DELETE"
-        title="Xóa gói dịch vụ"
-        content="Hành động này sẽ xóa gói dịch vụ vĩnh viễn"
+        title="Xóa từ vựng"
+        content="Hành động này sẽ xóa từ vựng  vĩnh viễn"
         confirmButtonText="Xác nhận"
         onClick={() => {
-          mutationDel.mutate(modalConfirm.rowId);
+          mutationDel.mutate({ vocabularyIds: [...modalConfirm.rowId] });
         }}
         onCloseModal={() => setModalConfirm({ ...modalConfirm, open: false })}
       />

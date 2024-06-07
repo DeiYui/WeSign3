@@ -1,5 +1,6 @@
 import CallModal from "@/components/Chat/components/CallModal";
 import { RootState } from "@/store";
+import { useRouter } from "next/navigation";
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { Socket, io } from "socket.io-client";
@@ -35,8 +36,8 @@ type SocketContextProps = {
 const SocketContext = createContext<SocketContextProps | undefined>(undefined);
 
 const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  const user: User = useSelector((state: RootState) => state.admin);
-  const chat = useSelector((state: RootState) => state.chat);
+  const router = useRouter();
+  const user: User = useSelector((state: RootState) => state?.admin);
 
   const [socket, setSocket] = useState<Socket | undefined>(undefined);
   const [socketResponse, setSocketResponse] = useState<SocketResponse>({

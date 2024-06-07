@@ -19,11 +19,16 @@ const DropdownUser = ({ admin }: { admin: User }) => {
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
   const router = useRouter();
+  const isMounted = useRef(false);
 
   const [isShowModalChangePass, setIsShowModalChangePass] = useState(false);
 
-  // close on click outside
   useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+
     const clickHandler = ({ target }: MouseEvent) => {
       if (!dropdown.current) return;
       if (
@@ -36,17 +41,22 @@ const DropdownUser = ({ admin }: { admin: User }) => {
     };
     document.addEventListener("click", clickHandler);
     return () => document.removeEventListener("click", clickHandler);
-  });
+  }, [dropdownOpen, trigger.current, dropdown.current]);
 
   // close if the esc key is pressed
   useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+
     const keyHandler = ({ keyCode }: KeyboardEvent) => {
       if (!dropdownOpen || keyCode !== 27) return;
       setDropdownOpen(false);
     };
     document.addEventListener("keydown", keyHandler);
     return () => document.removeEventListener("keydown", keyHandler);
-  });
+  }, [dropdownOpen]);
 
   // Thay đổi mật khẩu
   const handleChangePassword = async (value: any) => {
@@ -62,6 +72,12 @@ const DropdownUser = ({ admin }: { admin: User }) => {
         message.error("Đã xảy ra lỗi, vui lòng thử lại");
       }
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    dispatch(logout());
   };
 
   return (
@@ -118,12 +134,7 @@ const DropdownUser = ({ admin }: { admin: User }) => {
 
         <button
           className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
-          onClick={() => {
-            localStorage.removeItem("access_token");
-            localStorage.removeItem("refresh_token");
-            dispatch(logout());
-            router.push("/login");
-          }}
+          onClick={handleLogout}
         >
           <svg
             className="fill-current"

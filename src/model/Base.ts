@@ -53,6 +53,13 @@ export class Base {
   apiDelete = (url = {}, signal?: any) =>
     http.delete(`${this.apiPrefix}${url}`, { signal });
 
+  apiDeleteBody = (url = "", body: any, signal?: any) => {
+    return http.delete(`${this.apiPrefix}${url}`, {
+      data: body,
+      signal,
+    });
+  };
+
   apiDeleteWithoutPrefix = (url = {}, signal?: any) =>
     http.delete(`${this.apiRoot}${url}`, { signal });
 

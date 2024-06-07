@@ -1,10 +1,20 @@
 import { colors } from "@/assets/colors";
 import { CaretRightIcon } from "@/assets/icons";
-import { isImage } from "@/components/common/constants";
-import { PlusOutlined } from "@ant-design/icons";
-import { Button, Collapse, Empty, Image, Input, Modal, Table, Tag } from "antd";
+import { PlusCircleFilled, PlusOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Empty,
+  Form,
+  Image,
+  Input,
+  Modal,
+  Popover,
+  Table,
+  Tag,
+  message,
+} from "antd";
 import { UploadFile } from "antd/es/upload/interface";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CustomTable } from "../ExamList";
 
 interface Answer {
@@ -27,8 +37,6 @@ interface ModalChooseQuestionsProps {
   questions: Question[];
 }
 
-const { Panel } = Collapse;
-
 export const renderAnswerValue = (listValue: any) => {
   const columns = [
     {
@@ -39,6 +47,7 @@ export const renderAnswerValue = (listValue: any) => {
 
   return (
     <div className="flex w-full flex-col gap-y-3 bg-white ">
+      <div className="px-1 text-base font-semibold">Đáp án</div>
       <CustomTable
         showHeader={false}
         pagination={false}
@@ -54,24 +63,41 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
   onClose,
   questions,
 }) => {
+  const form = Form.useFormInstance();
   const [searchValue, setSearchValue] = useState<string>("");
+  // list câu hỏi
+  const questionIds = Form.useWatch("questionIds");
 
   // Lưu rowKey của những row đang được mở
   const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([]);
 
   // lưu những row được chọn
   const [selectedRowId, setSelectedRowId] = useState<string[]>([]);
+  const [selectRecords, setSelectRecords] = useState<any[]>([]);
 
   // preview
-  const [preview, setPreview] = useState<{ open: boolean; file: string }>({
+  const [preview, setPreview] = useState<{
+    open: boolean;
+    file: string;
+    fileVideo: string;
+  }>({
     open: false,
     file: "",
+    fileVideo: "",
   });
+
+  // Cập nhật dánh sách lựa chọn
+  useEffect(() => {
+    if (questionIds && open) {
+      setSelectedRowId(questionIds);
+    }
+  }, [questionIds, open]);
 
   const handleViewImage = (record: any) => {
     setPreview({
       open: true,
-      file: record?.imageLocation || record?.videoLocation,
+      file: record?.imageLocation,
+      fileVideo: record?.videoLocation,
     });
   };
 
@@ -89,12 +115,13 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
       key: "imageLocation",
       render: (imageLocation: string, record: any) => (
         <div>
-          <Button onClick={() => handleViewImage(imageLocation)}>Xem</Button>
+          <Button onClick={() => handleViewImage(record)}>Xem</Button>
         </div>
       ),
+      width: 140,
     },
     {
-      title: "Đáp án",
+      title: "Đáp án đúng",
       dataIndex: "answerResList",
       key: "answerResList",
       render: (answerResList: Answer[]) => {
@@ -102,21 +129,41 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
           (answer) => answer.correct,
         );
         return (
-          <Tag className="bg-green-500">
-            {answersCorrect.map((answer, index) => (
-              <div key={index} className="p-1 text-sm font-bold text-white">
-                {answer.content}
-              </div>
+          <>
+            {answersCorrect?.slice(0, 3)?.map((answer, index) => (
+              <Tag key={index} className="bg-green-500">
+                <div className="p-1 text-sm font-bold text-white">
+                  {answer.content}
+                </div>
+              </Tag>
             ))}
-          </Tag>
+            <Popover
+              content={
+                <>
+                  {answersCorrect
+                    ?.slice(3, answersCorrect?.length)
+                    ?.map((answer, index) => (
+                      <Tag key={index} className="bg-green-500">
+                        <div className="p-1 text-sm font-bold text-white">
+                          {answer.content}
+                        </div>
+                      </Tag>
+                    ))}
+                </>
+              }
+            >
+              {answersCorrect.length > 3 && (
+                <Tag className="bg-green-500">
+                  <div className="p-1 text-sm font-bold text-white">...</div>
+                </Tag>
+              )}
+            </Popover>
+          </>
         );
       },
+      width: 300,
     },
   ];
-
-  const handleAddQuestion = (id: number) => {
-    // Logic to handle adding question with id
-  };
 
   // hàm toggle đóng mở 1 hàng
   const toggleExpandRow = (key: number) => {
@@ -131,7 +178,10 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
     fixed: true,
     columnWidth: 50,
     selectedRowKeys: selectedRowId,
-    onChange: (value: any) => setSelectedRowId(value),
+    onChange: (value: any, record: any) => {
+      setSelectedRowId(value);
+      setSelectRecords(record);
+    },
   };
 
   return (
@@ -140,7 +190,16 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
         width={1000}
         title="Ngân hàng câu hỏi theo chủ đề"
         open={open}
-        onCancel={onClose}
+        onCancel={() => {
+          setSelectedRowId([]);
+          setSelectRecords([]);
+          onClose();
+        }}
+        cancelText="Huỷ"
+        footer={null}
+        maskClosable={false}
+        centered
+        destroyOnClose
       >
         <div className="container mx-auto p-4">
           <Input
@@ -153,9 +212,23 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
             <div className="my-2 flex items-center gap-x-3 rounded-lg bg-neutral-100 px-4 py-1">
               <div
                 aria-hidden="true"
-                className="body-14-medium flex cursor-pointer select-none items-center gap-x-2 p-1 text-primary-600"
+                className="headline-16-bold flex cursor-pointer select-none items-center gap-x-2 p-1 text-primary-600"
+                onClick={() => {
+                  form.setFieldsValue({
+                    questionIds: selectedRowId,
+                    lstQuestions: selectRecords,
+                  });
+                  message.success("Thêm câu hỏi thành công");
+                  onClose();
+                  setSelectedRowId([]);
+                  setSelectRecords([]);
+                }}
               >
-                <PlusOutlined color={colors.primary600} />
+                <PlusCircleFilled
+                  className="hover:text-primary-800"
+                  style={{ fontSize: 24 }}
+                  color={colors.primary300}
+                />
                 Thêm
               </div>
             </div>
@@ -193,28 +266,49 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
       </Modal>
 
       <Modal
+        title="Preview"
         open={preview.open}
-        onCancel={() => setPreview({ file: "", open: false })}
-        footer={null}
+        onCancel={() => setPreview({ file: "", open: false, fileVideo: "" })}
+        footer={
+          <>
+            <Button
+              onClick={() =>
+                setPreview({ file: "", open: false, fileVideo: "" })
+              }
+            >
+              Đóng
+            </Button>
+          </>
+        }
         width={1000}
         centered
       >
-        <div className="flex w-full items-center justify-center p-4">
+        <div className="flex w-full items-center justify-between gap-3 p-4">
           {preview.file && (
-            <div className="w-full">
-              {isImage(preview.file) ? (
-                <Image
-                  preview={false}
-                  className=""
-                  src={preview.file}
-                  alt="Ảnh chủ đề"
-                  style={{ width: 400, height: 400, objectFit: "contain" }}
-                />
-              ) : (
-                <video controls style={{ width: "100%", height: "auto" }}>
-                  <source src={preview.file} />
-                </video>
-              )}
+            <div className="flex w-full justify-center">
+              <Image
+                preview={false}
+                className=""
+                src={preview.file}
+                alt="Ảnh chủ đề"
+                style={{ width: 400, height: 400, objectFit: "contain" }}
+              />
+            </div>
+          )}
+          {preview.fileVideo && (
+            <div className="flex w-full items-center justify-center">
+              <video
+                controls
+                style={{
+                  width: preview.file ? 400 : 600,
+                  height: preview.file ? 300 : 400,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <source src={preview.fileVideo} />
+              </video>
             </div>
           )}
         </div>
