@@ -1,6 +1,5 @@
 import CallModal from "@/components/Chat/components/CallModal";
 import { RootState } from "@/store";
-import { useRouter } from "next/navigation";
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { Socket, io } from "socket.io-client";
@@ -36,7 +35,6 @@ type SocketContextProps = {
 const SocketContext = createContext<SocketContextProps | undefined>(undefined);
 
 const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  const router = useRouter();
   const user: User = useSelector((state: RootState) => state?.admin);
 
   const [socket, setSocket] = useState<Socket | undefined>(undefined);
@@ -219,7 +217,15 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
   const answerCall = () => {
     setCallAccepted(true);
-    const peer = new RTCPeerConnection();
+    const peer = new RTCPeerConnection({
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun2.l.google.com:19302" },
+        { urls: "stun:stun3.l.google.com:19302" },
+        { urls: "stun:stun4.l.google.com:19302" },
+      ],
+    });
 
     peer.onicecandidate = (event) => {
       if (event.candidate && socket) {
@@ -261,7 +267,7 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     openModal();
     setCallEnded(false);
     navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
+      .getUserMedia({ video: true, audio: false })
       .then((currentStream) => {
         setStream(currentStream);
         if (myVideo.current) {
@@ -270,7 +276,15 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             socket.emit("ready", user);
           }
         }
-        const peer = new RTCPeerConnection();
+        const peer = new RTCPeerConnection({
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+            { urls: "stun:stun2.l.google.com:19302" },
+            { urls: "stun:stun3.l.google.com:19302" },
+            { urls: "stun:stun4.l.google.com:19302" },
+          ],
+        });
 
         peer.onicecandidate = (event) => {
           if (event.candidate && socket) {

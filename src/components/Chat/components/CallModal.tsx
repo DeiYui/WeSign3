@@ -97,7 +97,7 @@ const CallModal: React.FC<CallModalProps> = ({
 
         <div className="relative gap-6">
           {!callAccepted && (
-            <div className="absolute top-1/2 w-full -translate-y-1/2 transform bg-black py-2">
+            <div className="h-[600px] bg-black py-2">
               <div className="flex h-full flex-col justify-center gap-3 text-center text-white">
                 <div className="flex items-center justify-center">
                   <Avatar
@@ -171,7 +171,7 @@ const CallModal: React.FC<CallModalProps> = ({
                 className="cursor-pointer rounded-full bg-neutral-500 p-2.5"
                 onClick={toggleAudio}
               >
-                {!isAudioMuted ? (
+                {isAudioMuted ? (
                   <AudioMutedOutlined
                     style={{ fontSize: 20, color: "white" }}
                   />

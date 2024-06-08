@@ -1,11 +1,7 @@
 import { DotIcon, RequestIcon } from "@/assets/icons";
 import { AdminIcon } from "@/assets/icons/AdminIcon";
-import { RootState } from "@/store";
-import { useSelector } from "react-redux";
 
 export const AdminSystem = () => {
-  const admin = useSelector((state: RootState) => state.admin);
-
   return [
     {
       key: "/learning-management",
@@ -90,5 +86,5 @@ export const AdminSystem = () => {
       icon: <RequestIcon color="white" size={20} />,
       hidden: false,
     },
-  ].filter((item) => !item.hidden);
+  ];
 };

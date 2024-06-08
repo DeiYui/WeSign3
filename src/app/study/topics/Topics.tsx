@@ -34,6 +34,8 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
   const [searchText, setSearchText] = useState<string>("");
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
 
+  console.log("filteredTopics", filteredTopics);
+
   // API lấy danh sách topics
   const { data: allTopics, isFetching } = useQuery({
     queryKey: ["getAllTopics"],
@@ -83,7 +85,7 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
 
       {/* Modal */}
       <Modal
-        width={700}
+        width={1000}
         title="Danh sách chủ đề"
         open={showModal.open}
         centered
@@ -97,39 +99,80 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
         />
-        <List
-          className="custom-scrollbar mt-4 max-h-[450px] overflow-y-auto pb-4"
-          loading={isFetching}
-          itemLayout="horizontal"
-          dataSource={filteredTopics}
-          bordered
-          renderItem={(topic) => (
-            <List.Item
-              className={`${showModal.topicId === topic.topicId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
-              onClick={() => {
-                setShowModal({ topicId: topic.topicId, open: false });
-              }}
-            >
-              <Skeleton avatar title={false} loading={isFetching} active>
-                <List.Item.Meta
-                  avatar={
-                    <Avatar
-                      className="mt-1"
-                      size={50}
-                      src={topic?.imageLocation}
+        <div className="flex w-full items-center">
+          <div className="w-1/2">
+            <div className="mt-2 text-base font-bold">Chủ đề chung</div>
+            <List
+              className="custom-scrollbar mt-4 max-h-[450px] overflow-y-auto pb-4"
+              loading={isFetching}
+              itemLayout="horizontal"
+              dataSource={filteredTopics}
+              bordered
+              renderItem={(topic) => (
+                <List.Item
+                  className={`${showModal.topicId === topic.topicId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
+                  onClick={() => {
+                    setShowModal({ topicId: topic.topicId, open: false });
+                  }}
+                >
+                  <Skeleton avatar title={false} loading={isFetching} active>
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar
+                          className="mt-1"
+                          size={50}
+                          src={topic?.imageLocation}
+                        />
+                      }
+                      title={
+                        <div className="mt-3 text-base font-semibold">
+                          {topic?.content}
+                        </div>
+                      }
                     />
-                  }
-                  title={
-                    <div className="mt-3 text-base font-semibold">
-                      {topic?.content}
-                    </div>
-                  }
-                />
-              </Skeleton>
-            </List.Item>
-          )}
-          locale={{ emptyText: "Không có kết quả tìm kiếm" }}
-        />
+                  </Skeleton>
+                </List.Item>
+              )}
+              locale={{ emptyText: "Không có kết quả tìm kiếm" }}
+            />
+          </div>
+          <div className="w-1/2">
+            <div className="mt-2 text-base font-bold">Chủ đề riêng</div>
+            <List
+              className="custom-scrollbar mt-4 max-h-[450px] overflow-y-auto pb-4"
+              loading={isFetching}
+              itemLayout="horizontal"
+              dataSource={filteredTopics}
+              bordered
+              renderItem={(topic) => (
+                <List.Item
+                  className={`${showModal.topicId === topic.topicId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
+                  onClick={() => {
+                    setShowModal({ topicId: topic.topicId, open: false });
+                  }}
+                >
+                  <Skeleton avatar title={false} loading={isFetching} active>
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar
+                          className="mt-1"
+                          size={50}
+                          src={topic?.imageLocation}
+                        />
+                      }
+                      title={
+                        <div className="mt-3 text-base font-semibold">
+                          {topic?.content}
+                        </div>
+                      }
+                    />
+                  </Skeleton>
+                </List.Item>
+              )}
+              locale={{ emptyText: "Không có kết quả tìm kiếm" }}
+            />
+          </div>
+        </div>
       </Modal>
     </>
   );

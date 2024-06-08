@@ -118,8 +118,6 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
     );
   }
 
-  console.log("allVocabulary", allVocabulary);
-
   return (
     <>
       <div className="">
@@ -220,15 +218,17 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
         title={
           <>
             {/* Từ */}
-            {allVocabulary[fileIndex].vocabularyType ===
-            TYPE_VOCABULARY.WORD ? (
+            {allVocabulary &&
+            allVocabulary[fileIndex]?.vocabularyType ===
+              TYPE_VOCABULARY.WORD ? (
               <div className="line-clamp-1 text-[32px] font-bold">
                 {allVocabulary[fileIndex]?.content}
               </div>
             ) : (
               <div>
-                {allVocabulary[fileIndex].vocabularyType ===
-                TYPE_VOCABULARY.SENTENCE ? (
+                {allVocabulary &&
+                allVocabulary[fileIndex]?.vocabularyType ===
+                  TYPE_VOCABULARY.SENTENCE ? (
                   <div className="line-clamp-1 text-[32px] font-bold">
                     Học tập theo câu văn
                   </div>
@@ -254,35 +254,37 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
                 className=" flex w-full items-center justify-center"
                 dots={false}
               >
-                {allVocabulary[fileIndex]?.vocabularyImageResList?.map(
-                  (
-                    item: { imageLocation: string | undefined },
-                    index: React.Key | null | undefined,
-                  ) => (
-                    <div key={index}>
-                      {item.imageLocation ? (
-                        <div className="text-center">
-                          <Image
-                            preview={false}
-                            src={item.imageLocation}
-                            alt="imageLocation"
-                            className="flex max-h-[400px] w-[400px] items-center justify-center object-scale-down "
-                          />
-                          {allVocabulary[fileIndex].vocabularyType !==
-                            TYPE_VOCABULARY.WORD && (
-                            <div className="line-clamp-[10] w-[420px] overflow-y-auto text-left text-base">
-                              {allVocabulary[fileIndex]?.content}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-center text-xl">
-                          Chưa có hình ảnh minh hoạ
-                        </div>
-                      )}
-                    </div>
-                  ),
-                )}
+                {allVocabulary &&
+                  allVocabulary[fileIndex]?.vocabularyImageResList?.map(
+                    (
+                      item: { imageLocation: string | undefined },
+                      index: React.Key | null | undefined,
+                    ) => (
+                      <div key={index}>
+                        {item.imageLocation ? (
+                          <div className="text-center">
+                            <Image
+                              preview={false}
+                              src={item.imageLocation}
+                              alt="imageLocation"
+                              className="flex max-h-[400px] w-[400px] items-center justify-center object-scale-down "
+                            />
+                            {allVocabulary &&
+                              allVocabulary[fileIndex].vocabularyType !==
+                                TYPE_VOCABULARY.WORD && (
+                                <div className="line-clamp-[10] w-[420px] overflow-y-auto text-left  text-[18px]">
+                                  {allVocabulary[fileIndex]?.content}
+                                </div>
+                              )}
+                          </div>
+                        ) : (
+                          <div className="text-center text-xl">
+                            Chưa có hình ảnh minh hoạ
+                          </div>
+                        )}
+                      </div>
+                    ),
+                  )}
               </CustomSlider>
 
               {/* video */}
@@ -312,6 +314,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
             <Button
               style={{
                 display:
+                  allVocabulary &&
                   allVocabulary[fileIndex]?.vocabularyImageResList?.length < 2
                     ? "none"
                     : "block",

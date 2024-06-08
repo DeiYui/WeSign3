@@ -77,6 +77,8 @@ const DropdownUser = ({ admin }: { admin: User }) => {
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
+    router.push("/");
     dispatch(logout());
   };
 

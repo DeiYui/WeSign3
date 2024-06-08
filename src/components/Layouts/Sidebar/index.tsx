@@ -35,30 +35,36 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     localStorage.setItem("sidebarExpanded", `${!sidebarExpanded}`);
   };
 
-  // Render sidebar with children
   const renderChildItems = (items: any[], level = 0) => (
     <ul className={`pl-${level * 4}`}>
       {items.map((item) => (
-        <li key={item.key}>
-          {item.children?.length ? (
-            <SidebarLinkGroup activeCondition={pathname.includes(item.path)}>
-              {(handleClick, open) => (
-                <>
-                  <Link
-                    href={item.path}
-                    className={`group relative flex items-center gap-2.5 rounded-sm px-4 py-2 text-sm font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                      pathname === item.path && "bg-graydark dark:bg-meta-4"
-                    }`}
-                    onClick={(e) => {
+        <SidebarLinkGroup
+          key={item.key}
+          activeCondition={pathname.includes(item.path)}
+        >
+          {(handleClick, open) => {
+            const hasChildren = item.children?.length > 0;
+            return (
+              <>
+                <Link
+                  href={item.path}
+                  className={`group relative flex items-center gap-2.5 rounded-sm px-4 py-2 text-sm font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                    pathname === item.path ? "bg-graydark dark:bg-meta-4" : ""
+                  }`}
+                  onClick={(e) => {
+                    if (hasChildren) {
                       e.preventDefault();
                       sidebarExpanded ? handleClick() : toggleSidebar();
-                    }}
-                  >
-                    {item.icon}
-                    {item.label}
+                    }
+                  }}
+                  style={{ paddingLeft: `${level * 1}rem` }}
+                >
+                  {item.icon}
+                  {item.label}
+                  {hasChildren && (
                     <svg
                       className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current ${
-                        open && "rotate-180"
+                        open ? "rotate-180" : ""
                       }`}
                       width="20"
                       height="20"
@@ -73,27 +79,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         fill=""
                       />
                     </svg>
-                  </Link>
-                  <div
-                    className={`translate transform overflow-hidden pl-2 ${!open && "hidden"}`}
-                  >
-                    {renderChildItems(item?.children, level + 1)}
-                  </div>
-                </>
-              )}
-            </SidebarLinkGroup>
-          ) : (
-            <Link
-              href={item.path}
-              className={`group relative flex items-center gap-2.5 rounded-sm px-4 py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                pathname.includes(item.path) && "bg-graydark dark:bg-meta-4"
-              }`}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          )}
-        </li>
+                  )}
+                </Link>
+                {hasChildren &&
+                  open &&
+                  renderChildItems(item.children, level + 1)}
+              </>
+            );
+          }}
+        </SidebarLinkGroup>
       ))}
     </ul>
   );
@@ -129,7 +123,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               ))}
             </ul>
 
-            {admin && admin?.role === "ADMIN" && (
+            {admin && admin?.role === "ADMIN" ? (
               <>
                 <h3 className="mb-4 ml-4 text-sm font-semibold text-bodydark2">
                   ADMIN
@@ -143,7 +137,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   ))}
                 </ul>
               </>
-            )}
+            ) : null}
           </div>
         </nav>
       </div>

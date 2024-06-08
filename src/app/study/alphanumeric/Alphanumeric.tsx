@@ -67,7 +67,7 @@ const Alphanumeric: React.FC = () => {
       {alphabet === "All" ? (
         <LearnHome />
       ) : (
-        <StudyComponent allVocabulary={recordLstAlphabet} />
+        <StudyComponent allVocabulary={recordLstAlphabet || []} />
       )}
     </div>
   );

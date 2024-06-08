@@ -28,6 +28,7 @@ const Login: React.FC = () => {
       localStorage.setItem("refresh_token", res.refresh_token);
       const response = await User.getProfile();
       dispatch(login(response.data));
+      localStorage.setItem("user", response.data);
       message.success("Đăng nhập thành công");
       router.push("/");
     },
@@ -39,6 +40,10 @@ const Login: React.FC = () => {
   const handleSubmit = (values: any) => {
     loginMutation.mutate(values);
   };
+
+  if (loginMutation.isPending) {
+    return <Loader />;
+  }
 
   return (
     <div className="w-full p-4 sm:p-12.5 xl:p-17.5">
