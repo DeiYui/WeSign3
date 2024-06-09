@@ -223,7 +223,6 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         {
           urls: "turns:freeturn.tel:5349",
           username: "free",
-          credential: "free",
         },
         {
           urls: "relay1.expressturn.com:3478",
