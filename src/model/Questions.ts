@@ -3,8 +3,20 @@ import { Base } from "./Base";
 
 class Questions extends Base {
   // Danh sách câu hỏi
+  getAllQuestion = async (params: any) => {
+    const res = await this.apiGet(`/questions/all`, params);
+    return res.data;
+  };
+
+  // danh sách câu hỏi theo topic
   getQuestionTopic = async (topicId: number) => {
     const res = await this.apiGet(`/questions/${topicId}`);
+    return res.data;
+  };
+
+  // Chi tiết câu hỏi
+  getDetailQuestion = async (questionId: string | number) => {
+    const res = await this.apiGet(`/questions/detail/${questionId}`);
     return res.data;
   };
 

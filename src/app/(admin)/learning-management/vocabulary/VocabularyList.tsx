@@ -324,7 +324,7 @@ const VocabularyList = ({ isPrivate }: any) => {
           <Button
             icon={<DeleteOutlined />}
             danger
-            onClick={() => setModalConfirm({ open: true, rowId: value })}
+            onClick={() => setModalConfirm({ open: true, rowId: [value] })}
           />
         </div>
       ),

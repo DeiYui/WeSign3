@@ -86,7 +86,7 @@ const QuestionList = () => {
   } = useQuery({
     queryKey: ["getQuestionTopic", filterParams],
     queryFn: async () => {
-      const res = await Questions.getQuestionTopic(filterParams.topicId);
+      const res = await Questions.getAllQuestion(filterParams);
       return res.data;
     },
   });
@@ -194,7 +194,12 @@ const QuestionList = () => {
           {
             key: "1",
             label: (
-              <div className="flex items-center gap-x-3 py-[3px]">
+              <div
+                className="flex items-center gap-x-3 py-[3px]"
+                onClick={() =>
+                  router.push(`/learning-management/questions/${value}`)
+                }
+              >
                 <EditFilled />
                 Chỉnh sửa
               </div>

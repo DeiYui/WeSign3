@@ -22,7 +22,7 @@ import {
   message,
 } from "antd";
 import { useForm } from "antd/es/form/Form";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 import QuestionModal from "../../check-list/create-edit/ModalSelectFile";
 
@@ -90,35 +90,26 @@ const convertDataToFormValues = (data: any) => {
   return { ...questionData, questions };
 };
 
-const QuestionCreate: React.FC = () => {
+const QuestionEdit: React.FC = () => {
   const router = useRouter();
   const [form] = useForm();
-  const searchParam = useSearchParams();
-  const questionId = searchParam.get("questionId");
+  const { id } = useParams();
   const [numQuestions, setNumQuestions] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const questionsPerPage = 10;
-
-  const questions: Question[] = Form.useWatch("questions", form);
-  const topicId = Form.useWatch("topicId", form);
-
-  const [openChooseVideo, setOpenChooseVideo] = useState<boolean>(false);
-  const [typeFileUpload, setTypeFileUpload] = useState<
-    string | "upload" | "existing"
-  >("");
 
   const { data: detailQuestions } = useQuery({
-    queryKey: ["getDetailQuestion", questionId],
+    queryKey: ["getDetailQuestion", id],
     queryFn: async () => {
-      if (questionId) {
-        const res = await Questions.getDetailQuestion(questionId);
+      if (id) {
+        const res = await Questions.getDetailQuestion(Number(id));
         const formValues = convertDataToFormValues(res?.data);
-        form.setFieldsValue(formValues);
+        form.setFieldsValue(res?.data);
         return res?.data;
       }
     },
-    enabled: !!questionId,
+    enabled: !!id,
   });
+
+  console.log("checksss", Form.useWatch("answerResList", form));
 
   const { data: allTopics, refetch } = useQuery({
     queryKey: ["getAllTopics"],
@@ -160,34 +151,10 @@ const QuestionCreate: React.FC = () => {
     );
   };
 
-  const handleQuestionChange = (
-    index: number,
-    field: keyof Question,
-    value: any,
-  ) => {
-    const updatedQuestions = questions?.map((q, i) =>
-      i === index ? { ...q, [field]: value } : q,
-    );
-    form.setFieldValue("questions", updatedQuestions);
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const currentQuestions = questions?.slice(
-    (currentPage - 1) * questionsPerPage,
-    currentPage * questionsPerPage,
-  );
-
-  const lstQuestions = form.getFieldsValue();
-
-  console.log("lstQuestions", lstQuestions, Form.useWatch("questions", form));
-
   return (
     <>
       <div className="container mx-auto bg-white p-4">
-        <h1 className="mb-4 text-2xl font-bold">Thêm câu hỏi</h1>
+        <h1 className="mb-4 text-2xl font-bold">Chỉnh sửa câu hỏi</h1>
         <Form
           form={form}
           onFinish={(value) => {
@@ -221,8 +188,89 @@ const QuestionCreate: React.FC = () => {
               }
             />
           </Form.Item>
-          <Form.Item name="questions" hidden />
-          <Collapse accordion className="mb-4 bg-white">
+          <Form.Item
+            name={"type"}
+            label="Kiểu câu hỏi:"
+            required
+            rules={[validateRequireInput("Vui lòng chọn loại đáp án")]}
+            initialValue={"single"}
+          >
+            <Select
+              placeholder="Chọn loại đáp án"
+              options={[
+                { label: "Một đáp án", value: "single" },
+                { label: "Nhiều đáp án", value: "multiple" },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item
+            name="typeFile"
+            label="Lựa chọn file (hình ảnh, video):"
+            className="mb-4"
+          >
+            <Select
+              style={{ width: "100%" }}
+              placeholder="Chọn hoặc tải lên file"
+              //   onChange={(value) => setTypeFileUpload(value)}
+            >
+              <Select.Option value="upload">Tải lên file mới</Select.Option>
+              <Select.Option value="existing">
+                Chọn từ dữ liệu có sẵn
+              </Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.List name="answerResList">
+            {(fields, { add, remove }) => (
+              <Checkbox.Group className="w-full">
+                {fields.map((field, answerIndex) => (
+                  <div
+                    key={field.key}
+                    className="flex w-full items-center gap-4"
+                  >
+                    <div className="mb-2 flex items-center">
+                      <Form.Item
+                        {...field}
+                        name={[field.name, "correct"]}
+                        className="mb-0 ml-2 w-full"
+                        valuePropName="checked"
+                      >
+                        <Checkbox value={field.name} />
+                      </Form.Item>
+                      <Form.Item
+                        {...field}
+                        name={[field.name, "content"]}
+                        className="mb-0 ml-2 w-full"
+                      >
+                        <Input style={{ width: 700 }} />
+                      </Form.Item>
+                    </div>
+
+                    <MinusCircleOutlined
+                      style={{ fontSize: 20 }}
+                      className="dynamic-delete-button"
+                      onClick={() => remove(field.name)}
+                    />
+                  </div>
+                ))}
+                <Button
+                  type="dashed"
+                  onClick={() =>
+                    add({
+                      content: "",
+                      imageLocation: "",
+                      videoLocation: "",
+                      correct: false,
+                    })
+                  }
+                  icon={<PlusOutlined />}
+                >
+                  Thêm đáp án
+                </Button>
+              </Checkbox.Group>
+            )}
+          </Form.List>
+          {/* <Collapse accordion className="mb-4 bg-white">
             {currentQuestions?.map((question, index) => (
               <Panel
                 header={`Câu hỏi ${(currentPage - 1) * questionsPerPage + index + 1}`}
@@ -467,7 +515,7 @@ const QuestionCreate: React.FC = () => {
                 </div>
               </Panel>
             ))}
-          </Collapse>
+          </Collapse> */}
 
           <div className="flex items-center justify-center gap-4">
             <Button
@@ -480,18 +528,9 @@ const QuestionCreate: React.FC = () => {
             </Button>
           </div>
         </Form>
-
-        {questions?.length > 0 ? (
-          <Pagination
-            current={currentPage}
-            pageSize={questionsPerPage}
-            total={numQuestions}
-            onChange={handlePageChange}
-          />
-        ) : null}
       </div>
     </>
   );
 };
 
-export default QuestionCreate;
+export default QuestionEdit;

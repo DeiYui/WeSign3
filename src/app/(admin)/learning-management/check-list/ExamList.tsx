@@ -1,5 +1,6 @@
 "use client";
 import { colors } from "@/assets/colors";
+import { usePage } from "@/hooks/usePage";
 import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
 import {
@@ -57,25 +58,21 @@ const ExamListPage: React.FC = () => {
   const [filterParams, setFilterParams] = useState<{
     topicId: number;
     nameSearch: string;
-    page: number;
-    size: number;
     private: boolean;
   }>({
     topicId: 0,
     nameSearch: "",
-    page: 0,
-    size: 10,
-    private: true,
+    private: false,
   });
 
   // API lấy danh sách  bài kiểm tra
-  const { data: allExams } = useQuery({
-    queryKey: ["getLstExam", filterParams],
-    queryFn: async () => {
-      const res = await Exam.getLstExam(filterParams);
-      return res?.data;
+  const { page, pageSize, content, isFetching, pagination } = usePage(
+    ["getLstExam", filterParams],
+    Exam.getLstExam,
+    {
+      ...filterParams,
     },
-  });
+  );
 
   // API lấy danh sách  topics
   const { data: allTopics } = useQuery({
@@ -92,7 +89,13 @@ const ExamListPage: React.FC = () => {
   });
 
   const columns = [
-    { title: "STT", dataIndex: "key", key: "key", width: 60 },
+    {
+      title: "STT",
+      dataIndex: "stt",
+      render: (value: any, record: any, index: number) =>
+        (page - 1) * pageSize + index + 1,
+      width: 80,
+    },
     {
       title: "Tên bài kiểm tra",
       dataIndex: "name",
@@ -103,25 +106,30 @@ const ExamListPage: React.FC = () => {
         </div>
       ),
     },
-    { title: "Số câu hỏi", dataIndex: "questionCount", key: "questionCount" },
+
     {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: (status: number) =>
-        status === 1 ? (
-          <div className="caption-12-medium flex w-[120px] items-center justify-center rounded bg-green-100 px-3 py-2 text-green-700">
-            Đã hoàn thành
-          </div>
-        ) : (
-          <div className="caption-12-medium flex w-[128px] items-center justify-center rounded bg-neutral-200 px-3 py-2 text-neutral-700">
-            Chưa hoàn thành
-          </div>
-        ),
+      title: "Số câu hỏi",
+      dataIndex: "numberOfQuestions",
+      key: "numberOfQuestions",
     },
+    // {
+    //   title: "Trạng thái",
+    //   dataIndex: "status",
+    //   key: "status",
+    //   render: (status: number) =>
+    //     status === 1 ? (
+    //       <div className="caption-12-medium flex w-[120px] items-center justify-center rounded bg-green-100 px-3 py-2 text-green-700">
+    //         Đã hoàn thành
+    //       </div>
+    //     ) : (
+    //       <div className="caption-12-medium flex w-[128px] items-center justify-center rounded bg-neutral-200 px-3 py-2 text-neutral-700">
+    //         Chưa hoàn thành
+    //       </div>
+    //     ),
+    // },
     {
       fixed: "right",
-      dataIndex: "key",
+      dataIndex: "examId",
       width: "40px",
       align: "center",
       render: (_: string, record: any) => {
@@ -192,14 +200,16 @@ const ExamListPage: React.FC = () => {
         </Button>
       </div>
       <CustomTable
-        dataSource={exams}
+        dataSource={content}
         columns={columns as any}
         scroll={{ x: 1100, y: 440 }}
         onRow={(record) => ({
           onMouseEnter: () => handleRowHover(record),
           onMouseLeave: () => handleRowLeave(),
         })}
-        rowKey="key"
+        loading={isFetching}
+        pagination={{ ...pagination, showSizeChanger: false }}
+        rowKey="examId"
       />
     </div>
   );
