@@ -34,6 +34,42 @@ type SocketContextProps = {
 
 const SocketContext = createContext<SocketContextProps | undefined>(undefined);
 
+const peerConnectionConfig = {
+  iceServers: [
+    { urls: "stun:freeturn.net:5349" },
+    {
+      urls: "turns:freeturn.tel:5349",
+      username: "free",
+      credential: "free",
+    },
+    {
+      urls: "relay1.expressturn.com:3478",
+      username: "efK7QHXRMSZHVGR70O",
+    },
+    { urls: "stun:stun.relay.metered.ca:80" },
+    {
+      urls: "turn:asia-east.relay.metered.ca:80",
+      username: "fff496ad71b17d3d38ca224e",
+    },
+    {
+      urls: "turn:asia-east.relay.metered.ca:80?transport=tcp",
+      username: "fff496ad71b17d3d38ca224e",
+    },
+    {
+      urls: "turn:asia-east.relay.metered.ca:443",
+      username: "fff496ad71b17d3d38ca224e",
+    },
+    {
+      urls: "turns:asia-east.relay.metered.ca:443?transport=tcp",
+      username: "fff496ad71b17d3d38ca224e",
+    },
+    {
+      urls: "turn:openrelay.metered.ca:80",
+      username: "openrelayproject",
+    },
+  ],
+};
+
 const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const user: User = useSelector((state: RootState) => state?.admin);
 
@@ -217,40 +253,7 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
   const answerCall = () => {
     setCallAccepted(true);
-    const peer = new RTCPeerConnection({
-      iceServers: [
-        { urls: "stun:freeturn.net:5349" },
-        {
-          urls: "turns:freeturn.tel:5349",
-          username: "free",
-        },
-        {
-          urls: "relay1.expressturn.com:3478",
-          username: "efK7QHXRMSZHVGR70O",
-        },
-        { urls: "stun:stun.relay.metered.ca:80" },
-        {
-          urls: "turn:asia-east.relay.metered.ca:80",
-          username: "fff496ad71b17d3d38ca224e",
-        },
-        {
-          urls: "turn:asia-east.relay.metered.ca:80?transport=tcp",
-          username: "fff496ad71b17d3d38ca224e",
-        },
-        {
-          urls: "turn:asia-east.relay.metered.ca:443",
-          username: "fff496ad71b17d3d38ca224e",
-        },
-        {
-          urls: "turns:asia-east.relay.metered.ca:443?transport=tcp",
-          username: "fff496ad71b17d3d38ca224e",
-        },
-        {
-          urls: "turn:openrelay.metered.ca:80",
-          username: "openrelayproject",
-        },
-      ],
-    });
+    const peer = new RTCPeerConnection(peerConnectionConfig);
 
     peer.onicecandidate = (event) => {
       if (event.candidate && socket) {
@@ -301,47 +304,7 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             socket.emit("ready", user);
           }
         }
-        const peer = new RTCPeerConnection({
-          iceServers: [
-            { urls: "stun:freeturn.net:5349" },
-            {
-              urls: "turns:freeturn.tel:5349",
-              username: "free",
-              credential: "free",
-            },
-            {
-              urls: "relay1.expressturn.com:3478",
-              username: "efK7QHXRMSZHVGR70O",
-              credential: "zh6GHMeMDQNHLStt",
-            },
-            { urls: "stun:stun.relay.metered.ca:80" },
-            {
-              urls: "turn:asia-east.relay.metered.ca:80",
-              username: "fff496ad71b17d3d38ca224e",
-              credential: "NYcdbdYGytIGfL/u",
-            },
-            {
-              urls: "turn:asia-east.relay.metered.ca:80?transport=tcp",
-              username: "fff496ad71b17d3d38ca224e",
-              credential: "NYcdbdYGytIGfL/u",
-            },
-            {
-              urls: "turn:asia-east.relay.metered.ca:443",
-              username: "fff496ad71b17d3d38ca224e",
-              credential: "NYcdbdYGytIGfL/u",
-            },
-            {
-              urls: "turns:asia-east.relay.metered.ca:443?transport=tcp",
-              username: "fff496ad71b17d3d38ca224e",
-              credential: "NYcdbdYGytIGfL/u",
-            },
-            {
-              urls: "turn:openrelay.metered.ca:80",
-              username: "openrelayproject",
-              credential: "openrelayproject",
-            },
-          ],
-        });
+        const peer = new RTCPeerConnection(peerConnectionConfig);
 
         peer.onicecandidate = (event) => {
           if (event.candidate && socket) {
