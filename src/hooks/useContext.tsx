@@ -228,33 +228,27 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         {
           urls: "relay1.expressturn.com:3478",
           username: "efK7QHXRMSZHVGR70O",
-          credential: "zh6GHMeMDQNHLStt",
         },
         { urls: "stun:stun.relay.metered.ca:80" },
         {
           urls: "turn:asia-east.relay.metered.ca:80",
           username: "fff496ad71b17d3d38ca224e",
-          credential: "NYcdbdYGytIGfL/u",
         },
         {
           urls: "turn:asia-east.relay.metered.ca:80?transport=tcp",
           username: "fff496ad71b17d3d38ca224e",
-          credential: "NYcdbdYGytIGfL/u",
         },
         {
           urls: "turn:asia-east.relay.metered.ca:443",
           username: "fff496ad71b17d3d38ca224e",
-          credential: "NYcdbdYGytIGfL/u",
         },
         {
           urls: "turns:asia-east.relay.metered.ca:443?transport=tcp",
           username: "fff496ad71b17d3d38ca224e",
-          credential: "NYcdbdYGytIGfL/u",
         },
         {
           urls: "turn:openrelay.metered.ca:80",
           username: "openrelayproject",
-          credential: "openrelayproject",
         },
       ],
     });
