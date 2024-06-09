@@ -22,7 +22,7 @@ const InputWrapper = styled.div`
 
 const SuffixIcon = styled.div`
   position: absolute;
-  right: 52%;
+  right: 5%;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -94,13 +94,18 @@ const InputPrimary = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={inputRef}
           type={type}
-          className={`focus:border-primary-300 focus:ring-primary-200 dark:focus:ring-primary-6000 relative block w-full border-neutral-200 bg-white focus:ring focus:ring-opacity-50 disabled:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:ring-opacity-25 dark:disabled:bg-neutral-800 ${rounded} ${fontClass} ${sizeClass}`}
+          className={`dark:focus:ring-primary-6000 relative block w-full border-neutral-200 bg-white focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50 disabled:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:ring-opacity-25 dark:disabled:bg-neutral-800 ${rounded} ${fontClass} ${sizeClass}`}
           value={value}
           onChange={handleInputChange}
           {...args}
         />
         {suffixIcon && (
-          <SuffixIcon onClick={handleSuffixClick}>{suffixIcon}</SuffixIcon>
+          <SuffixIcon
+            style={{ paddingRight: allowClear && value ? "20px" : "0px" }}
+            onClick={handleSuffixClick}
+          >
+            {suffixIcon}
+          </SuffixIcon>
         )}
         {allowClear && value && <ClearIcon onClick={handleClearClick} />}
       </InputWrapper>

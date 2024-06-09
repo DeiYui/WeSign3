@@ -13,6 +13,7 @@ import {
   Modal,
   Select,
   Skeleton,
+  message,
 } from "antd";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
@@ -50,7 +51,14 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
   const { data: allTopics, isFetching } = useQuery({
     queryKey: ["getAllTopics", showModal.classRoomId],
     queryFn: async () => {
-      const res = await Learning.getAllTopicsPrivate(showModal.classRoomId);
+      const res = await Learning.getAllTopics({
+        isPrivate: true,
+        classRoomId: showModal.classRoomId,
+      });
+      if (!res.data?.length) {
+        message.error(`Không có chủ đề theo lớp ${showModal.classRoomId} `);
+        return;
+      }
       return res.data;
     },
     enabled: !!showModal.classRoomId,
@@ -75,16 +83,14 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
     queryKey: ["getVocabularyTopic", showModal.topicId],
     queryFn: async () => {
       const res = await Learning.getVocabularyTopic(showModal.topicId);
+      if (!res.data?.length) {
+        message.error(`Không có từng vựng theo chủ đề đã chọn `);
+        return;
+      }
       return (res?.data as Vocabulary[]) || [];
     },
     enabled: !!showModal.topicId,
   });
-
-  // useEffect(() => {
-  //   if (topicId) {
-  //     setShowModal({ open: false, topicId });
-  //   }
-  // }, [topicId]);
 
   // Tìm kiếm
   useEffect(() => {
@@ -135,7 +141,9 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
           </ButtonSecondary>
         ) : null}
 
-        <StudyComponent allVocabulary={allVocabulary} />
+        {allVocabulary?.length ? (
+          <StudyComponent allVocabulary={allVocabulary} />
+        ) : null}
       </div>
 
       {/* Modal */}

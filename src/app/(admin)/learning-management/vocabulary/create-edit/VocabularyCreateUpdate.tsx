@@ -20,7 +20,12 @@ import {
   message,
 } from "antd";
 import { useForm } from "antd/es/form/Form";
-import { useRouter, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { setTimeout } from "timers";
@@ -58,6 +63,8 @@ const VocabularyCreateUpdate: React.FC = () => {
   const router = useRouter();
   const [form] = useForm();
   const [formUpload] = useForm();
+  const searchParams = useSearchParams();
+  const isPrivate = searchParams.get("isPrivate");
 
   //state
   const [tabKey, setTabKey] = useState("1");
@@ -89,11 +96,14 @@ const VocabularyCreateUpdate: React.FC = () => {
     form.resetFields();
   }, [tabKey]);
 
+  console.log("isPrivate", isPrivate);
+
   // API lấy danh sách  topics
   const { data: allTopics } = useQuery({
-    queryKey: ["getAllTopics"],
+    queryKey: ["getAllTopics", isPrivate],
     queryFn: async () => {
-      const res = await Learning.getAllTopics();
+      debugger;
+      const res = await Learning.getAllTopics({ isPrivate: isPrivate });
       return res?.data?.map((item: { topicId: any; content: any }) => ({
         id: item.topicId,
         value: item.topicId,
@@ -101,9 +111,10 @@ const VocabularyCreateUpdate: React.FC = () => {
         text: item.content,
       }));
     },
+    enabled: !!isPrivate,
   });
 
-  // Thêm mới / chỉnh sửa  topics
+  // Thêm mới / chỉnh sửa  từ vựng
   const mutationCreate = useMutation({
     mutationFn: Learning.addVocabulary,
     onSuccess: () => {
@@ -247,6 +258,7 @@ const VocabularyCreateUpdate: React.FC = () => {
             },
           ],
           topicId: value.topicId,
+          private: isPrivate,
         }),
       );
       const response = await Learning.addLstVocabulary(body);
@@ -272,7 +284,9 @@ const VocabularyCreateUpdate: React.FC = () => {
         itemBreadcrumb={[
           { pathName: "/", name: "Trang chủ" },
           {
-            pathName: "/learning-management/vocabulary",
+            pathName: isPrivate
+              ? "/learning-management/vocabulary/private"
+              : "/learning-management/vocabulary/public",
             name: "Danh sách từ vựng",
           },
           { pathName: "#", name: "Thêm mới từ vựng" },
@@ -294,6 +308,7 @@ const VocabularyCreateUpdate: React.FC = () => {
                   ...value,
                   vocabularyImageReqs: value?.vocabularyImageReqs || "",
                   vocabularyVideoReqs: value?.vocabularyVideoReqs || "",
+                  private: isPrivate,
                 });
               }}
             >

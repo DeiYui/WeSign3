@@ -1,5 +1,7 @@
 "use client";
 import { colors } from "@/assets/colors";
+import { CloseIcon } from "@/assets/icons";
+import { ConfirmModal } from "@/components/UI/Modal/ConfirmModal";
 import BasicDrawer from "@/components/UI/draw/BasicDraw";
 import Learning from "@/model/Learning";
 import UploadModel from "@/model/UploadModel";
@@ -29,29 +31,25 @@ import TextArea from "antd/es/input/TextArea";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { CustomTable } from "../check-list/ExamList";
-import { isImageLocation } from "./create-edit/VocabularyCreateUpdate";
-import { CloseIcon } from "@/assets/icons";
 import ModalListMedia from "./create-edit/ModalListMedia";
-import { ConfirmModal } from "@/components/UI/Modal/ConfirmModal";
+import { isImageLocation } from "./create-edit/VocabularyCreateUpdate";
 
 interface FilterParams {
-  page: number;
-  size: number;
   topicId: number;
-  content: string;
+  contentSearch: string;
 }
 
-const VocabularyList: React.FC = () => {
+const VocabularyList = ({ isPrivate }: any) => {
+  console.log("isPrivate", isPrivate);
+
   //Hooks
   const router = useRouter();
   const [form] = useForm();
 
   // danh sách topics
   const [filterParams, setFilterParams] = useState<FilterParams>({
-    page: 1,
-    size: 999999,
     topicId: 0,
-    content: "",
+    contentSearch: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -125,22 +123,25 @@ const VocabularyList: React.FC = () => {
     isFetching,
     refetch,
   } = useQuery({
-    queryKey: ["getAllVocalizations", filterParams],
+    queryKey: ["getAllVocalizations", filterParams, isPrivate],
     queryFn: async () => {
-      const res = await Learning.getAllVocabulary(filterParams);
+      const res = await Learning.getAllVocabulary({
+        ...filterParams,
+        isPrivate: isPrivate,
+      });
       // Sắp xếp priamry lên đầu
-      res?.data.forEach(
+      res?.data?.forEach(
         (item: {
           vocabularyImageResList: any[];
           vocabularyVideoResList: any[];
         }) => {
-          item.vocabularyImageResList.sort(
+          item.vocabularyImageResList?.sort(
             (a: { primary: any }, b: { primary: any }) => {
               // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
               return a.primary === b.primary ? 0 : a.primary ? -1 : 1;
             },
           );
-          item.vocabularyVideoResList.sort(
+          item.vocabularyVideoResList?.sort(
             (a: { primary: any }, b: { primary: any }) => {
               // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
               return a.primary === b.primary ? 0 : a.primary ? -1 : 1;
@@ -158,7 +159,7 @@ const VocabularyList: React.FC = () => {
     onSuccess: () => {
       message.success("Xoá từ vựng thành công");
       setSelectedRowId(
-        selectedRowId.filter((item) => !modalConfirm.rowId?.includes(item)),
+        selectedRowId?.filter((item) => !modalConfirm.rowId?.includes(item)),
       );
       refetch();
     },
@@ -169,7 +170,8 @@ const VocabularyList: React.FC = () => {
     mutationFn: Learning.editVocabulary,
     onSuccess: () => {
       message.success("Cập nhật từ thành công");
-      router.back();
+      setOpenEdit(false);
+      refetch();
     },
     onError: () => {
       message.error("Cập nhật từ vựng thất bại");
@@ -381,7 +383,10 @@ const VocabularyList: React.FC = () => {
           />
           <Input
             onChange={(e) => {
-              setFilterParams({ ...filterParams, content: e.target.value });
+              setFilterParams({
+                ...filterParams,
+                contentSearch: e.target.value,
+              });
             }}
             size="large"
             allowClear
@@ -392,7 +397,9 @@ const VocabularyList: React.FC = () => {
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => {
-            router.push("/learning-management/vocabulary/create-edit");
+            router.push(
+              `/learning-management/vocabulary/create-edit/?isPrivate=${isPrivate}`,
+            );
           }}
         >
           Thêm mới
@@ -472,9 +479,11 @@ const VocabularyList: React.FC = () => {
             layout="vertical"
             className="px-4 pb-4"
             onFinish={(value) => {
-              mutationCreate.mutate(value);
+              mutationCreate.mutate({ ...value, private: isPrivate });
             }}
           >
+            <Form.Item name="vocabularyId" noStyle hidden />
+
             <Form.Item
               name="topicId"
               label="Chủ đề liên quan"
@@ -485,6 +494,7 @@ const VocabularyList: React.FC = () => {
               className="mb-2"
             >
               <Select
+                disabled
                 size="large"
                 className="w-full"
                 allowClear
@@ -536,15 +546,15 @@ const VocabularyList: React.FC = () => {
             </Form.Item>
             <Form.Item name="vocabularyType" hidden />
             <div className="flex flex-col gap-4">
-              <Form.Item name="vocabularyImageReqs" noStyle />
-              <Form.Item name="vocabularyVideoReqs" noStyle />
+              {/* <Form.Item name="vocabularyImageReqs" noStyle />
+              <Form.Item name="vocabularyVideoReqs" noStyle /> */}
 
-              <Upload {...props} showUploadList={false} accept="image/*">
+              {/* <Upload {...props} showUploadList={false} accept="image/*">
                 <Button icon={<UploadOutlined />}>Tải file ảnh</Button>
               </Upload>
               <Upload {...props} showUploadList={false} accept="video/*">
                 <Button icon={<UploadOutlined />}>Tải file video</Button>
-              </Upload>
+              </Upload> */}
             </div>
             <div className="mb-3 flex items-center justify-center gap-4">
               {preview.fileImage ? (

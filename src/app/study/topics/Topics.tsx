@@ -33,6 +33,7 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
 
   const [searchText, setSearchText] = useState<string>("");
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
+  const [topicPrivates, setTopicPrivates] = useState<Topic[]>([]);
 
   console.log("filteredTopics", filteredTopics);
 
@@ -41,7 +42,12 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
     queryKey: ["getAllTopics"],
     queryFn: async () => {
       const res = await Learning.getAllTopics();
-      return res.data as Topic[];
+      setTopicPrivates(
+        res.data?.filter((item: { private: boolean }) => item.private),
+      );
+      return res.data?.filter(
+        (item: { private: boolean }) => !item.private,
+      ) as Topic[];
     },
     enabled: showModal.open,
   });
@@ -99,9 +105,12 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
         />
-        <div className="flex w-full items-center">
+        <div className="flex w-full gap-4">
+          <div className="mt-2 w-1/2 text-base font-bold">Chủ đề chung</div>
+          <div className="mt-2 w-1/2 text-base font-bold">Chủ đề riêng</div>
+        </div>
+        <div className="flex w-full items-center gap-4">
           <div className="w-1/2">
-            <div className="mt-2 text-base font-bold">Chủ đề chung</div>
             <List
               className="custom-scrollbar mt-4 max-h-[450px] overflow-y-auto pb-4"
               loading={isFetching}
@@ -137,12 +146,11 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
             />
           </div>
           <div className="w-1/2">
-            <div className="mt-2 text-base font-bold">Chủ đề riêng</div>
             <List
               className="custom-scrollbar mt-4 max-h-[450px] overflow-y-auto pb-4"
               loading={isFetching}
               itemLayout="horizontal"
-              dataSource={filteredTopics}
+              dataSource={topicPrivates}
               bordered
               renderItem={(topic) => (
                 <List.Item

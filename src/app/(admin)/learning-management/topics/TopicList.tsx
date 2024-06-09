@@ -71,9 +71,10 @@ const TopicList = (props: any) => {
   const { isFetching, refetch } = useQuery({
     queryKey: ["getAllTopics", filterParams],
     queryFn: async () => {
-      const res = !isPrivate
-        ? await Learning.getAllTopics(filterParams)
-        : await Learning.getAllTopicsPrivate(filterParams.classRoomId);
+      const res = await Learning.getAllTopics({
+        ...filterParams,
+        isPrivate: isPrivate,
+      });
       setLstTopics(res.data);
       return res.data as Topic[];
     },
