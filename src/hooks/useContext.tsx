@@ -39,33 +39,25 @@ const peerConnectionConfig = {
     { urls: "stun:freeturn.net:5349" },
     {
       urls: "turns:freeturn.tel:5349",
-      username: "free",
-      credential: "free",
     },
     {
       urls: "relay1.expressturn.com:3478",
-      username: "efK7QHXRMSZHVGR70O",
     },
     { urls: "stun:stun.relay.metered.ca:80" },
     {
       urls: "turn:asia-east.relay.metered.ca:80",
-      username: "fff496ad71b17d3d38ca224e",
     },
     {
       urls: "turn:asia-east.relay.metered.ca:80?transport=tcp",
-      username: "fff496ad71b17d3d38ca224e",
     },
     {
       urls: "turn:asia-east.relay.metered.ca:443",
-      username: "fff496ad71b17d3d38ca224e",
     },
     {
       urls: "turns:asia-east.relay.metered.ca:443?transport=tcp",
-      username: "fff496ad71b17d3d38ca224e",
     },
     {
       urls: "turn:openrelay.metered.ca:80",
-      username: "openrelayproject",
     },
   ],
 };
