@@ -174,33 +174,34 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       (myVideo.current.srcObject as MediaStream)
         .getTracks()
         .forEach((track) => track.stop());
-      myVideo.current.srcObject = null;
     }
     if (userVideo.current?.srcObject) {
       (userVideo.current.srcObject as MediaStream)
         .getTracks()
         .forEach((track) => track.stop());
-      userVideo.current.srcObject = null;
     }
     if (connectionRef.current) {
       connectionRef.current.close();
-      connectionRef.current = null;
+      // connectionRef.current = null;
     }
   }, []);
 
   const leaveCall = useCallback(() => {
     setCallEnded(true);
+    endCallCleanup();
+    closeModal();
     if (socket) {
       socket.emit("leave");
     }
-    endCallCleanup();
-    closeModal();
   }, [socket, endCallCleanup]);
 
   useEffect(() => {
     if (conversationId && contactId) {
+      setIsLoading(true);
       const socketBaseUrl = "https://chat-call-app.onrender.com";
-      const s = io(socketBaseUrl, { query: { conversationId, contactId } });
+      const s = io(socketBaseUrl, {
+        query: { conversationId, contactId },
+      });
 
       setSocket(s);
 
@@ -209,15 +210,15 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         setIsLoading(false);
       });
 
-      s.on("connect_error", (error: any) => {
+      s.on("connect_error", (error) => {
         console.error("SOCKET CONNECTION ERROR", error);
       });
 
-      s.on("get_message", (res: SocketResponse) => {
+      s.on("get_message", (res) => {
         setSocketResponse({ ...res, createdAt: new Date() });
       });
 
-      s.on("typing", (data: { contactId: number }) => {
+      s.on("typing", (data) => {
         if (data.contactId !== contactId) {
           setIsTyping(true);
         }
@@ -248,13 +249,13 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
       s.on("answer", (answer) => {
         setCallAccepted(true);
-        const peerConnection = connectionRef.current;
-        if (peerConnection) {
-          peerConnection
+
+        if (connectionRef.current) {
+          connectionRef.current
             .setRemoteDescription(new RTCSessionDescription(answer))
-            .catch((error) =>
-              console.error("Error setting remote description:", error),
-            );
+            .catch((error) => {
+              console.error("Error setting remote description:", error);
+            });
         } else {
           console.error("Peer connection is not available");
         }
@@ -262,13 +263,12 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
       s.on("candidate", (candidate) => {
         if (candidate && candidate.candidate) {
-          const peerConnection = connectionRef.current;
-          if (peerConnection && peerConnection.remoteDescription) {
-            peerConnection
+          if (connectionRef.current) {
+            connectionRef.current
               .addIceCandidate(new RTCIceCandidate(candidate))
-              .catch((error) =>
-                console.error("Error adding ICE candidate:", error),
-              );
+              .catch((error) => {
+                console.error("Error adding ICE candidate:", error);
+              });
           } else {
             console.error(
               "Peer connection or remote description is not available",
@@ -304,12 +304,15 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     peer.ontrack = (event) => {
       if (userVideo.current) {
         userVideo.current.srcObject = event.streams[0];
+      } else {
+        console.error("userVideo.current is not available");
       }
     };
 
     if (stream) {
       stream.getTracks().forEach((track) => peer.addTrack(track, stream));
     }
+
     peer
       .setRemoteDescription(new RTCSessionDescription(call.signal))
       .then(() => {
