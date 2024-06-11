@@ -50,7 +50,7 @@ const optionStatus = [
   },
 ];
 
-const ExamListPage: React.FC = () => {
+const ExamListPage = ({ isPrivate }: any) => {
   const router = useRouter();
 
   // xử lý khi hover vào row
@@ -76,9 +76,9 @@ const ExamListPage: React.FC = () => {
 
   // API lấy danh sách  topics
   const { data: allTopics } = useQuery({
-    queryKey: ["getAllTopics"],
+    queryKey: ["getAllTopics", isPrivate],
     queryFn: async () => {
-      const res = await Learning.getAllTopics();
+      const res = await Learning.getAllTopics({ isPrivate: isPrivate });
       return res?.data?.map((item: { topicId: any; content: any }) => ({
         id: item.topicId,
         value: item.topicId,

@@ -12,6 +12,7 @@ import {
   Select,
   Tooltip,
 } from "antd";
+import { isFunction } from "lodash";
 import React, { ReactNode, useEffect, useState } from "react";
 
 const PAGE_SIZE = 9;
@@ -35,6 +36,7 @@ interface QuestionModalProps {
   topicId: number;
   children: ReactNode;
   file?: any;
+  onChange?: any;
 }
 
 const QuestionModal: React.FC<QuestionModalProps> = ({
@@ -43,6 +45,7 @@ const QuestionModal: React.FC<QuestionModalProps> = ({
   topicId,
   children,
   file,
+  onChange,
 }) => {
   // Lựa chọn hình ảnh/ hoặc video
   const [selectedFileType, setSelectedFileType] = useState<string | null>(
@@ -288,6 +291,7 @@ const QuestionModal: React.FC<QuestionModalProps> = ({
           title="Chọn hình ảnh/video theo chủ đề"
           onOk={() => {
             setOpenChooseVideo(false);
+            isFunction(onChange) && onChange(selectedFile);
           }}
           destroyOnClose
         >

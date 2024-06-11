@@ -1,8 +1,7 @@
-import Chart from "@/components/Charts/page";
-import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import { Metadata } from "next";
 import React from "react";
-import ExamListPage from "./ExamList";
+import ExamListPage from "../ExamList";
 
 export const metadata: Metadata = {
   title: "Management-exam - We_sign",
@@ -26,7 +25,7 @@ export const metadata: Metadata = {
 const ManagementExamPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <ExamListPage />
+      <ExamListPage isPrivate />
     </DefaultLayout>
   );
 };

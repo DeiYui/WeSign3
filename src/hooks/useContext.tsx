@@ -169,13 +169,38 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [socket, conversationId]);
 
+  const endCallCleanup = useCallback(() => {
+    if (myVideo.current?.srcObject) {
+      (myVideo.current.srcObject as MediaStream)
+        .getTracks()
+        .forEach((track) => track.stop());
+      myVideo.current.srcObject = null;
+    }
+    if (userVideo.current?.srcObject) {
+      (userVideo.current.srcObject as MediaStream)
+        .getTracks()
+        .forEach((track) => track.stop());
+      userVideo.current.srcObject = null;
+    }
+    if (connectionRef.current) {
+      connectionRef.current.close();
+      connectionRef.current = null;
+    }
+  }, []);
+
+  const leaveCall = useCallback(() => {
+    setCallEnded(true);
+    if (socket) {
+      socket.emit("leave");
+    }
+    endCallCleanup();
+    closeModal();
+  }, [socket, endCallCleanup]);
+
   useEffect(() => {
     if (conversationId && contactId) {
-      setIsLoading(true);
       const socketBaseUrl = "https://chat-call-app.onrender.com";
-      const s = io(socketBaseUrl, {
-        query: { conversationId, contactId },
-      });
+      const s = io(socketBaseUrl, { query: { conversationId, contactId } });
 
       setSocket(s);
 
@@ -227,28 +252,30 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         if (peerConnection) {
           peerConnection
             .setRemoteDescription(new RTCSessionDescription(answer))
-            .then(() => {
-              console.log("Remote description set successfully");
-            })
-            .catch((error) => {
-              console.error("Error setting remote description:", error);
-            });
+            .catch((error) =>
+              console.error("Error setting remote description:", error),
+            );
         } else {
           console.error("Peer connection is not available");
         }
       });
 
       s.on("candidate", (candidate) => {
-        const peerConnection = connectionRef.current;
-        if (peerConnection && candidate) {
-          peerConnection
-            .addIceCandidate(new RTCIceCandidate(candidate))
-            .then(() => {
-              console.log("ICE candidate added successfully");
-            })
-            .catch((error) => {
-              console.error("Error adding ICE candidate:", error);
-            });
+        if (candidate && candidate.candidate) {
+          const peerConnection = connectionRef.current;
+          if (peerConnection && peerConnection.remoteDescription) {
+            peerConnection
+              .addIceCandidate(new RTCIceCandidate(candidate))
+              .catch((error) =>
+                console.error("Error adding ICE candidate:", error),
+              );
+          } else {
+            console.error(
+              "Peer connection or remote description is not available",
+            );
+          }
+        } else {
+          console.error("Invalid candidate data:", candidate);
         }
       });
 
@@ -283,7 +310,6 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     if (stream) {
       stream.getTracks().forEach((track) => peer.addTrack(track, stream));
     }
-
     peer
       .setRemoteDescription(new RTCSessionDescription(call.signal))
       .then(() => {
@@ -354,31 +380,6 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       .catch((error) => {
         console.error("Error accessing media devices.", error);
       });
-  };
-
-  const endCallCleanup = () => {
-    if (myVideo.current?.srcObject) {
-      const tracks = (myVideo.current.srcObject as MediaStream).getTracks();
-      tracks.forEach((track) => track.stop());
-      myVideo.current.srcObject = null;
-    }
-    if (userVideo.current?.srcObject) {
-      const tracks = (userVideo.current.srcObject as MediaStream).getTracks();
-      tracks.forEach((track) => track.stop());
-      userVideo.current.srcObject = null;
-    }
-    connectionRef.current?.close();
-    connectionRef.current = null;
-    setStream(undefined);
-  };
-
-  const leaveCall = () => {
-    setCallEnded(true);
-    if (socket) {
-      socket.emit("leave");
-    }
-    endCallCleanup();
-    closeModal();
   };
 
   const toggleAudio = () => {

@@ -105,8 +105,8 @@ export const MediaUpload: FC<MediaUploadProps> = ({
               {mediaType ? (
                 <Image
                   alt=""
-                  className="rounded-lg object-cover"
-                  style={{ width: 100, height: 100 }}
+                  className="rounded-lg object-contain"
+                  style={{ width: 200, height: 200 }}
                   src={e}
                 />
               ) : (

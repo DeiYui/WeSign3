@@ -75,6 +75,22 @@ export const AdminSystem = () => {
           path: "/learning-management/check-list",
           hidden: false,
           icon: <DotIcon color="white" size={20} />,
+          children: [
+            {
+              key: "/learning-management/check-list/public",
+              label: "Chung",
+              path: "/learning-management/check-list/public",
+              hidden: false,
+              icon: <DotIcon color="white" size={20} />,
+            },
+            {
+              key: "/learning-management/check-list/private",
+              label: "Riêng",
+              path: "/learning-management/check-list/private",
+              hidden: false,
+              icon: <DotIcon color="white" size={20} />,
+            },
+          ],
         },
       ],
       hidden: false,

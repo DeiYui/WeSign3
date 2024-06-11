@@ -40,8 +40,6 @@ interface FilterParams {
 }
 
 const VocabularyList = ({ isPrivate }: any) => {
-  console.log("isPrivate", isPrivate);
-
   //Hooks
   const router = useRouter();
   const [form] = useForm();
