@@ -19,6 +19,7 @@ import {
   Pagination,
   Radio,
   Select,
+  Spin,
   message,
 } from "antd";
 import { useForm } from "antd/es/form/Form";
@@ -41,6 +42,7 @@ interface Question {
   topicId: number;
   answerReqs: Answer[];
   type?: string;
+  file?: string;
 }
 const { Panel } = Collapse;
 
@@ -53,12 +55,15 @@ const initAnswerValue = {
 
 // Convert form data to API request format
 function convertQuestions(input: any) {
+  debugger;
   return input.questions.map((question: any) => ({
     content: question.content,
     explanation: "",
     imageLocation: isImage(question.file) ? question.file : "",
     videoLocation: !isImage(question.file) ? question.file : "",
     topicId: input.topicId,
+    questionType: question.type,
+    fileType: input.typeFile,
     answerReqs: question.answerReqs.map((answer: any) => ({
       content: answer.content,
       imageLocation: "",
@@ -68,33 +73,9 @@ function convertQuestions(input: any) {
   }));
 }
 
-const convertDataToFormValues = (data: any) => {
-  const { answerResList, ...questionData } = data;
-  const questions = [
-    {
-      content: questionData.content,
-      file: questionData.imageLocation || questionData.videoLocation,
-      typeFile: "existing",
-      type:
-        answerResList?.filter((item: any) => item.correct).length > 1
-          ? "multiple"
-          : "single",
-      answerReqs: answerResList.map((answer: any) => ({
-        content: answer.content,
-        imageLocation: answer.imageLocation,
-        videoLocation: answer.videoLocation,
-        correct: answer.correct,
-      })),
-    },
-  ];
-  return { ...questionData, questions };
-};
-
 const QuestionCreate: React.FC = () => {
   const router = useRouter();
   const [form] = useForm();
-  const searchParam = useSearchParams();
-  const questionId = searchParam.get("questionId");
   const [numQuestions, setNumQuestions] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const questionsPerPage = 10;
@@ -103,22 +84,6 @@ const QuestionCreate: React.FC = () => {
   const topicId = Form.useWatch("topicId", form);
 
   const [openChooseVideo, setOpenChooseVideo] = useState<boolean>(false);
-  const [typeFileUpload, setTypeFileUpload] = useState<
-    string | "upload" | "existing"
-  >("");
-
-  const { data: detailQuestions } = useQuery({
-    queryKey: ["getDetailQuestion", questionId],
-    queryFn: async () => {
-      if (questionId) {
-        const res = await Questions.getDetailQuestion(questionId);
-        const formValues = convertDataToFormValues(res?.data);
-        form.setFieldsValue(formValues);
-        return res?.data;
-      }
-    },
-    enabled: !!questionId,
-  });
 
   const { data: allTopics, refetch } = useQuery({
     queryKey: ["getAllTopics"],
@@ -152,7 +117,7 @@ const QuestionCreate: React.FC = () => {
         imageLocation: "",
         videoLocation: "",
         topicId: 0,
-        type: "single",
+        type: "ONE_ANSWER",
         answerReqs: [
           { content: "", imageLocation: "", videoLocation: "", correct: true },
         ],
@@ -182,315 +147,302 @@ const QuestionCreate: React.FC = () => {
 
   const lstQuestions = form.getFieldsValue();
 
-  console.log("lstQuestions", lstQuestions, Form.useWatch("questions", form));
-
   return (
-    <>
-      <div className="container mx-auto bg-white p-4">
-        <h1 className="mb-4 text-2xl font-bold">Thêm câu hỏi</h1>
-        <Form
-          form={form}
-          onFinish={(value) => {
-            const newValue = convertQuestions(value);
-            console.log("newValue: ", value, newValue);
-            mutationAdd.mutate(newValue);
-          }}
-          layout="vertical"
+    <div className="container mx-auto bg-white p-4">
+      <h1 className="mb-4 text-2xl font-bold">Thêm câu hỏi</h1>
+      <Form
+        form={form}
+        onFinish={(value) => {
+          const newValue = convertQuestions(value);
+
+          mutationAdd.mutate(newValue);
+        }}
+        layout="vertical"
+      >
+        <Form.Item
+          label="Chủ đề"
+          name="topicId"
+          required
+          rules={[validateRequire("Chủ đề không được bỏ trống")]}
         >
-          <Form.Item name="questionId" hidden />
-          <Form.Item
-            label="Chủ đề"
-            name="topicId"
-            required
-            rules={[validateRequire("Chủ đề không được bỏ trống")]}
-          >
-            <Select placeholder="Chọn chủ đề" options={allTopics} />
-          </Form.Item>
-          <Form.Item
-            label="Số câu hỏi muốn tạo (không quá 100):"
-            name="numQuestions"
-            required
-            rules={[validateRequire("Số lượng câu hỏi không được bỏ trống")]}
-          >
-            <Input
-              placeholder="Nhập số lượng câu hỏi"
-              type="number"
-              value={numQuestions}
-              onChange={(e) =>
-                handleNumQuestionsChange(parseInt(e.target.value, 10))
-              }
-            />
-          </Form.Item>
-          <Form.Item name="questions" hidden />
-          <Collapse accordion className="mb-4 bg-white">
-            {currentQuestions?.map((question, index) => (
-              <Panel
-                header={`Câu hỏi ${(currentPage - 1) * questionsPerPage + index + 1}`}
-                key={index}
-              >
-                <div key={index} className="mb-6 rounded border bg-white p-4">
-                  <h2 className="mb-2 text-xl font-bold">
-                    Câu hỏi {(currentPage - 1) * questionsPerPage + index + 1}
-                  </h2>
-                  <Form.Item
-                    label="Tên câu hỏi:"
-                    name={["questions", index, "content"]}
-                    required
-                    rules={[
-                      validateRequireInput("Tên câu hỏi không được bỏ trống"),
-                    ]}
-                  >
-                    <Input placeholder="Nhập câu hỏi" />
-                  </Form.Item>
+          <Select placeholder="Chọn chủ đề" options={allTopics} />
+        </Form.Item>
+        <Form.Item
+          label="Số câu hỏi muốn tạo (không quá 100):"
+          name="numQuestions"
+          required
+          rules={[validateRequire("Số lượng câu hỏi không được bỏ trống")]}
+        >
+          <Input
+            placeholder="Nhập số lượng câu hỏi"
+            type="number"
+            value={numQuestions}
+            onChange={(e) =>
+              handleNumQuestionsChange(parseInt(e.target.value, 10))
+            }
+          />
+        </Form.Item>
+        <Form.Item name="questions" hidden />
+        <Collapse accordion className="mb-4 bg-white">
+          {currentQuestions?.map((question, index) => (
+            <Panel
+              header={`Câu hỏi ${(currentPage - 1) * questionsPerPage + index + 1}`}
+              key={index}
+            >
+              <div key={index} className="mb-6 rounded border bg-white p-4">
+                <h2 className="mb-2 text-xl font-bold">
+                  Câu hỏi {(currentPage - 1) * questionsPerPage + index + 1}
+                </h2>
+                <Form.Item
+                  label="Tên câu hỏi:"
+                  name={["questions", index, "content"]}
+                  required
+                  rules={[
+                    validateRequireInput("Tên câu hỏi không được bỏ trống"),
+                  ]}
+                >
+                  <Input placeholder="Nhập câu hỏi" />
+                </Form.Item>
 
-                  <Form.Item
-                    name={["questions", index, "typeFile"]}
-                    label="Lựa chọn file (hình ảnh, video):"
-                    className="mb-0"
+                <Form.Item
+                  name={["questions", index, "typeFile"]}
+                  label="Lựa chọn file (hình ảnh, video):"
+                  className="mb-0"
+                >
+                  <Select
+                    style={{ width: "100%" }}
+                    placeholder="Chọn hoặc tải lên file"
                   >
-                    <Select
-                      style={{ width: "100%" }}
-                      placeholder="Chọn hoặc tải lên file"
-                      onChange={(value) => setTypeFileUpload(value)}
-                    >
-                      <Select.Option value="upload">
-                        Tải lên file mới
-                      </Select.Option>
-                      <Select.Option value="existing">
-                        Chọn từ dữ liệu có sẵn
-                      </Select.Option>
-                    </Select>
-                  </Form.Item>
+                    <Select.Option value="NOT_EXISTED">
+                      Tải lên file mới
+                    </Select.Option>
+                    <Select.Option value="EXISTED">
+                      Chọn từ dữ liệu có sẵn
+                    </Select.Option>
+                  </Select>
+                </Form.Item>
 
-                  <Form.Item
-                    name={["questions", index, "file"]}
-                    className="mb-2"
-                  >
-                    <div className="mt-4">
-                      {lstQuestions.questions?.length && (
-                        <>
-                          {lstQuestions?.questions[index]?.typeFile ===
-                            "existing" && (
-                            <QuestionModal
-                              openChooseVideo={openChooseVideo}
-                              setOpenChooseVideo={setOpenChooseVideo}
-                              topicId={topicId}
-                              file={lstQuestions?.questions[index]?.file}
+                <Form.Item name={["questions", index, "file"]} className="mb-2">
+                  <div className="mt-4">
+                    {lstQuestions.questions?.length && (
+                      <>
+                        {lstQuestions?.questions[index]?.typeFile ===
+                          "EXISTED" && (
+                          <QuestionModal
+                            openChooseVideo={openChooseVideo}
+                            setOpenChooseVideo={setOpenChooseVideo}
+                            topicId={topicId}
+                            file={lstQuestions?.questions[index]?.file}
+                          >
+                            <div
+                              onClick={() => {
+                                if (topicId) {
+                                  setOpenChooseVideo(true);
+                                } else {
+                                  message.warning("Vui lòng chọn chủ đề");
+                                }
+                              }}
                             >
-                              <div
-                                onClick={() => {
-                                  if (topicId) {
-                                    setOpenChooseVideo(true);
-                                  } else {
-                                    message.warning("Vui lòng chọn chủ đề");
-                                  }
-                                }}
-                              >
-                                <Button disabled={!topicId}>Chọn file</Button>
-                                {lstQuestions?.questions[index]?.file && (
-                                  <div className="">
-                                    {isImage(
-                                      lstQuestions?.questions[index]?.file,
-                                    ) ? (
-                                      <Image
-                                        preview={false}
-                                        alt="example"
-                                        style={{
-                                          width: 200,
-                                          height: 200,
-                                          objectFit: "contain",
-                                        }}
+                              <Button disabled={!topicId}>Chọn file</Button>
+                              {lstQuestions?.questions[index]?.file && (
+                                <div className="">
+                                  {isImage(
+                                    lstQuestions?.questions[index]?.file,
+                                  ) ? (
+                                    <Image
+                                      preview={false}
+                                      alt="example"
+                                      style={{
+                                        width: 200,
+                                        height: 200,
+                                        objectFit: "contain",
+                                      }}
+                                      src={lstQuestions?.questions[index]?.file}
+                                    />
+                                  ) : (
+                                    <video
+                                      controls
+                                      style={{ width: 200, height: 200 }}
+                                    >
+                                      <source
                                         src={
                                           lstQuestions?.questions[index]?.file
                                         }
+                                        type="video/mp4"
                                       />
-                                    ) : (
-                                      <video
-                                        controls
-                                        style={{ width: 200, height: 200 }}
-                                      >
-                                        <source
-                                          src={
-                                            lstQuestions?.questions[index]?.file
-                                          }
-                                          type="video/mp4"
-                                        />
-                                      </video>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            </QuestionModal>
-                          )}
-                          {lstQuestions?.questions[index]?.typeFile ===
-                            "upload" && <MediaUpload />}
-                        </>
-                      )}
-                    </div>
-                  </Form.Item>
-
-                  <Form.Item
-                    name={["questions", index, "type"]}
-                    label="Kiểu câu hỏi:"
-                    required
-                    rules={[validateRequireInput("Vui lòng chọn loại đáp án")]}
-                    initialValue={"single"}
-                  >
-                    <Select
-                      value={question.type}
-                      onChange={(value) =>
-                        handleQuestionChange(index, "type", value)
-                      }
-                      placeholder="Chọn loại đáp án"
-                      options={[
-                        { label: "Một đáp án", value: "single" },
-                        { label: "Nhiều đáp án", value: "multiple" },
-                      ]}
-                    />
-                  </Form.Item>
-
-                  <Form.List name={["questions", index, "answerReqs"]}>
-                    {(fields, { add, remove }) => (
-                      <>
-                        {question.type === "single" ? (
-                          <Radio.Group className="w-full">
-                            {fields.map((field, answerIndex) => (
-                              <div
-                                key={field.key}
-                                className="flex w-full items-center gap-4"
-                              >
-                                <div className="mb-2 flex items-center">
-                                  <Form.Item
-                                    name={[field.name, "correct"]}
-                                    className="mb-0 ml-2 w-full"
-                                    valuePropName="checked"
-                                    initialValue={answerIndex === 0}
-                                  >
-                                    <Radio />
-                                  </Form.Item>
-
-                                  <Form.Item
-                                    name={[field.name, "content"]}
-                                    className="mb-0 ml-2 w-full"
-                                    required
-                                    rules={[
-                                      validateRequireInput(
-                                        "Vui lòng nhập đáp án",
-                                      ),
-                                    ]}
-                                  >
-                                    <Input
-                                      placeholder="Nhập đáp án"
-                                      style={{ width: 500 }}
-                                    />
-                                  </Form.Item>
+                                    </video>
+                                  )}
                                 </div>
-
-                                <MinusCircleOutlined
-                                  style={{ fontSize: 20 }}
-                                  className="dynamic-delete-button"
-                                  onClick={() => remove(field.name)}
-                                />
-                              </div>
-                            ))}
-                            <Button
-                              type="dashed"
-                              onClick={() =>
-                                add({
-                                  ...initAnswerValue,
-                                  correct: fields?.length === 0,
-                                })
-                              }
-                              icon={<PlusOutlined />}
-                            >
-                              Thêm đáp án
-                            </Button>
-                          </Radio.Group>
-                        ) : (
-                          <Checkbox.Group className="w-full">
-                            {fields.map((field, answerIndex) => (
-                              <div
-                                key={field.key}
-                                className="flex w-full items-center gap-4"
-                              >
-                                <div className="mb-2 flex items-center">
-                                  <Form.Item
-                                    {...field}
-                                    name={[field.name, "correct"]}
-                                    className="mb-0 ml-2 w-full"
-                                    valuePropName="checked"
-                                  >
-                                    <Checkbox />
-                                  </Form.Item>
-                                  <Form.Item
-                                    {...field}
-                                    name={[field.name, "content"]}
-                                    className="mb-0 ml-2 w-full"
-                                    required
-                                    rules={[
-                                      validateRequireInput(
-                                        "Vui lòng nhập đáp án",
-                                      ),
-                                    ]}
-                                  >
-                                    <Input
-                                      placeholder="Nhập đáp án"
-                                      style={{ width: 700 }}
-                                    />
-                                  </Form.Item>
-                                </div>
-
-                                <MinusCircleOutlined
-                                  style={{ fontSize: 20 }}
-                                  className="dynamic-delete-button"
-                                  onClick={() => remove(field.name)}
-                                />
-                              </div>
-                            ))}
-                            <Button
-                              type="dashed"
-                              onClick={() =>
-                                add({
-                                  ...initAnswerValue,
-                                  correct: fields?.length === 0,
-                                })
-                              }
-                              icon={<PlusOutlined />}
-                            >
-                              Thêm đáp án
-                            </Button>
-                          </Checkbox.Group>
+                              )}
+                            </div>
+                          </QuestionModal>
                         )}
+                        {lstQuestions?.questions[index]?.typeFile ===
+                          "NOT_EXISTED" && <MediaUpload />}
                       </>
                     )}
-                  </Form.List>
-                </div>
-              </Panel>
-            ))}
-          </Collapse>
+                  </div>
+                </Form.Item>
 
-          <div className="flex items-center justify-center gap-4">
-            <Button
-              onClick={() => router.push("/learning-management/questions")}
-            >
-              Huỷ
-            </Button>
-            <Button type="primary" htmlType="submit">
-              Tạo
-            </Button>
-          </div>
-        </Form>
+                <Form.Item
+                  name={["questions", index, "type"]}
+                  label="Kiểu câu hỏi:"
+                  required
+                  rules={[validateRequireInput("Vui lòng chọn loại đáp án")]}
+                  initialValue={"ONE_ANSWER"}
+                >
+                  <Select
+                    value={question.type}
+                    onChange={(value) =>
+                      handleQuestionChange(index, "type", value)
+                    }
+                    placeholder="Chọn loại đáp án"
+                    options={[
+                      { label: "Một đáp án", value: "ONE_ANSWER" },
+                      { label: "Nhiều đáp án", value: "MULTIPLE_ANSWERS" },
+                    ]}
+                  />
+                </Form.Item>
 
-        {questions?.length > 0 ? (
-          <Pagination
-            current={currentPage}
-            pageSize={questionsPerPage}
-            total={numQuestions}
-            onChange={handlePageChange}
-          />
-        ) : null}
-      </div>
-    </>
+                <Form.List name={["questions", index, "answerReqs"]}>
+                  {(fields, { add, remove }) => (
+                    <>
+                      {question.type === "ONE_ANSWER" ? (
+                        <Radio.Group className="w-full" defaultValue={0}>
+                          {fields.map((field, answerIndex) => (
+                            <div
+                              key={field.key}
+                              className="flex w-full items-center gap-4"
+                            >
+                              <div className="mb-2 flex items-center">
+                                <Form.Item
+                                  name={[field.name, "correct"]}
+                                  className="mb-0 ml-2 w-full"
+                                  valuePropName="checked"
+                                  initialValue={answerIndex === 0}
+                                >
+                                  <Radio value={answerIndex} />
+                                </Form.Item>
+
+                                <Form.Item
+                                  name={[field.name, "content"]}
+                                  className="mb-0 ml-2 w-full"
+                                  required
+                                  rules={[
+                                    validateRequireInput(
+                                      "Vui lòng nhập đáp án",
+                                    ),
+                                  ]}
+                                >
+                                  <Input
+                                    placeholder="Nhập đáp án"
+                                    style={{ width: 500 }}
+                                  />
+                                </Form.Item>
+                              </div>
+
+                              <MinusCircleOutlined
+                                style={{ fontSize: 20 }}
+                                className="dynamic-delete-button"
+                                onClick={() => remove(field.name)}
+                              />
+                            </div>
+                          ))}
+                          <Button
+                            type="dashed"
+                            onClick={() =>
+                              add({
+                                ...initAnswerValue,
+                                correct: fields?.length === 0,
+                              })
+                            }
+                            icon={<PlusOutlined />}
+                          >
+                            Thêm đáp án
+                          </Button>
+                        </Radio.Group>
+                      ) : (
+                        <Checkbox.Group className="w-full">
+                          {fields.map((field, answerIndex) => (
+                            <div
+                              key={field.key}
+                              className="flex w-full items-center gap-4"
+                            >
+                              <div className="mb-2 flex items-center">
+                                <Form.Item
+                                  {...field}
+                                  name={[field.name, "correct"]}
+                                  className="mb-0 ml-2 w-full"
+                                  valuePropName="checked"
+                                >
+                                  <Checkbox />
+                                </Form.Item>
+                                <Form.Item
+                                  {...field}
+                                  name={[field.name, "content"]}
+                                  className="mb-0 ml-2 w-full"
+                                  required
+                                  rules={[
+                                    validateRequireInput(
+                                      "Vui lòng nhập đáp án",
+                                    ),
+                                  ]}
+                                >
+                                  <Input
+                                    placeholder="Nhập đáp án"
+                                    style={{ width: 700 }}
+                                  />
+                                </Form.Item>
+                              </div>
+
+                              <MinusCircleOutlined
+                                style={{ fontSize: 20 }}
+                                className="dynamic-delete-button"
+                                onClick={() => remove(field.name)}
+                              />
+                            </div>
+                          ))}
+                          <Button
+                            type="dashed"
+                            onClick={() =>
+                              add({
+                                ...initAnswerValue,
+                                correct: fields?.length === 0,
+                              })
+                            }
+                            icon={<PlusOutlined />}
+                          >
+                            Thêm đáp án
+                          </Button>
+                        </Checkbox.Group>
+                      )}
+                    </>
+                  )}
+                </Form.List>
+              </div>
+            </Panel>
+          ))}
+        </Collapse>
+
+        <div className="flex items-center justify-center gap-4">
+          <Button onClick={() => router.push("/learning-management/questions")}>
+            Huỷ
+          </Button>
+          <Button type="primary" htmlType="submit">
+            Tạo
+          </Button>
+        </div>
+      </Form>
+
+      {questions?.length > 0 ? (
+        <Pagination
+          current={currentPage}
+          pageSize={questionsPerPage}
+          total={numQuestions}
+          onChange={handlePageChange}
+        />
+      ) : null}
+    </div>
   );
 };
 

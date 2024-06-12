@@ -24,6 +24,12 @@ class Exam extends Base {
     const res = await this.apiPost(`/exams/exams-for-user`, body);
     return res.data;
   };
+
+  // Chi tiết bài kiểm tra
+  detailExamsForUser = async (id: number) => {
+    const res = await this.apiGet(`/exams/${id}`);
+    return res.data;
+  };
 }
 
 export default new Exam("learning-service");

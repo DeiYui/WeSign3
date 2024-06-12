@@ -3,6 +3,7 @@ import {
   CollectDataIcon,
   DashboardIcon,
   ExamIcon,
+  PracticeIcon,
   StudyIcon,
 } from "@/assets/icons";
 import { RootState, store } from "@/store";
@@ -53,6 +54,13 @@ export const MenuSystem = () => {
       label: "Thu thập dữ liệu",
       path: "/collect-data",
       icon: <CollectDataIcon color="white" size={20} />,
+      hidden: false,
+    },
+    {
+      key: "/practice-data",
+      label: "Luyện tập",
+      path: "/practice-data",
+      icon: <PracticeIcon color="white" size={20} />,
       hidden: false,
     },
   ].filter((item) => !item.hidden);

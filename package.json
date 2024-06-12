@@ -25,8 +25,11 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.3.7",
+    "@mediapipe/drawing_utils": "^0.3.1675466124",
+    "@mediapipe/hands": "^0.4.1675469240",
     "@reduxjs/toolkit": "^2.2.4",
     "@tanstack/react-query": "^5.36.0",
+    "@tensorflow/tfjs": "^4.20.0",
     "@types/lodash": "^4.17.1",
     "antd": "^5.17.0",
     "antd-input-otp": "^2.1.0",

@@ -54,15 +54,14 @@ const ExamListPage = ({ isPrivate }: any) => {
   const router = useRouter();
 
   // xử lý khi hover vào row
-  const [hoveredRow, setHoveredRow] = useState("");
   const [filterParams, setFilterParams] = useState<{
     topicId: number;
     nameSearch: string;
-    private: boolean;
+    isPrivate: boolean;
   }>({
     topicId: 0,
     nameSearch: "",
-    private: false,
+    isPrivate: isPrivate,
   });
 
   // API lấy danh sách  bài kiểm tra
@@ -106,27 +105,11 @@ const ExamListPage = ({ isPrivate }: any) => {
         </div>
       ),
     },
-
     {
       title: "Số câu hỏi",
       dataIndex: "numberOfQuestions",
       key: "numberOfQuestions",
     },
-    // {
-    //   title: "Trạng thái",
-    //   dataIndex: "status",
-    //   key: "status",
-    //   render: (status: number) =>
-    //     status === 1 ? (
-    //       <div className="caption-12-medium flex w-[120px] items-center justify-center rounded bg-green-100 px-3 py-2 text-green-700">
-    //         Đã hoàn thành
-    //       </div>
-    //     ) : (
-    //       <div className="caption-12-medium flex w-[128px] items-center justify-center rounded bg-neutral-200 px-3 py-2 text-neutral-700">
-    //         Chưa hoàn thành
-    //       </div>
-    //     ),
-    // },
     {
       fixed: "right",
       dataIndex: "examId",
@@ -166,14 +149,6 @@ const ExamListPage = ({ isPrivate }: any) => {
     },
   ];
 
-  // hover row
-  const handleRowHover = (record: any) => {
-    setHoveredRow(record.key);
-  };
-  const handleRowLeave = () => {
-    setHoveredRow("");
-  };
-
   return (
     <div className="container mx-auto py-4">
       <h1 className="mb-4 text-2xl font-bold">Danh sách bài kiểm tra</h1>
@@ -193,7 +168,9 @@ const ExamListPage = ({ isPrivate }: any) => {
         <Button
           type="primary"
           onClick={() =>
-            router.push("/learning-management/check-list/create-edit")
+            router.push(
+              `/learning-management/check-list/create-edit/?isPrivate=${isPrivate}`,
+            )
           }
         >
           Thêm mới
@@ -203,10 +180,6 @@ const ExamListPage = ({ isPrivate }: any) => {
         dataSource={content}
         columns={columns as any}
         scroll={{ x: 1100, y: 440 }}
-        onRow={(record) => ({
-          onMouseEnter: () => handleRowHover(record),
-          onMouseLeave: () => handleRowLeave(),
-        })}
         loading={isFetching}
         pagination={{ ...pagination, showSizeChanger: false }}
         rowKey="examId"

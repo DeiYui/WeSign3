@@ -39,8 +39,14 @@ class Questions extends Base {
   };
 
   // Xoá câu bỏi
-  deleteQuestion = async (id?: any) => {
-    const res = await this.apiDelete(`/questions/${id}`);
+  deleteQuestion = async (body?: any) => {
+    const res = await this.apiDeleteBody(`/questions/delete-list`, body);
+    return res.data;
+  };
+
+  // Dánh sách câu hỏi theo bài kiểm tra
+  getLstQuestionExam = async (id?: any) => {
+    const res = await this.apiGet(`/questions/question-of-exam/${id}`);
     return res.data;
   };
 }

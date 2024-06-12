@@ -58,6 +58,7 @@ const CallModal: React.FC<CallModalProps> = ({
   const [showModalConfirm, setShowModalConfirm] = useState(
     call.isReceivingCall && !callAccepted,
   );
+
   useEffect(() => {
     setShowModalConfirm(call.isReceivingCall && !callAccepted);
   }, [call, callAccepted]);
@@ -103,12 +104,12 @@ const CallModal: React.FC<CallModalProps> = ({
                   <Avatar
                     alt=""
                     icon={<UserOutlined />}
-                    src={name.remoteUser.avatarLocation}
+                    src={name.myUser.avatarLocation}
                     style={{ borderRadius: "100%", width: 120, height: 120 }}
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <div className="text-xl">{name.remoteUser.name}</div>
+                  <div className="text-xl">{name.myUser.name}</div>
                   <div className="text-sm text-neutral-400">Đang gọi ...</div>
                 </div>
               </div>
@@ -122,6 +123,7 @@ const CallModal: React.FC<CallModalProps> = ({
             style={{ height: "200px", display: isVideoOff ? "none" : "block" }}
             playsInline
           />
+
           {callAccepted && !callEnded && (
             <CustomVideo
               className="bg-black"

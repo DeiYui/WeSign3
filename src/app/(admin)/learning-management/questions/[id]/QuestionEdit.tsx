@@ -50,30 +50,13 @@ const initAnswerValue = {
   correct: false,
 };
 
-// Convert form data to API request format
-function convertQuestions(input: any) {
-  return input.questions.map((question: any) => ({
-    content: question.content,
-    explanation: "",
-    imageLocation: isImage(question.file) ? question.file : "",
-    videoLocation: !isImage(question.file) ? question.file : "",
-    topicId: input.topicId,
-    answerReqs: question.answerResList.map((answer: any) => ({
-      content: answer.content,
-      imageLocation: "",
-      videoLocation: "",
-      correct: answer.correct,
-    })),
-  }));
-}
-
 const convertDataToFormValues = (data: any) => {
   const questions = {
     typeFile: "existing",
-    type:
+    questionType:
       data.answerResList?.filter((item: any) => item.correct)?.length > 1
-        ? "multiple"
-        : "single",
+        ? "MULTIPLE_ANSWERS"
+        : "ONE_ANSWER",
     ...data,
   };
   return questions;
@@ -89,14 +72,15 @@ const QuestionEdit: React.FC = () => {
   const topicId = useWatch("topicId", form);
   const imageLocation = useWatch("imageLocation", form);
   const videoLocation = useWatch("videoLocation", form);
-  const typeFile = useWatch("typeFile", form);
-  const typeAnswer = useWatch("type", form);
+  const typeFile = useWatch("fileType", form);
+  const typeAnswer = useWatch("questionType", form);
   console.log("typeAnswer", typeAnswer);
 
   useQuery({
     queryKey: ["getDetailQuestion", id],
     queryFn: async () => {
       if (id) {
+        debugger;
         const res = await Questions.getDetailQuestion(Number(id));
         const formValues = convertDataToFormValues(res?.data);
         form.setFieldsValue(formValues);
@@ -136,9 +120,10 @@ const QuestionEdit: React.FC = () => {
         <Form
           form={form}
           onFinish={(value) => {
-            // const newValue = convertQuestions(value);
-            console.log("newValue: ", value);
-            mutationEdit.mutate(value);
+            mutationEdit.mutate({
+              ...value,
+              updateAnswerReqs: value?.answerResList,
+            });
           }}
           layout="vertical"
         >
@@ -161,7 +146,7 @@ const QuestionEdit: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            name="type"
+            name="questionType"
             label="Kiểu câu hỏi:"
             required
             rules={[validateRequireInput("Vui lòng chọn loại đáp án")]}
@@ -170,16 +155,16 @@ const QuestionEdit: React.FC = () => {
             <Select
               placeholder="Chọn loại đáp án"
               options={[
-                { label: "Một đáp án", value: "single" },
-                { label: "Nhiều đáp án", value: "multiple" },
+                { label: "Một đáp án", value: "ONE_ANSWER" },
+                { label: "Nhiều đáp án", value: "MULTIPLE_ANSWERS" },
               ]}
             />
           </Form.Item>
           <Form.Item
-            name="typeFile"
+            name="fileType"
             label="Lựa chọn file (hình ảnh, video):"
             className="mb-4"
-            initialValue="existing"
+            initialValue="NOT_EXISTED"
           >
             <Select
               style={{ width: "100%" }}
@@ -191,14 +176,16 @@ const QuestionEdit: React.FC = () => {
                 });
               }}
             >
-              <Select.Option value="upload">Tải lên file mới</Select.Option>
-              <Select.Option value="existing">
+              <Select.Option value="NOT_EXISTED">
+                Tải lên file mới
+              </Select.Option>
+              <Select.Option value="EXISTED">
                 Chọn từ dữ liệu có sẵn
               </Select.Option>
             </Select>
           </Form.Item>
           <div className="mt-4">
-            {typeFile === "existing" && (
+            {typeFile === "EXISTED" && (
               <QuestionModal
                 openChooseVideo={openChooseVideo}
                 setOpenChooseVideo={setOpenChooseVideo}
@@ -225,7 +212,7 @@ const QuestionEdit: React.FC = () => {
                 </div>
               </QuestionModal>
             )}
-            {typeFile === "upload" && <MediaUpload />}
+            {typeFile === "NOT_EXISTED" && <MediaUpload />}
           </div>
           <Form.Item name="imageLocation" hidden={!imageLocation}>
             {imageLocation && (

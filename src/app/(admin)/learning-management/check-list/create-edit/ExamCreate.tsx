@@ -1,7 +1,10 @@
 "use client";
 import { MediaUpload } from "@/components/UI/Upload/UploadFile";
 import Learning from "@/model/Learning";
-import { validateRequire } from "@/utils/validation/validtor";
+import {
+  validateRequire,
+  validateRequireInput,
+} from "@/utils/validation/validtor";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -24,7 +27,7 @@ import QuestionModal from "./ModalSelectFile";
 import ModalChooseQuestions from "./ModalChooseQuestions";
 import Questions from "@/model/Questions";
 import Exam from "@/model/Exam";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Answer {
   id: number;
@@ -48,6 +51,8 @@ const CreateAndEditExamPage: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const questionsPerPage = 10;
+  const searchParams = useSearchParams();
+  const isPrivate = searchParams.get("isPrivate");
 
   // list câu hỏi
   const lstQuestions = Form.useWatch("lstQuestions", form);
@@ -68,9 +73,10 @@ const CreateAndEditExamPage: React.FC = () => {
 
   // API lấy danh sách  topics
   const { data: allTopics } = useQuery({
-    queryKey: ["getAllTopics"],
+    queryKey: ["getAllTopics", isPrivate],
     queryFn: async () => {
-      const res = await Learning.getAllTopics();
+      debugger;
+      const res = await Learning.getAllTopics({ isPrivate: isPrivate });
       return res?.data?.map((item: { topicId: any; content: any }) => ({
         id: item.topicId,
         value: item.topicId,
@@ -78,6 +84,7 @@ const CreateAndEditExamPage: React.FC = () => {
         text: item.content,
       }));
     },
+    enabled: !!isPrivate,
   });
 
   const params = useMemo(() => {
@@ -104,7 +111,12 @@ const CreateAndEditExamPage: React.FC = () => {
     onSuccess: async () => {
       // Thông báo thành công
       message.success("Thêm bài kiểm tra thành công thành công");
-      router.push("/learning-management/check-list");
+
+      router.push(
+        isPrivate === "true"
+          ? "/learning-management/check-list/private"
+          : "/learning-management/check-list/public",
+      );
     },
     onError: () => {
       message.error("Thêm bài kiểm tra thất bại");
@@ -127,7 +139,7 @@ const CreateAndEditExamPage: React.FC = () => {
               name: value.name,
               questionIds: value.questionIds,
               topicId: value.topicId,
-              private: true,
+              private: isPrivate,
             };
             addExam.mutate(req);
           }}
@@ -136,6 +148,7 @@ const CreateAndEditExamPage: React.FC = () => {
           <Form.Item
             label="Chủ đề"
             name="topicId"
+            className="mb-2"
             required
             rules={[validateRequire("Chủ đề không được bỏ trống")]}
           >
@@ -148,10 +161,22 @@ const CreateAndEditExamPage: React.FC = () => {
               }}
             />
           </Form.Item>
+          <Form.Item
+            label="Tên bài kiểm tra"
+            name="name"
+            required
+            className="mb-2"
+            rules={[
+              validateRequireInput("Tên bài kiểm tra không được bỏ trống"),
+            ]}
+          >
+            <Input placeholder="Nhập tên bài kiểm tra" />
+          </Form.Item>
 
           <Form.Item
             label="Số câu hỏi"
             name="numQuestions"
+            className="mb-2"
             required
             rules={[validateRequire("Số lượng câu hỏi không được bỏ trống")]}
           >
@@ -208,7 +233,13 @@ const CreateAndEditExamPage: React.FC = () => {
 
           <div className="mt-3 flex items-center justify-center gap-4">
             <Button
-              onClick={() => router.push("/learning-management/check-list")}
+              onClick={() =>
+                router.push(
+                  isPrivate === "true"
+                    ? "/learning-management/check-list/private"
+                    : "/learning-management/check-list/public",
+                )
+              }
             >
               Huỷ
             </Button>

@@ -19,38 +19,11 @@ import { useSelector } from "react-redux";
 import styled from "styled-components";
 
 interface Exam {
-  key: string;
+  examId: number;
   name: string;
   questionCount: number;
   status: number;
 }
-
-interface FilterParams {
-  page: number;
-  size: number;
-  topicId: number;
-  status: number;
-}
-
-const exams: Exam[] = [
-  { key: "1", name: "Bài kiểm tra 1", questionCount: 10, status: 1 },
-  { key: "2", name: "Bài kiểm tra 2", questionCount: 15, status: 0 },
-];
-
-const optionStatus = [
-  {
-    label: "Đã hoàn thành",
-    value: 1,
-  },
-  {
-    label: "Chưa hoàn thành",
-    value: 0,
-  },
-  {
-    label: "Tất cả",
-    value: -1,
-  },
-];
 
 const ExamListPage: React.FC = () => {
   const router = useRouter();
@@ -59,11 +32,9 @@ const ExamListPage: React.FC = () => {
   const [filterParams, setFilterParams] = useState<{
     topicId: number;
     nameSearch: string;
-    private: boolean;
   }>({
     topicId: 0,
     nameSearch: "",
-    private: false,
   });
 
   // API lấy danh sách  bài kiểm tra
@@ -75,12 +46,12 @@ const ExamListPage: React.FC = () => {
     },
   );
 
-  // API lấy danh sách  bài kiểm tra
+  // API lấy danh sách  bài kiểm tra của user
   const { data: allExamUser, refetch } = useQuery({
     queryKey: ["getLstExamUser"],
     queryFn: async () => {
       const res = await Exam.getLstExamUser();
-      return res?.data;
+      return res?.data?.content;
     },
   });
 
@@ -157,7 +128,7 @@ const ExamListPage: React.FC = () => {
       dataIndex: "name",
       key: "name",
       render: (text: string, record: Exam) => (
-        <div onClick={() => router.push(`/exam/${record.key}`)}>
+        <div onClick={() => router.push(`/exam/${record.examId}`)}>
           <a className="text-blue-500">{text}</a>
         </div>
       ),

@@ -71,6 +71,10 @@ const QuestionList = () => {
     rowId: "",
   });
 
+  // lưu những row được chọn
+  const [selectedRowId, setSelectedRowId] = useState<string[]>([]);
+  const [selectRecords, setSelectRecords] = useState<any[]>([]);
+
   // Lưu rowKey của những row đang được mở
   const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([]);
 
@@ -210,7 +214,7 @@ const QuestionList = () => {
             label: (
               <div
                 className="text-red600 flex items-center gap-x-3 py-[3px] text-red"
-                onClick={() => setModalConfirm({ open: true, rowId: value })}
+                onClick={() => setModalConfirm({ open: true, rowId: [value] })}
               >
                 <DeleteOutlined />
                 Xóa
@@ -240,6 +244,16 @@ const QuestionList = () => {
     }
   };
 
+  const rowSelection = {
+    fixed: true,
+    columnWidth: 40,
+    selectedRowKeys: selectedRowId,
+    onChange: (value: any, record: any) => {
+      setSelectedRowId(value);
+      setSelectRecords(record);
+    },
+  };
+
   return (
     <div className="w-full p-4">
       <h1 className="mb-4 text-2xl font-bold">Danh sách câu hỏi</h1>
@@ -266,9 +280,25 @@ const QuestionList = () => {
           Thêm mới
         </Button>
       </div>
+
+      {/* Xóa nhiều */}
+      {selectedRowId?.length > 0 && (
+        <div className="mb-1 flex items-center gap-x-3 rounded-lg bg-neutral-200 px-4 py-1">
+          <div
+            onClick={() =>
+              setModalConfirm({ open: true, rowId: selectedRowId })
+            }
+            aria-hidden="true"
+            className="body-14-medium flex cursor-pointer select-none items-center gap-x-2 p-1 text-primary-600"
+          >
+            <DeleteOutlined color={colors.primary600} />
+            Xoá câu hỏi
+          </div>
+        </div>
+      )}
       <CustomTable
         className="mt-4"
-        // rowSelection={rowSelection}
+        rowSelection={rowSelection}
         rowKey={(record: any) => record.questionId}
         columns={columns}
         dataSource={allQuestion}
@@ -367,7 +397,7 @@ const QuestionList = () => {
         content="Hành động này sẽ xóa câu hỏi vĩnh viễn"
         confirmButtonText="Xác nhận"
         onClick={() => {
-          mutationDel.mutate(modalConfirm.rowId);
+          mutationDel.mutate({ questionIds: modalConfirm.rowId });
         }}
         onCloseModal={() => setModalConfirm({ ...modalConfirm, open: false })}
       />

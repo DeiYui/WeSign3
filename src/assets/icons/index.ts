@@ -23,3 +23,4 @@ export * from "./RoomIcon";
 export * from "./RequestIcon";
 export * from "./DotIcon";
 export * from "./CaretRightIcon";
+export * from "./PracticeIcon";
