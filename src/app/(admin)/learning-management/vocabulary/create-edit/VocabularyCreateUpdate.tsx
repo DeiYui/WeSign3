@@ -100,7 +100,6 @@ const VocabularyCreateUpdate: React.FC = () => {
   const { data: allTopics } = useQuery({
     queryKey: ["getAllTopics", isPrivate],
     queryFn: async () => {
-      debugger;
       const res = await Learning.getAllTopics({ isPrivate: isPrivate });
       return res?.data?.map((item: { topicId: any; content: any }) => ({
         id: item.topicId,

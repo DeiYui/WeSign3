@@ -79,7 +79,6 @@ const QuestionEdit: React.FC = () => {
     queryKey: ["getDetailQuestion", id],
     queryFn: async () => {
       if (id) {
-        debugger;
         const res = await Questions.getDetailQuestion(Number(id));
         const formValues = convertDataToFormValues(res?.data);
         form.setFieldsValue(formValues);
@@ -147,7 +146,7 @@ const QuestionEdit: React.FC = () => {
             label="Kiểu câu hỏi:"
             required
             rules={[validateRequireInput("Vui lòng chọn loại đáp án")]}
-            initialValue={"single"}
+            initialValue={"ONE_ANSWER"}
           >
             <Select
               placeholder="Chọn loại đáp án"
@@ -236,7 +235,7 @@ const QuestionEdit: React.FC = () => {
           <Form.List name="answerResList">
             {(fields, { add, remove }) => (
               <div className="mt-4">
-                {typeAnswer === "single" ? (
+                {typeAnswer === "ONE_ANSWER" ? (
                   <div className="w-full">
                     {fields.map((field, answerIndex) => (
                       <div

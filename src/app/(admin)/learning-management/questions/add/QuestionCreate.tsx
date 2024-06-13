@@ -62,7 +62,7 @@ function convertQuestions(input: any) {
     videoLocation: !isImage(question.file) ? question.file : "",
     topicId: input.topicId,
     questionType: question.type,
-    fileType: input.typeFile,
+    fileType: question.typeFile,
     answerReqs: question.answerReqs.map((answer: any) => ({
       content: answer.content,
       imageLocation: "",
@@ -154,6 +154,7 @@ const QuestionCreate: React.FC = () => {
       <Form
         form={form}
         onFinish={(value) => {
+
           const newValue = convertQuestions(value);
 
           mutationAdd.mutate(newValue);

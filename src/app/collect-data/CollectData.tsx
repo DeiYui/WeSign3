@@ -423,7 +423,6 @@ export default function CollectData() {
 
   const handleDownload = async () => {
     try {
-      debugger;
       setIsLoading(true);
 
       const formData = new FormData();
