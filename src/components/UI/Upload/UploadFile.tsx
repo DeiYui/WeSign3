@@ -24,11 +24,7 @@ const uploadButton = (
 
 const ITEM_DISPLAY = 1;
 
-export const MediaUpload: FC<MediaUploadProps> = ({
-  value,
-  onChange,
-  limit,
-}) => {
+export const MediaUpload: FC<MediaUploadProps> = ({ value, onChange }) => {
   const [mediaList, setMediaList] = useState<any[]>([]);
 
   const mediaType = useMemo(() => {
@@ -62,7 +58,7 @@ export const MediaUpload: FC<MediaUploadProps> = ({
         const formData = new FormData();
         formData.append("file", file);
         UploadModel.uploadFile(formData).then((res) => {
-          if (isFunction(onChange)) onChange([...mediaList, res]);
+          if (isFunction(onChange)) onChange(res);
           else setMediaList([...mediaList, res]);
         });
       }
@@ -79,7 +75,11 @@ export const MediaUpload: FC<MediaUploadProps> = ({
     [onChange, mediaList],
   );
 
-  useEffect(() => setMediaList(value || []), [value]);
+  useEffect(() => {
+    if (value) {
+      setMediaList([value] || []);
+    }
+  }, [value]);
 
   const [preview, setPreview] = useState<{
     open: boolean;
@@ -100,7 +100,7 @@ export const MediaUpload: FC<MediaUploadProps> = ({
     <>
       <div className="flex flex-wrap items-center gap-4">
         {mediaList?.length > 0 ? (
-          mediaList?.slice(0, ITEM_DISPLAY).map((e: any, index: number) => (
+          mediaList?.slice(0, ITEM_DISPLAY)?.map((e: any, index: number) => (
             <div key={index} className="relative ">
               {mediaType ? (
                 <Image

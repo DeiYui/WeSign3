@@ -34,7 +34,7 @@ const PracticeData: React.FC = () => {
       });
 
       const hands = new Hands({
-        locateFile: (file) =>
+        locateFile: (file: any) =>
           `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VERSION}/${file}`,
       });
 

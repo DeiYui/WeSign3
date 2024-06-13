@@ -2,7 +2,7 @@
 import Breadcrumb from "@/components/UI/Breadcrumbs/Breadcrumb";
 import Exam from "@/model/Exam";
 import Questions from "@/model/Questions";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Button,
   Checkbox,
@@ -12,6 +12,7 @@ import {
   Pagination,
   Radio,
   Spin,
+  message,
 } from "antd";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -50,30 +51,16 @@ const ExamDetailPage: React.FC = () => {
     enabled: !!id,
   });
 
+  // Chấm điểm
+  const markExam = useMutation({
+    mutationFn: Exam.markExam,
+    onSuccess: () => {
+      message.success("Chấm điểm thành công");
+    },
+  });
+
   const submitExam = (values: any) => {
-    let calculatedScore = 0;
-
-    lstQuestions.forEach((question: any) => {
-      const userAnswers = values[question.key];
-      const correctAnswers = question.answerResList
-        .filter((answer: any) => answer.correct)
-        .map((answer: any) => answer.content);
-
-      if (Array.isArray(userAnswers)) {
-        if (
-          userAnswers.length === correctAnswers.length &&
-          userAnswers.every((answer: any) => correctAnswers.includes(answer))
-        ) {
-          calculatedScore += 1;
-        }
-      } else {
-        // Handle radio group (single correct answer)
-        if (correctAnswers.includes(userAnswers)) {
-          calculatedScore += 1;
-        }
-      }
-    });
-
+    const calculatedScore = values.answer?.filter((item: any) => item)?.length;
     setScore(calculatedScore);
     setIsModalVisible(true);
   };
@@ -138,16 +125,28 @@ const ExamDetailPage: React.FC = () => {
                       )}
                     </div>
                   )}
+                  <Form.Item name={["answer", index]} hidden />
 
-                  <Form.Item name={q.key}>
+                  <Form.Item name={["answerList", index, "answerId"]}>
                     {q.answerResList?.filter(
                       (item: { correct: boolean }) => item.correct,
                     )?.length > 1 ? (
-                      <Checkbox.Group>
+                      <Checkbox.Group
+                        onChange={(value) => {
+                          const correct = q.answerResList
+                            ?.filter((item: any) =>
+                              value.includes(item.answerId),
+                            )
+                            ?.every(
+                              (item: { correct: boolean }) => item.correct,
+                            );
+                          form.setFieldValue(["answer", index], correct);
+                        }}
+                      >
                         {q.answerResList.map((answer: any) => (
                           <Checkbox
                             key={answer.answerId}
-                            value={answer.content}
+                            value={answer.answerId}
                           >
                             {answer.content}
                           </Checkbox>
@@ -156,7 +155,18 @@ const ExamDetailPage: React.FC = () => {
                     ) : (
                       <Radio.Group>
                         {q.answerResList.map((answer: any) => (
-                          <Radio key={answer.answerId} value={answer.content}>
+                          <Radio
+                            key={answer.answerId}
+                            value={answer.answerId}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                form.setFieldValue(
+                                  ["answer", index],
+                                  answer.correct,
+                                );
+                              }
+                            }}
+                          >
                             {answer.content}
                           </Radio>
                         ))}
@@ -183,7 +193,13 @@ const ExamDetailPage: React.FC = () => {
           <Modal
             title="Kết quả"
             open={isModalVisible}
-            onOk={() => setIsModalVisible(false)}
+            onOk={() => {
+              setIsModalVisible(false);
+              markExam.mutate({
+                examId: Number(id),
+                score: score,
+              });
+            }}
             onCancel={() => setIsModalVisible(false)}
             footer={
               <>
@@ -193,7 +209,9 @@ const ExamDetailPage: React.FC = () => {
               </>
             }
           >
-            <p>Điểm của bạn là: {score}</p>
+            <p>
+              Điểm của bạn là: {score}/${lstQuestions?.length}
+            </p>
           </Modal>
         </div>
       ) : null}

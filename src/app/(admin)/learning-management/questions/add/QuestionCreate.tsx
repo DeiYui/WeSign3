@@ -147,6 +147,8 @@ const QuestionCreate: React.FC = () => {
 
   const lstQuestions = form.getFieldsValue();
 
+  console.log("lstQuestions", lstQuestions);
+
   return (
     <div className="container mx-auto bg-white p-4">
       <h1 className="mb-4 text-2xl font-bold">Thêm câu hỏi</h1>
@@ -222,10 +224,13 @@ const QuestionCreate: React.FC = () => {
                   </Select>
                 </Form.Item>
 
-                <Form.Item name={["questions", index, "file"]} className="mb-2">
-                  <div className="mt-4">
-                    {lstQuestions.questions?.length && (
-                      <>
+                <div className="mt-4">
+                  {lstQuestions.questions?.length && (
+                    <>
+                      <Form.Item
+                        name={["questions", index, "file"]}
+                        className="mb-2"
+                      >
                         {lstQuestions?.questions[index]?.typeFile ===
                           "EXISTED" && (
                           <QuestionModal
@@ -277,12 +282,18 @@ const QuestionCreate: React.FC = () => {
                             </div>
                           </QuestionModal>
                         )}
+                      </Form.Item>
+
+                      <Form.Item
+                        name={["questions", index, "file"]}
+                        className="mb-2"
+                      >
                         {lstQuestions?.questions[index]?.typeFile ===
                           "NOT_EXISTED" && <MediaUpload />}
-                      </>
-                    )}
-                  </div>
-                </Form.Item>
+                      </Form.Item>
+                    </>
+                  )}
+                </div>
 
                 <Form.Item
                   name={["questions", index, "type"]}

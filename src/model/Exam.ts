@@ -30,6 +30,12 @@ class Exam extends Base {
     const res = await this.apiGet(`/exams/${id}`);
     return res.data;
   };
+
+  // Chấm điểm bài kiểm tra
+  markExam = async (body: any) => {
+    const res = await this.apiPost(`/exams/exams-scoring`, body);
+    return res.data;
+  };
 }
 
 export default new Exam("learning-service");
