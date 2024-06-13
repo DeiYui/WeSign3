@@ -96,8 +96,6 @@ const VocabularyCreateUpdate: React.FC = () => {
     form.resetFields();
   }, [tabKey]);
 
-  console.log("isPrivate", isPrivate);
-
   // API lấy danh sách  topics
   const { data: allTopics } = useQuery({
     queryKey: ["getAllTopics", isPrivate],
@@ -274,8 +272,6 @@ const VocabularyCreateUpdate: React.FC = () => {
       message.error("Lỗi tải file");
     }
   };
-
-  console.log("vocabularyType", vocabularyType);
 
   return (
     <div className="w-full p-4">

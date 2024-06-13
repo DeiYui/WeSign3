@@ -88,7 +88,7 @@ const PracticeData: React.FC = () => {
           const classification = results.multiHandedness[index];
           const isRightHand = classification.label === "Right";
           const landmarks = results.multiHandLandmarks[index];
-          console.log("landmarks", results.multiHandLandmarks);
+
           drawConnectors(contextRef.current, landmarks, HAND_CONNECTIONS, {
             color: isRightHand ? "#00FF00" : "#FF0000",
           });

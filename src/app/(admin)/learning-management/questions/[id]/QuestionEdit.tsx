@@ -74,7 +74,6 @@ const QuestionEdit: React.FC = () => {
   const videoLocation = useWatch("videoLocation", form);
   const typeFile = useWatch("fileType", form);
   const typeAnswer = useWatch("questionType", form);
-  console.log("typeAnswer", typeAnswer);
 
   useQuery({
     queryKey: ["getDetailQuestion", id],
@@ -89,8 +88,6 @@ const QuestionEdit: React.FC = () => {
     },
     enabled: !!id,
   });
-
-  console.log("checksss", form.getFieldsValue());
 
   const { data: allTopics, refetch } = useQuery({
     queryKey: ["getAllTopics"],

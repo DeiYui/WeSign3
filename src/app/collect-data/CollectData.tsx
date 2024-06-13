@@ -469,7 +469,6 @@ export default function CollectData() {
     try {
       const data = { videoUrl: link };
       const response = await UploadModel.checkAI(data);
-      console.log("response", response);
 
       const body = {
         dataLocation: link,

@@ -35,8 +35,6 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
   const [topicPrivates, setTopicPrivates] = useState<Topic[]>([]);
 
-  console.log("filteredTopics", filteredTopics);
-
   // API lấy danh sách topics
   const { data: allTopics, isFetching } = useQuery({
     queryKey: ["getAllTopics"],

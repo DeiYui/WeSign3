@@ -126,10 +126,10 @@ const CallModal: React.FC<CallModalProps> = ({
 
           {callAccepted && !callEnded && (
             <CustomVideo
+              ref={userVideoRef}
               className="bg-black"
               autoPlay
               playsInline
-              ref={userVideoRef}
             />
           )}
         </div>

@@ -38,7 +38,7 @@ const ExamDetailPage: React.FC = () => {
       const res = await Exam.detailExamsForUser(Number(id));
       return res?.data;
     },
-    enable: !!id,
+    enabled: !!id,
   });
 
   const { data: lstQuestions, isFetching: isFetchingQuestions } = useQuery({
@@ -51,7 +51,6 @@ const ExamDetailPage: React.FC = () => {
   });
 
   const submitExam = (values: any) => {
-    debugger;
     let calculatedScore = 0;
 
     lstQuestions.forEach((question: any) => {
