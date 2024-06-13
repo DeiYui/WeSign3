@@ -33,7 +33,19 @@ class Exam extends Base {
 
   // Chấm điểm bài kiểm tra
   markExam = async (body: any) => {
-    const res = await this.apiPost(`/exams/exams-scoring`, body);
+    const res = await this.apiPost(`/exams/exam-scoring`, body);
+    return res.data;
+  };
+
+  // Xoá bài kiểm tra
+  deleteExam = async (id: number) => {
+    const res = await this.apiDelete(`/exams/${id}`);
+    return res.data;
+  };
+
+  // Xoá bài kiểm tra cho user
+  deleteExamUser = async (id: number) => {
+    const res = await this.apiDelete(`/exams/delete-exam-of-user/${id}`);
     return res.data;
   };
 }

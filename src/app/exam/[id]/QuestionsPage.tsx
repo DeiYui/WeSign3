@@ -2,6 +2,7 @@
 import Breadcrumb from "@/components/UI/Breadcrumbs/Breadcrumb";
 import Exam from "@/model/Exam";
 import Questions from "@/model/Questions";
+import { FrownOutlined, MehOutlined, SmileOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Button,
@@ -22,7 +23,8 @@ const PAGE_SIZE = 20;
 const ExamDetailPage: React.FC = () => {
   const router = useRouter();
   const { id } = useParams();
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isResultModalVisible, setIsResultModalVisible] = useState(false);
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
   const [score, setScore] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [isDirty, setIsDirty] = useState<boolean>(false);
@@ -54,15 +56,37 @@ const ExamDetailPage: React.FC = () => {
   // Chấm điểm
   const markExam = useMutation({
     mutationFn: Exam.markExam,
-    onSuccess: () => {
-      message.success("Chấm điểm thành công");
-    },
+    onSuccess: () => {},
   });
 
   const submitExam = (values: any) => {
+    const unansweredQuestions = lstQuestions.filter(
+      (q: any, index: number) =>
+        !values.answer || values.answer[index] === undefined,
+    );
+
+    if (unansweredQuestions.length > 0) {
+      setIsConfirmModalVisible(true);
+    } else {
+      calculateScore(values);
+    }
+  };
+
+  const calculateScore = (values: any) => {
     const calculatedScore = values.answer?.filter((item: any) => item)?.length;
-    setScore(calculatedScore);
-    setIsModalVisible(true);
+    markExam.mutate({
+      examId: Number(id),
+      score: (calculatedScore / lstQuestions?.length) * 10,
+    });
+    setScore((calculatedScore / lstQuestions?.length) * 10);
+    setIsResultModalVisible(true);
+  };
+
+  const handleConfirmSubmit = () => {
+    form.validateFields().then((values) => {
+      calculateScore(values);
+    });
+    setIsConfirmModalVisible(false);
   };
 
   const handlePageChange = (page: number) => {
@@ -74,6 +98,17 @@ const ExamDetailPage: React.FC = () => {
     startIndex,
     startIndex + PAGE_SIZE,
   );
+
+  // Hiển thị icon biểu cảm
+  const calculateRating = () => {
+    if (score >= 70) {
+      return <SmileOutlined style={{ fontSize: "140px", color: "#53d100" }} />;
+    } else if (score >= 40 && score < 70) {
+      return <MehOutlined style={{ fontSize: "140px", color: "orange" }} />;
+    } else {
+      return <FrownOutlined style={{ fontSize: "140px", color: "red" }} />;
+    }
+  };
 
   return (
     <Spin spinning={isFetching || isFetchingQuestions}>
@@ -192,26 +227,48 @@ const ExamDetailPage: React.FC = () => {
           </div>
           <Modal
             title="Kết quả"
-            open={isModalVisible}
+            open={isResultModalVisible}
             onOk={() => {
-              setIsModalVisible(false);
-              markExam.mutate({
-                examId: Number(id),
-                score: score,
-              });
+              setIsResultModalVisible(false);
             }}
-            onCancel={() => setIsModalVisible(false)}
+            maskClosable={false}
+            onCancel={() => setIsResultModalVisible(false)}
             footer={
               <>
-                <Button type="primary" onClick={() => setIsModalVisible(false)}>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setIsResultModalVisible(false);
+                    router.back();
+                  }}
+                >
                   Đóng
                 </Button>
               </>
             }
           >
-            <p>
-              Điểm của bạn là: {score}/${lstQuestions?.length}
-            </p>
+            <div className="flex w-full justify-center py-4">
+              {calculateRating()}
+            </div>
+            <p className="text-xl font-bold">Điểm của bạn là: {score}/10</p>
+          </Modal>
+          <Modal
+            title="Thông báo"
+            open={isConfirmModalVisible}
+            onOk={handleConfirmSubmit}
+            onCancel={() => setIsConfirmModalVisible(false)}
+            footer={
+              <>
+                <Button onClick={() => setIsConfirmModalVisible(false)}>
+                  Tiếp tục
+                </Button>
+                <Button type="primary" onClick={handleConfirmSubmit}>
+                  Nộp bài
+                </Button>
+              </>
+            }
+          >
+            <p>Bạn chưa hoàn thành bài kiểm tra, bạn có muốn tiếp tục?</p>
           </Modal>
         </div>
       ) : null}

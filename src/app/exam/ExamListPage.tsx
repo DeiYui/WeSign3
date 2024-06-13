@@ -67,6 +67,18 @@ const ExamListPage: React.FC = () => {
     },
   });
 
+  // Xoá bài kiểm tra user
+  const mutationDeleteUser = useMutation({
+    mutationFn: Exam.deleteExamUser,
+    onSuccess: () => {
+      message.success("Xoá bài kiểm tra thành công");
+      refetch();
+    },
+    onError: () => {
+      message.error("Xoá bài kiểm tra thất bại");
+    },
+  });
+
   // API lấy danh sách  topics
   const { data: allTopics } = useQuery({
     queryKey: ["getAllTopics"],
@@ -100,23 +112,28 @@ const ExamListPage: React.FC = () => {
       dataIndex: "numberOfQuestions",
       key: "numberOfQuestions",
     },
-
     {
       dataIndex: "examId",
       width: 120,
       align: "center",
-      render: (value: string, record: any) => {
+      render: (value: number, record: any) => {
         return (
-          <Button
-            onClick={() => {
-              mutationAddUser.mutate({
-                examIds: [value],
-                userId: user.userId,
-              });
-            }}
-          >
-            Thêm
-          </Button>
+          <>
+            {allExamUser?.filter(
+              (item: { examId: number }) => item.examId === value,
+            )?.length ? null : (
+              <Button
+                onClick={() => {
+                  mutationAddUser.mutate({
+                    examIds: [value],
+                    userId: user.userId,
+                  });
+                }}
+              >
+                Thêm
+              </Button>
+            )}
+          </>
         );
       },
     },
@@ -127,21 +144,34 @@ const ExamListPage: React.FC = () => {
       title: "Tên bài kiểm tra",
       dataIndex: "name",
       key: "name",
-      render: (text: string, record: Exam) => (
-        <div onClick={() => router.push(`/exam/${record.examId}`)}>
+      render: (text: string, record: any) => (
+        <div
+          onClick={() =>
+            !record?.finish && router.push(`/exam/${record?.examId}`)
+          }
+        >
           <a className="text-blue-500">{text}</a>
         </div>
       ),
+      width: 150,
     },
     {
       title: "Số câu hỏi",
       dataIndex: "numberOfQuestions",
       key: "numberOfQuestions",
+      width: 100,
+    },
+    {
+      title: "Điểm số (Thang điểm 10 )",
+      dataIndex: "score",
+      key: "score",
+      width: 100,
+      render: (value: number) => <div className="font-bold">{value}</div>,
     },
     {
       title: "Trạng thái",
-      dataIndex: "finnish",
-      key: "finnish",
+      dataIndex: "finish",
+      key: "finish",
       render: (status: boolean) =>
         status ? (
           <div className="caption-12-medium flex w-[120px] items-center justify-center rounded bg-green-100 px-4 py-2 text-green-700">
@@ -152,6 +182,39 @@ const ExamListPage: React.FC = () => {
             Chưa hoàn thành
           </div>
         ),
+      width: 100,
+    },
+    {
+      dataIndex: "examId",
+      width: 40,
+      align: "center",
+      render: (value: number, record: any) => (
+        <div className="flex items-center gap-4">
+          {record?.finish ? (
+            <Button onClick={() => router.push(`/exam/${record?.examId}`)}>
+              Làm lại
+            </Button>
+          ) : null}
+        </div>
+      ),
+    },
+    {
+      fixed: "right",
+      dataIndex: "examId",
+      width: 40,
+      align: "center",
+      render: (value: number, record: any) => (
+        <div
+          className="flex  w-5 items-center justify-center hover:cursor-pointer"
+          onClick={() => {
+            mutationDeleteUser.mutate(value);
+          }}
+        >
+          <div>
+            <DeleteOutlined style={{ color: colors.red700, fontSize: 24 }} />
+          </div>
+        </div>
+      ),
     },
   ];
 

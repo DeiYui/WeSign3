@@ -55,7 +55,6 @@ const initAnswerValue = {
 
 // Convert form data to API request format
 function convertQuestions(input: any) {
-  debugger;
   return input.questions.map((question: any) => ({
     content: question.content,
     explanation: "",
@@ -210,6 +209,8 @@ const QuestionCreate: React.FC = () => {
                   name={["questions", index, "typeFile"]}
                   label="Lựa chọn file (hình ảnh, video):"
                   className="mb-0"
+                  required
+                  rules={[validateRequire("Không được bỏ trống trường này")]}
                 >
                   <Select
                     style={{ width: "100%" }}
@@ -230,6 +231,10 @@ const QuestionCreate: React.FC = () => {
                       <Form.Item
                         name={["questions", index, "file"]}
                         className="mb-2"
+                        required
+                        rules={[
+                          validateRequire("Không được bỏ trống trường này"),
+                        ]}
                       >
                         {lstQuestions?.questions[index]?.typeFile ===
                           "EXISTED" && (
@@ -287,6 +292,10 @@ const QuestionCreate: React.FC = () => {
                       <Form.Item
                         name={["questions", index, "file"]}
                         className="mb-2"
+                        required
+                        rules={[
+                          validateRequire("Không được bỏ trống trường này"),
+                        ]}
                       >
                         {lstQuestions?.questions[index]?.typeFile ===
                           "NOT_EXISTED" && <MediaUpload />}
@@ -373,7 +382,7 @@ const QuestionCreate: React.FC = () => {
                           </Button>
                         </Radio.Group>
                       ) : (
-                        <Checkbox.Group className="w-full">
+                        <Checkbox.Group className="w-full" defaultValue={[0]}>
                           {fields.map((field, answerIndex) => (
                             <div
                               key={field.key}
@@ -386,7 +395,7 @@ const QuestionCreate: React.FC = () => {
                                   className="mb-0 ml-2 w-full"
                                   valuePropName="checked"
                                 >
-                                  <Checkbox />
+                                  <Checkbox value={answerIndex} />
                                 </Form.Item>
                                 <Form.Item
                                   {...field}

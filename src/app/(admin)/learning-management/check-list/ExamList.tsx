@@ -10,8 +10,8 @@ import {
   MenuFoldOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
-import { Button, Dropdown, Input, Select, Table } from "antd";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Button, Dropdown, Input, Select, Table, message } from "antd";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import styled from "styled-components";
@@ -65,7 +65,7 @@ const ExamListPage = ({ isPrivate }: any) => {
   });
 
   // API lấy danh sách  bài kiểm tra
-  const { page, pageSize, content, isFetching, pagination } = usePage(
+  const { page, pageSize, content, isFetching, pagination, refetch } = usePage(
     ["getLstExam", filterParams],
     Exam.getLstExam,
     {
@@ -84,6 +84,18 @@ const ExamListPage = ({ isPrivate }: any) => {
         label: item.content,
         text: item.content,
       }));
+    },
+  });
+
+  // Xoá bài kiểm tra
+  const mutationDeleteUser = useMutation({
+    mutationFn: Exam.deleteExam,
+    onSuccess: () => {
+      message.success("Xoá bài kiểm tra thành công");
+      refetch();
+    },
+    onError: () => {
+      message.error("Xoá bài kiểm tra thất bại");
     },
   });
 
@@ -115,7 +127,7 @@ const ExamListPage = ({ isPrivate }: any) => {
       dataIndex: "examId",
       width: "40px",
       align: "center",
-      render: (_: string, record: any) => {
+      render: (value: number, record: any) => {
         const items = [
           {
             key: "1",
@@ -129,8 +141,11 @@ const ExamListPage = ({ isPrivate }: any) => {
           {
             key: "2",
             label: (
-              <div className="text-red600 flex items-center gap-x-3 py-[3px]">
-                <DeleteOutlined color={colors.red600} />
+              <div
+                className="text-red600 flex items-center gap-x-3 py-[3px] text-red"
+                onClick={() => mutationDeleteUser.mutate(value)}
+              >
+                <DeleteOutlined style={{ color: colors.red700 }} />
                 Xóa
               </div>
             ),
