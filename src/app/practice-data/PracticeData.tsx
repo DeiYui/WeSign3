@@ -18,46 +18,61 @@ const PracticeData: React.FC = () => {
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => {
+    let stream: MediaStream | null = null;
+
     if (!inputVideoReady) {
       return;
     }
-    if (inputVideoRef.current && canvasRef.current) {
-      contextRef.current = canvasRef.current.getContext("2d");
-      const constraints = {
-        video: { width: { min: 1280 }, height: { min: 720 } },
-      };
-      navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+
+    const setupStream = async () => {
+      if (inputVideoRef.current && canvasRef.current) {
+        contextRef.current = canvasRef.current.getContext("2d");
+        const constraints = {
+          video: { width: { min: 1280 }, height: { min: 720 } },
+        };
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
         if (inputVideoRef.current) {
           inputVideoRef.current.srcObject = stream;
         }
         sendToMediaPipe();
-      });
+      }
+    };
 
-      const hands = new Hands({
-        locateFile: (file: any) =>
-          `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VERSION}/${file}`,
-      });
+    const hands = new Hands({
+      locateFile: (file: any) =>
+        `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VERSION}/${file}`,
+    });
 
-      hands.setOptions({
-        maxNumHands: 2,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5,
-      });
+    hands.setOptions({
+      maxNumHands: 2,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
 
-      hands.onResults(onResults);
+    hands.onResults(onResults);
 
-      const sendToMediaPipe = async () => {
-        if (inputVideoRef.current) {
-          if (!inputVideoRef.current.videoWidth) {
-            requestAnimationFrame(sendToMediaPipe);
-          } else {
-            await hands.send({ image: inputVideoRef.current });
-            requestAnimationFrame(sendToMediaPipe);
-          }
+    const sendToMediaPipe = async () => {
+      if (inputVideoRef.current) {
+        if (!inputVideoRef.current.videoWidth) {
+          requestAnimationFrame(sendToMediaPipe);
+        } else {
+          await hands.send({ image: inputVideoRef.current });
+          requestAnimationFrame(sendToMediaPipe);
         }
-      };
-    }
+      }
+    };
+
+    setupStream();
+
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+      if (hands) {
+        hands.close();
+      }
+    };
   }, [inputVideoReady]);
 
   const onResults = (results: Results) => {
