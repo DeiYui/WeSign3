@@ -53,3 +53,35 @@ export function validateEmail(message: string) {
     },
   };
 }
+// Validate trường password
+export function validatePassword(message: any) {
+  return {
+    validator: (_: any, value: string) => {
+      if (value && value.length) {
+        const regex = [];
+        regex.push("[A-Z]"); // Uppercase
+        regex.push("[a-z]"); // Lowercase
+        regex.push("[0-9]"); // Digit ~<>
+        regex.push("[!@#$%^&+=]");
+
+        // regex.push(
+        // 	"[\\s\\`\\~\\@\\#\\%\\&\\(\\)\\[\\]\\{\\}\\\\^\\$\\:\\;\\'\\/\\,\\|\\?\\*\\+\\.\\<\\>\\-\\=\\!\\_]",
+        // );
+
+        let passed = 0;
+        for (let i = 0; i < regex.length; i++) {
+          if (new RegExp(regex[i]).test(value)) {
+            passed++;
+          }
+        }
+        if (passed > 3 && value.length >= 8 && value.length <= 16) {
+          return Promise.resolve();
+        }
+
+        return Promise.reject(message || "Giá trị nhập vào không hợp lệ");
+      }
+
+      return Promise.resolve();
+    },
+  };
+}

@@ -6,6 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import Learning from "@/model/Learning";
 import { Select } from "antd";
 import { useRouter } from "next/navigation";
+import { usePage } from "@/hooks/usePage";
+import Exam from "@/model/Exam";
 
 export const filterOption = (input: string, option: any) =>
   (option?.label ?? "").toLowerCase().includes(input.toLowerCase());
@@ -18,12 +20,14 @@ const DashboardApp: React.FC = () => {
     totalTopic: number;
     totalVocabulary: number;
     totalVocabularyTopic?: number;
+    totalClasses: number;
   }>({
     topicsId: 0,
     topicName: "",
     totalTopic: 0,
     totalVocabulary: 0,
     totalVocabularyTopic: 0,
+    totalClasses: 0,
   });
 
   const {
@@ -32,7 +36,24 @@ const DashboardApp: React.FC = () => {
     totalVocabulary,
     totalVocabularyTopic,
     topicName,
+    totalClasses,
   } = stateDashboard;
+
+  // Danh sách lớp
+  const { data: allCLass } = useQuery({
+    queryKey: ["getListClass"],
+    queryFn: async () => {
+      const res = await Learning.getListClass();
+      setStateDashboard({
+        ...stateDashboard,
+        totalClasses: res?.data?.length,
+      });
+      return res.data;
+    },
+  });
+
+  // API lấy danh sách  bài kiểm tra
+  const { total: totalExam } = usePage(["getLstExam"], Exam.getLstExam, {});
 
   // Danh sách topic
   const { data: allTopics } = useQuery({
@@ -77,7 +98,7 @@ const DashboardApp: React.FC = () => {
         </div>
       </div>
       <div className="grid grid-cols-4 gap-4">
-        <CardDataStats title="Lớp học" total="2">
+        <CardDataStats title="Lớp học" total={`${totalClasses}`}>
           <ClassIcon size={24} color="#3C50E0" />
         </CardDataStats>
         <CardDataStats title="Chủ đề" total={`${totalTopic}`}>
@@ -86,7 +107,7 @@ const DashboardApp: React.FC = () => {
         <CardDataStats title="Từ vựng" total={`${totalVocabulary}`}>
           <AlphabetIcon size={24} color="#3C50E0" />
         </CardDataStats>
-        <CardDataStats title="Bài kiểm tra" total="2">
+        <CardDataStats title="Bài kiểm tra" total={`${totalExam}`}>
           <ExamIcon size={24} color="#3C50E0" />
         </CardDataStats>
       </div>

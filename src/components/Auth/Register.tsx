@@ -4,6 +4,7 @@ import Auth from "@/model/Auth";
 import { register } from "@/store/slices/registerSlice";
 import {
   validateEmail,
+  validatePassword,
   validateRequireInput,
 } from "@/utils/validation/validtor";
 import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
@@ -100,7 +101,12 @@ const Register: React.FC = () => {
         <Form.Item
           name="password"
           required
-          rules={[validateRequireInput("Mật khẩu không được bỏ trống")]}
+          rules={[
+            validateRequireInput("Mật khẩu không được bỏ trống"),
+            validatePassword(
+              "Mật khẩu phải có từ 8-16 ký tự, bao gồm ít nhất 1 chữ viết hoa, 1 chữ viết thường, 1 chữ số và 1 ký tự đặc biệt trong !@#$%^&+=",
+            ),
+          ]}
         >
           <Input.Password
             size="large"
@@ -165,6 +171,10 @@ const Register: React.FC = () => {
               {
                 label: "Admin",
                 value: "ADMIN",
+              },
+              {
+                label: "Teacher",
+                value: "TEACHER",
               },
               {
                 label: "User",

@@ -123,7 +123,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               ))}
             </ul>
 
-            {admin && admin?.role === "ADMIN" ? (
+            {(admin && admin?.role === "ADMIN") || admin?.role === "TEACHER" ? (
               <>
                 <h3 className="mb-4 ml-4 text-sm font-semibold text-bodydark2">
                   ADMIN

@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import styled from "styled-components";
 import User from "@/model/User";
 import DetailFriend from "./DetailFriend";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 
 const { Search } = Input;
 
@@ -28,6 +30,9 @@ interface FriendProps {
 }
 
 const SearchInput: React.FC = () => {
+  const user: User = useSelector((state: RootState) => state.admin);
+  console.log("user", user);
+
   const [results, setResults] = useState<FriendProps[]>([]);
   const [params, setParams] = useState<{
     text: string;
@@ -52,7 +57,11 @@ const SearchInput: React.FC = () => {
     queryKey: ["searchFriend", params],
     queryFn: async () => {
       const res = await User.searchFriend(params);
-      setResults(res.data.data);
+      setResults(
+        res.data.data?.filter(
+          (item: any) => item.role.toLowerCase() === user.role.toLowerCase(),
+        ),
+      );
       setTotalElements(res.data.totalElements);
       return res;
     },

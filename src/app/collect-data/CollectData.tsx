@@ -239,7 +239,7 @@ export default function CollectData() {
     },
     {
       title: "Ngày đăng",
-      dataIndex: "created",
+      dataIndex: "createdDate",
       width: "20%",
       render: (text: string | number | Date) => (
         <span>
@@ -460,7 +460,6 @@ export default function CollectData() {
       `volunteer_${modalVideo.vocabularyContent}_${Date.now()}.mp4`,
       metadata,
     );
-    formData.append("file", file);
     return await UploadModel.uploadFile(formData);
   };
 
@@ -805,7 +804,7 @@ export default function CollectData() {
   );
 }
 
-const CustomDiv = styled.div`
+export const CustomDiv = styled.div`
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -814,7 +813,7 @@ const CustomDiv = styled.div`
   max-height: calc(1.4em * 5);
   word-break: break-word;
 `;
-const CustomDivPopper = styled.div`
+export const CustomDivPopper = styled.div`
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;

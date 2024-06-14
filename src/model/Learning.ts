@@ -128,6 +128,14 @@ class Learning extends Base {
     return res.data;
   };
 
+  getOptionDataAdmin = async (params?: any) => {
+    const res = await this.apiGet(
+      `/data-collection/options-list-admin`,
+      params,
+    );
+    return res.data;
+  };
+
   // Thêm data tình nguyện viên đăng
   sendData = async (body: any) => {
     const res = await this.apiPost(`/data-collection`, body);
@@ -143,6 +151,18 @@ class Learning extends Base {
   // Xoá nội dung tnv đăng
   deleteData = async (id: any) => {
     const res = await this.apiDelete(`/data-collection/${id}`);
+    return res.data;
+  };
+
+  // reject nội dung
+  rejectData = async (body: any) => {
+    const res = await this.apiPost(`/data-collection/reject`, body);
+    return res.data;
+  };
+
+  // duyệt nội dung
+  approveData = async (body: any) => {
+    const res = await this.apiPost(`/data-collection/approve`, body);
     return res.data;
   };
 

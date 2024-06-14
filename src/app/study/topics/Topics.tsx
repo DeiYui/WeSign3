@@ -35,13 +35,17 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
   const [topicPrivates, setTopicPrivates] = useState<Topic[]>([]);
 
+  const token = localStorage.getItem("access_token");
+
   // API lấy danh sách topics
   const { data: allTopics, isFetching } = useQuery({
     queryKey: ["getAllTopics"],
     queryFn: async () => {
       const res = await Learning.getAllTopics();
       setTopicPrivates(
-        res.data?.filter((item: { private: boolean }) => item.private),
+        token
+          ? res.data?.filter((item: { private: boolean }) => item.private)
+          : [],
       );
       return res.data?.filter(
         (item: { private: boolean }) => !item.private,

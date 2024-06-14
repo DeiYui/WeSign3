@@ -208,7 +208,7 @@ const HomePage: FC<SectionHero2Props> = ({ className = "" }) => {
                     <mask id="ipTNext0">
                       <path
                         fill="#555"
-                        fill-rule="evenodd"
+                        fillRule="evenodd"
                         stroke="#fff"
                         stroke-linejoin="round"
                         stroke-width="4"

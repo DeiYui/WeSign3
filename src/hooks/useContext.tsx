@@ -401,7 +401,7 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (conversationId && contactId) {
       setIsLoading(true);
-      const socketBaseUrl = "https://chat-call-app.onrender.com";
+      const socketBaseUrl = "https://chat-call-app-api.onrender.com";
       const s = io(socketBaseUrl, {
         query: { conversationId, contactId },
       });

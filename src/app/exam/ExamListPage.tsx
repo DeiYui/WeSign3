@@ -150,7 +150,7 @@ const ExamListPage: React.FC = () => {
             !record?.finish && router.push(`/exam/${record?.examId}`)
           }
         >
-          <a className="text-blue-500">{text}</a>
+          <div className="text-blue-500">{text}</div>
         </div>
       ),
       width: 150,

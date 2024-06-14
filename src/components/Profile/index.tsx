@@ -65,7 +65,7 @@ const Profile = () => {
             <div className="relative drop-shadow-2">
               <AvatarUpload
                 size={160}
-                value={user.avatarLocation}
+                value={user?.avatarLocation}
                 listType="picture-circle"
                 onChange={async (value) => {
                   const res = await User.updateAvatar({
@@ -82,9 +82,9 @@ const Profile = () => {
           </div>
           <div className="mt-4">
             <h3 className="mb-1.5 text-2xl font-semibold text-black dark:text-white">
-              {user.name}
+              {user?.name}
             </h3>
-            <p className="font-medium">{user.address}</p>
+            <p className="font-medium">{user?.address}</p>
 
             <div className="mx-auto mt-4 max-w-[460px]">
               <h4 className="font-semibold text-black dark:text-white">
@@ -98,7 +98,7 @@ const Profile = () => {
                     Email
                   </p>
                 </div>
-                <p className="text-black dark:text-white">{user.email}</p>
+                <p className="text-black dark:text-white">{user?.email}</p>
               </div>
 
               <div className="my-2 flex items-center gap-3 ">
@@ -108,7 +108,9 @@ const Profile = () => {
                     Số điện thoại
                   </p>
                 </div>
-                <p className="text-black dark:text-white">{user.phoneNumber}</p>
+                <p className="text-black dark:text-white">
+                  {user?.phoneNumber}
+                </p>
               </div>
 
               <div className="my-2 flex items-center gap-3 ">
@@ -123,7 +125,7 @@ const Profile = () => {
                   </p>
                 </div>
                 <p className="text-black dark:text-white">
-                  {VALUE_GENDER[user.gender]}
+                  {VALUE_GENDER[user?.gender]}
                 </p>
               </div>
 
@@ -137,7 +139,7 @@ const Profile = () => {
                   </p>
                 </div>
                 <p className="text-black dark:text-white">
-                  {moment(user.birthDay).format("DD/MM/YYYY")}
+                  {moment(user?.birthDay).format("DD/MM/YYYY")}
                 </p>
               </div>
             </div>
