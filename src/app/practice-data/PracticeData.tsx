@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Results, Hands, HAND_CONNECTIONS, VERSION } from "@mediapipe/hands";
 import {
   drawConnectors,
@@ -8,36 +8,18 @@ import {
   lerp,
 } from "@mediapipe/drawing_utils";
 import ButtonPrimary from "@/components/UI/Button/ButtonPrimary";
+import Webcam from "react-webcam";
+import { Button } from "antd";
 
 const PracticeData: React.FC = () => {
-  const [inputVideoReady, setInputVideoReady] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [webcamReady, setWebcamReady] = useState(false);
 
-  const inputVideoRef = useRef<HTMLVideoElement | null>(null);
+  const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => {
-    let stream: MediaStream | null = null;
-
-    if (!inputVideoReady) {
-      return;
-    }
-
-    const setupStream = async () => {
-      if (inputVideoRef.current && canvasRef.current) {
-        contextRef.current = canvasRef.current.getContext("2d");
-        const constraints = {
-          video: { width: { min: 1280 }, height: { min: 720 } },
-        };
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        if (inputVideoRef.current) {
-          inputVideoRef.current.srcObject = stream;
-        }
-        sendToMediaPipe();
-      }
-    };
-
     const hands = new Hands({
       locateFile: (file: any) =>
         `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VERSION}/${file}`,
@@ -53,27 +35,48 @@ const PracticeData: React.FC = () => {
     hands.onResults(onResults);
 
     const sendToMediaPipe = async () => {
-      if (inputVideoRef.current) {
-        if (!inputVideoRef.current.videoWidth) {
+      if (webcamRef.current && webcamRef.current.video && webcamReady) {
+        if (!webcamRef.current.video.videoWidth) {
           requestAnimationFrame(sendToMediaPipe);
         } else {
-          await hands.send({ image: inputVideoRef.current });
+          await hands.send({ image: webcamRef.current.video });
           requestAnimationFrame(sendToMediaPipe);
         }
       }
     };
 
-    setupStream();
+    if (webcamReady) {
+      contextRef.current = canvasRef.current?.getContext("2d") || null;
+      sendToMediaPipe();
+    }
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
       if (hands) {
         hands.close();
       }
     };
-  }, [inputVideoReady]);
+  }, [webcamReady]);
+
+  // useEffect(() => {
+  //   const convertToNumpyArray = (data: any) => {
+  //     // Flatten the data
+  //     const flattenedData = data
+  //       .flat()
+  //       .map((point: any) => [point.x, point.y, point.z]);
+
+  //     // Convert to numpy array
+  //     const numpyArray = nj.array(flattenedData);
+
+  //     // Reshape the numpy array to the desired shape
+  //     const reshapedArray = numpyArray.reshape(1, 3, 224, 224);
+
+  //     return reshapedArray;
+  //   };
+
+  //   // Convert the JSON data to numpy array and set the state
+  //   const numpyArray = convertToNumpyArray(detectedData);
+  //   setNumpyArray(numpyArray);
+  // }, [detectedData]);
 
   const onResults = (results: Results) => {
     if (canvasRef.current && contextRef.current) {
@@ -120,33 +123,46 @@ const PracticeData: React.FC = () => {
     }
   };
 
+  const handleWebcamReady = useCallback(() => {
+    setWebcamReady(true);
+  }, []);
+
   return (
     <>
-      <div className="relative flex h-[550px] items-center justify-center overflow-hidden bg-gray-2">
-        <video
-          autoPlay
-          ref={(el) => {
-            inputVideoRef.current = el;
-            setInputVideoReady(!!el);
-          }}
-          className="hidden"
-        />
-        <canvas
-          ref={canvasRef}
-          width={900}
-          height={500}
-          className=" object-contain"
-        />
-        {!loaded && (
-          <div className="loading absolute inset-0 flex items-center justify-center bg-gray-2">
-            <div className="spinner  h-32 w-32 animate-spin rounded-full border-8 border-t-8 border-t-blue-500"></div>
-            <div className=" absolute text-xl text-white">Loading</div>
-          </div>
-        )}
+      <div className="relative flex h-[500px] items-center justify-between overflow-hidden bg-gray-2">
+        <div className="w-1/2">
+          <Webcam
+            className="absolute left-0 top-0 z-999 object-contain"
+            width={600}
+            height={400}
+            ref={webcamRef}
+            audio={false}
+            onUserMedia={handleWebcamReady}
+          />
+          <Button className="absolute bottom-0 left-0 z-999 object-contain">
+            Quay
+          </Button>
+          <Button className="absolute bottom-0 left-20 z-999 object-contain">
+            Dừng quay
+          </Button>
+          <canvas
+            ref={canvasRef}
+            width={600}
+            height={450}
+            className="absolute left-0 top-0 z-999 object-cover"
+          />
+        </div>
+        <div className="flex w-1/2 justify-center">kết quả</div>
       </div>
       <div className="flex w-full justify-center">
         <ButtonPrimary className="text-center">Kiểm tra</ButtonPrimary>
       </div>
+      {!loaded && (
+        <div className="loading absolute inset-0 flex items-center justify-center bg-gray-2">
+          <div className="spinner h-32 w-32 animate-spin rounded-full border-8 border-t-8 border-t-blue-500"></div>
+          <div className="absolute text-xl text-white">Loading</div>
+        </div>
+      )}
     </>
   );
 };
