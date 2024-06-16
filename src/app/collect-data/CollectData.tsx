@@ -328,16 +328,16 @@ export default function CollectData() {
       dataIndex: "dataLocation",
       key: "dataLocation",
       width: "20%",
-      render: (text: string) => (
+      render: (value: string) => (
         <>
           <Button
-            key={text}
+            key={value}
             icon={<EyeOutlined style={{ fontSize: "1.25rem" }} />}
             onClick={() => {
               setShowModalPreview({
                 open: true,
-                preview: text,
-                type: isImage(text) ? "image" : "video",
+                preview: value,
+                type: isImage(value) ? "image" : "video",
               });
             }}
           >
@@ -460,6 +460,7 @@ export default function CollectData() {
       `volunteer_${modalVideo.vocabularyContent}_${Date.now()}.mp4`,
       metadata,
     );
+    formData.append("file", file);
     return await UploadModel.uploadFile(formData);
   };
 
@@ -785,8 +786,8 @@ export default function CollectData() {
       >
         {!(showModalPreview.type === "image") ? (
           <div>
-            <video controls width="100%">
-              <source src={showModalPreview.preview} type="video/webm" />
+            <video key={showModalPreview.preview} controls width="100%">
+              <source src={showModalPreview.preview} />
               video không hỗ trợ cho trình duyệt này.
             </video>
           </div>
