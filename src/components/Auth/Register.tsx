@@ -169,10 +169,6 @@ const Register: React.FC = () => {
             }}
             options={[
               {
-                label: "Admin",
-                value: "ADMIN",
-              },
-              {
                 label: "Teacher",
                 value: "TEACHER",
               },

@@ -130,7 +130,7 @@ const ExamListPage: React.FC = () => {
                   });
                 }}
               >
-                Thêm
+                Làm bài
               </Button>
             )}
           </>
