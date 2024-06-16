@@ -73,6 +73,18 @@ class User extends Base {
     const res = await this.apiDelete(`/friend-ship/cancel-friend/${userId}`);
     return res.data;
   };
+
+  // Danh sách tài khoản
+  getAllAccount = async () => {
+    const res = await this.apiGet(`/authorization/list-not-approved`);
+    return res.data;
+  };
+
+  // Phê duyệt tài khoản
+  approveAccount = async (id: number) => {
+    const res = await this.apiPost(`/authorization/${id}`, { id: id });
+    return res.data;
+  };
 }
 
 export default new User("user-service");

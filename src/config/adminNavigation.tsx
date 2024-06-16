@@ -1,8 +1,12 @@
 import { DotIcon, RequestIcon } from "@/assets/icons";
 import { AdminIcon } from "@/assets/icons/AdminIcon";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 
 export const AdminSystem = () => {
-  return [
+  const admin = useSelector((state: RootState) => state.admin);
+
+  const menu = [
     {
       key: "/learning-management",
       label: "Quản lý học tập",
@@ -100,7 +104,41 @@ export const AdminSystem = () => {
       label: "Phê duyệt yêu cầu",
       path: "/approve-request",
       icon: <RequestIcon color="white" size={20} />,
+      children: [
+        {
+          key: "/approve-request/data-collect",
+          label: "Dữ liệu thu thập",
+          path: "/approve-request/data-collect",
+          hidden: false,
+          icon: <DotIcon color="white" size={20} />,
+        },
+        {
+          key: "/approve-request/account",
+          label: "Tài khoản",
+          path: "/approve-request/account",
+          hidden: admin.role !== "ADMIN",
+          icon: <DotIcon color="white" size={20} />,
+        },
+      ],
       hidden: false,
     },
   ];
+
+  // Hàm đệ quy để lọc các mục có hidden = false và duyệt vào children
+  const filterMenuItems = (items: any) => {
+    return items.reduce((acc: any, item: any) => {
+      if (!item.hidden) {
+        const newItem = { ...item };
+        if (newItem.children) {
+          newItem.children = filterMenuItems(newItem.children); // Đệ quy lọc các children
+        }
+        acc.push(newItem);
+      }
+      return acc;
+    }, []);
+  };
+
+  const filteredMenu = filterMenuItems(menu);
+
+  return filteredMenu;
 };
