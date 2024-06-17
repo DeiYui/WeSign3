@@ -38,18 +38,25 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
   const token = localStorage.getItem("access_token");
 
   // API lấy danh sách topics
-  const { data: allTopics, isFetching } = useQuery({
+  const { data: allTopicsPublic, isFetching } = useQuery({
     queryKey: ["getAllTopics"],
     queryFn: async () => {
-      const res = await Learning.getAllTopics();
-      setTopicPrivates(
-        token
-          ? res.data?.filter((item: { private: boolean }) => item.private)
-          : [],
-      );
-      return res.data?.filter(
-        (item: { private: boolean }) => !item.private,
-      ) as Topic[];
+      const res = await Learning.getAllTopics({
+        isPrivate: "false",
+      });
+      return res.data as Topic[];
+    },
+    enabled: showModal.open,
+  });
+
+  const { data: allTopicsPrivate, isFetching: isFetchingPrivate } = useQuery({
+    queryKey: ["getAllTopicsPrivate"],
+    queryFn: async () => {
+      const res = await Learning.getAllTopics({
+        isPrivate: "true",
+      });
+
+      return res.data as Topic[];
     },
     enabled: showModal.open,
   });
@@ -72,14 +79,21 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
 
   // Tìm kiếm
   useEffect(() => {
-    if (allTopics) {
+    if (allTopicsPublic) {
       setFilteredTopics(
-        allTopics.filter((topic) =>
+        allTopicsPublic.filter((topic) =>
           topic?.content?.toLowerCase().includes(searchText.toLowerCase()),
         ),
       );
     }
-  }, [searchText, allTopics]);
+    if (allTopicsPrivate) {
+      setTopicPrivates(
+        allTopicsPrivate.filter((topic) =>
+          topic?.content?.toLowerCase().includes(searchText.toLowerCase()),
+        ),
+      );
+    }
+  }, [searchText, allTopicsPublic, allTopicsPrivate]);
 
   return (
     <>
@@ -150,7 +164,7 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
           <div className="w-1/2">
             <List
               className="custom-scrollbar mt-4 max-h-[450px] overflow-y-auto pb-4"
-              loading={isFetching}
+              loading={isFetchingPrivate}
               itemLayout="horizontal"
               dataSource={topicPrivates}
               bordered
@@ -161,7 +175,12 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
                     setShowModal({ topicId: topic.topicId, open: false });
                   }}
                 >
-                  <Skeleton avatar title={false} loading={isFetching} active>
+                  <Skeleton
+                    avatar
+                    title={false}
+                    loading={isFetchingPrivate}
+                    active
+                  >
                     <List.Item.Meta
                       avatar={
                         <Avatar
