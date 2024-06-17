@@ -5,7 +5,6 @@ import { useSelector } from "react-redux";
 
 export const AdminSystem = () => {
   const admin = useSelector((state: RootState) => state.admin);
-
   const menu = [
     {
       key: "/learning-management",
@@ -116,7 +115,7 @@ export const AdminSystem = () => {
           key: "/approve-request/account",
           label: "Tài khoản",
           path: "/approve-request/account",
-          hidden: admin.role !== "ADMIN",
+          hidden: admin?.role !== "ADMIN",
           icon: <DotIcon color="white" size={20} />,
         },
       ],
