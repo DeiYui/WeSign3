@@ -125,7 +125,7 @@ const VocabularyList = ({ isPrivate }: any) => {
     queryFn: async () => {
       const res = await Learning.getAllVocabulary({
         ...filterParams,
-        isPrivate: isPrivate,
+        isPrivate: `${isPrivate}`,
       });
       // Sắp xếp priamry lên đầu
       res?.data?.forEach(
