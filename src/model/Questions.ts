@@ -26,6 +26,17 @@ class Questions extends Base {
     return res.data;
   };
 
+  getLstQuestionClass = async (classRoomId?: any) => {
+    const res = await this.apiGet(`/questions/${classRoomId}`);
+    return res.data;
+  };
+
+  // danh sách câu hỏi theo lớp
+  getLimitQuestionCLassRoom = async (params?: any) => {
+    const res = await this.apiGet(`/questions/limits-classRoom/v2`, params);
+    return res.data;
+  };
+
   // Tạo câu hỏi
   addQuestion = async (body?: any) => {
     const res = await this.apiPost(`/questions/add-list`, body);

@@ -2,7 +2,6 @@ import { colors } from "@/assets/colors";
 import { Logo } from "@/assets/icons";
 import { AdminSystem } from "@/config/adminNavigation";
 import { MenuSystem } from "@/config/userNavigation";
-import { VerticalNavItem } from "@/interface/Navigation";
 import { RootState, store } from "@/store";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -123,7 +122,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               ))}
             </ul>
 
-            {(admin && admin?.role === "ADMIN") || admin?.role === "TEACHER" ? (
+            {admin && (admin?.role === "ADMIN" || admin?.role === "TEACHER") ? (
               <>
                 <h3 className="mb-4 ml-4 text-sm font-semibold text-bodydark2">
                   ADMIN

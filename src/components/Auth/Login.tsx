@@ -16,8 +16,10 @@ import {
   validateEmail,
   validateRequireInput,
 } from "@/utils/validation/validtor";
+import { useForm } from "antd/es/form/Form";
 
 const Login: React.FC = () => {
+  const [form] = useForm();
   const dispatch = useDispatch();
   const router = useRouter();
 
@@ -51,7 +53,11 @@ const Login: React.FC = () => {
         Đăng nhập
       </h2>
 
-      <Form onFinish={handleSubmit} initialValues={{ remember: true }}>
+      <Form
+        form={form}
+        onFinish={handleSubmit}
+        initialValues={{ remember: true }}
+      >
         <Form.Item
           name="email"
           required

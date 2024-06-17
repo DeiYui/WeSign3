@@ -151,6 +151,11 @@ const QuestionList = () => {
       key: "content",
     },
     {
+      title: "Lớp",
+      dataIndex: "classRoomContent",
+      key: "classRoomContent",
+    },
+    {
       title: "Hình ảnh/Video",
       dataIndex: "imageLocation",
       key: "imageLocation",
@@ -271,15 +276,13 @@ const QuestionList = () => {
   };
 
   // xử lý khi tìm kiếm theo tên câu hỏi
-  const handleSearch = useCallback((e: any) => {
-    debounce(() => {
-      setFilterParams({
-        ...filterParams,
-        contentSearch: e.target.value,
-        page: 0,
-      });
-    }, 1000);
-  }, []);
+  const handleSearch = debounce((e: any) => {
+    setFilterParams((prevParams) => ({
+      ...prevParams,
+      contentSearch: e.target.value,
+      page: 0,
+    }));
+  }, 600);
 
   return (
     <div className="w-full p-4">
@@ -334,6 +337,7 @@ const QuestionList = () => {
         rowKey={(record: any) => record.questionId}
         columns={columns}
         dataSource={allQuestion}
+        loading={isFetching}
         pagination={{
           pageSize: pageSize,
           current: currentPage,
@@ -383,7 +387,7 @@ const QuestionList = () => {
         centered
       >
         <div className="flex w-full items-center justify-between gap-3 p-4">
-          {preview.file ? (
+          {preview.file && !preview.fileVideo ? (
             <div className="flex w-full justify-center">
               <Image
                 preview={false}
@@ -394,29 +398,28 @@ const QuestionList = () => {
               />
             </div>
           ) : (
-            <div className="flex w-full justify-center">
-              <Empty description="Không có ảnh minh hoạ" />
-            </div>
-          )}
-          {preview.fileVideo ? (
-            <div className="flex w-full items-center justify-center">
-              <video
-                controls
-                style={{
-                  width: preview.file ? 400 : 600,
-                  height: preview.file ? 300 : 400,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <source src={preview.fileVideo} />
-              </video>
-            </div>
-          ) : (
-            <div className="flex w-full justify-center">
-              <Empty description="Không có video minh hoạ" />
-            </div>
+            <>
+              {preview.fileVideo && !preview.file ? (
+                <div className="flex w-full items-center justify-center">
+                  <video
+                    controls
+                    style={{
+                      width: preview.file ? 400 : 600,
+                      height: preview.file ? 300 : 400,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <source src={preview.fileVideo} />
+                  </video>
+                </div>
+              ) : (
+                <div className="flex w-full justify-center">
+                  <Empty description="Không có video minh hoạ" />
+                </div>
+              )}
+            </>
           )}
         </div>
       </Modal>

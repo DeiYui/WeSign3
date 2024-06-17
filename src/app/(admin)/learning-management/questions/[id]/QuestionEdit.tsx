@@ -32,17 +32,6 @@ interface Answer {
   correct: boolean;
 }
 
-interface Question {
-  content: string;
-  explanation: string;
-  imageLocation: string;
-  videoLocation: string;
-  topicId: number;
-  answerReqs: Answer[];
-  type?: string;
-}
-const { Panel } = Collapse;
-
 const initAnswerValue = {
   content: "",
   imageLocation: "",
@@ -67,9 +56,11 @@ const QuestionEdit: React.FC = () => {
   const [form] = useForm();
   const { id } = useParams();
   const [openChooseVideo, setOpenChooseVideo] = useState<boolean>(false);
+  const [defaultAnswer, setDefaultAnswer] = useState<number | undefined>(
+    undefined,
+  );
 
   // Form
-  const topicId = useWatch("topicId", form);
   const imageLocation = useWatch("imageLocation", form);
   const videoLocation = useWatch("videoLocation", form);
   const typeFile = useWatch("fileType", form);
@@ -82,21 +73,26 @@ const QuestionEdit: React.FC = () => {
         const res = await Questions.getDetailQuestion(Number(id));
         const formValues = convertDataToFormValues(res?.data);
         form.setFieldsValue(formValues);
+        if (formValues.questionType === "ONE_ANSWER") {
+          const correctIndex = formValues.answerResList?.findIndex(
+            (item: any) => item.correct,
+          );
+          setDefaultAnswer(correctIndex);
+        }
         return res?.data;
       }
     },
     enabled: !!id,
   });
 
-  const { data: allTopics, refetch } = useQuery({
-    queryKey: ["getAllTopics"],
+  // Danh sách lớp
+  const { data: allClass, isFetching: isFetchingClass } = useQuery({
+    queryKey: ["getListClass"],
     queryFn: async () => {
-      const res = await Learning.getAllTopics();
-      return res?.data?.map((item: { topicId: any; content: any }) => ({
-        id: item.topicId,
-        value: item.topicId,
+      const res = await Learning.getListClass();
+      return res?.data?.map((item: { classRoomId: any; content: any }) => ({
+        value: item.classRoomId,
         label: item.content,
-        text: item.content,
       }));
     },
   });
@@ -125,12 +121,16 @@ const QuestionEdit: React.FC = () => {
         >
           <Form.Item name="questionId" hidden />
           <Form.Item
-            label="Chủ đề"
-            name="topicId"
+            label="Lớp học"
+            name="classRoomId"
             required
-            rules={[validateRequire("Chủ đề không được bỏ trống")]}
+            rules={[validateRequire("Lớp học không được bỏ trống")]}
           >
-            <Select placeholder="Chọn chủ đề" options={allTopics} />
+            <Select
+              loading={isFetchingClass}
+              placeholder="Chọn lớp"
+              options={allClass}
+            />
           </Form.Item>
           <Form.Item
             name="content"
@@ -185,7 +185,6 @@ const QuestionEdit: React.FC = () => {
               <QuestionModal
                 openChooseVideo={openChooseVideo}
                 setOpenChooseVideo={setOpenChooseVideo}
-                topicId={topicId}
                 file={imageLocation || videoLocation}
                 onChange={(value: any) => {
                   if (isImage(value)) {
@@ -197,14 +196,10 @@ const QuestionEdit: React.FC = () => {
               >
                 <div
                   onClick={() => {
-                    if (topicId) {
-                      setOpenChooseVideo(true);
-                    } else {
-                      message.warning("Vui lòng chọn chủ đề");
-                    }
+                    setOpenChooseVideo(true);
                   }}
                 >
-                  <Button disabled={!topicId}>Chọn file</Button>
+                  <Button>Chọn file</Button>
                 </div>
               </QuestionModal>
             )}
@@ -237,54 +232,67 @@ const QuestionEdit: React.FC = () => {
               <div className="mt-4">
                 {typeAnswer === "ONE_ANSWER" ? (
                   <div className="w-full">
-                    {fields.map((field, answerIndex) => (
-                      <div
-                        key={field.key}
-                        className="flex w-full items-center gap-4"
-                      >
-                        <div className="mb-2 flex items-center">
-                          <Form.Item
-                            name={[field.name, "correct"]}
-                            className="mb-0 ml-2 w-full"
-                            valuePropName="checked"
-                          >
-                            <Radio />
-                          </Form.Item>
-
-                          <Form.Item
-                            name={[field.name, "content"]}
-                            className="mb-0 ml-2 w-full"
-                            required
-                            rules={[
-                              validateRequireInput("Vui lòng nhập đáp án"),
-                            ]}
-                          >
-                            <Input
-                              placeholder="Nhập đáp án"
-                              style={{ width: 500 }}
-                            />
-                          </Form.Item>
-                        </div>
-
-                        <MinusCircleOutlined
-                          style={{ fontSize: 20 }}
-                          className="dynamic-delete-button"
-                          onClick={() => remove(field.name)}
-                        />
-                      </div>
-                    ))}
-                    <Button
-                      type="dashed"
-                      onClick={() =>
-                        add({
-                          ...initAnswerValue,
-                          correct: fields?.length === 0,
-                        })
-                      }
-                      icon={<PlusOutlined />}
+                    <Radio.Group
+                      value={defaultAnswer}
+                      onChange={(e) => {
+                        fields?.map((field, index) => {
+                          form.setFieldValue(
+                            ["answerResList", index, "correct"],
+                            index === e.target.value,
+                          );
+                          setDefaultAnswer(e.target.value);
+                        });
+                      }}
                     >
-                      Thêm đáp án
-                    </Button>
+                      {fields.map((field, answerIndex) => (
+                        <div
+                          key={field.key}
+                          className="flex w-full items-center gap-4"
+                        >
+                          <div className="mb-2 flex items-center">
+                            <Form.Item
+                              name={[field.name, "correct"]}
+                              className="mb-0 ml-2 w-full"
+                              valuePropName="checked"
+                            >
+                              <Radio value={answerIndex} />
+                            </Form.Item>
+
+                            <Form.Item
+                              name={[field.name, "content"]}
+                              className="mb-0 ml-2 w-full"
+                              required
+                              rules={[
+                                validateRequireInput("Vui lòng nhập đáp án"),
+                              ]}
+                            >
+                              <Input
+                                placeholder="Nhập đáp án"
+                                style={{ width: 500 }}
+                              />
+                            </Form.Item>
+                          </div>
+
+                          <MinusCircleOutlined
+                            style={{ fontSize: 20 }}
+                            className="dynamic-delete-button"
+                            onClick={() => remove(field.name)}
+                          />
+                        </div>
+                      ))}
+                      <Button
+                        type="dashed"
+                        onClick={() =>
+                          add({
+                            ...initAnswerValue,
+                            correct: fields?.length === 0,
+                          })
+                        }
+                        icon={<PlusOutlined />}
+                      >
+                        Thêm đáp án
+                      </Button>
+                    </Radio.Group>
                   </div>
                 ) : (
                   <div>

@@ -115,7 +115,7 @@ export const AdminSystem = () => {
           key: "/approve-request/account",
           label: "Tài khoản",
           path: "/approve-request/account",
-          hidden: admin?.role !== "ADMIN",
+          hidden: !(admin?.role === "ADMIN"),
           icon: <DotIcon color="white" size={20} />,
         },
       ],
@@ -125,11 +125,11 @@ export const AdminSystem = () => {
 
   // Hàm đệ quy để lọc các mục có hidden = false và duyệt vào children
   const filterMenuItems = (items: any) => {
-    return items.reduce((acc: any, item: any) => {
-      if (!item.hidden) {
+    return items?.reduce((acc: any, item: any) => {
+      if (!item?.hidden) {
         const newItem = { ...item };
         if (newItem.children) {
-          newItem.children = filterMenuItems(newItem.children); // Đệ quy lọc các children
+          newItem.children = filterMenuItems(newItem?.children); // Đệ quy lọc các children
         }
         acc.push(newItem);
       }

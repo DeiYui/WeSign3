@@ -67,9 +67,9 @@ const CreateAndEditExamPage: React.FC = () => {
   // Modal chọn câu hỏi
   const [openChooseQuestions, setOpenChooseQuestions] = useState<{
     open: boolean;
-    topicId: number;
+    classRoomId: number;
     size: number;
-  }>({ open: false, topicId: 0, size: 0 });
+  }>({ open: false, classRoomId: 0, size: 0 });
 
   // API lấy danh sách  topics
   const { data: allTopics } = useQuery({
@@ -86,19 +86,32 @@ const CreateAndEditExamPage: React.FC = () => {
     enabled: !!isPrivate,
   });
 
+  // Dánh sách lớp
+  const { data: allClass, isFetching: isFetchingClass } = useQuery({
+    queryKey: ["getListClass"],
+    queryFn: async () => {
+      const res = await Learning.getListClass();
+      return res?.data?.map((item: { classRoomId: any; content: any }) => ({
+        value: item.classRoomId,
+        label: item.content,
+      }));
+    },
+    enabled: !!isPrivate,
+  });
+
   const params = useMemo(() => {
     return {
       page: 0,
       size: openChooseQuestions.size,
-      topicId: openChooseQuestions.topicId,
+      classRoomId: openChooseQuestions.classRoomId,
     };
   }, [openChooseQuestions]);
 
   // API lấy danh sách câu hỏi
   const { data: limitQuestion, isFetching } = useQuery({
-    queryKey: ["getLimitQuestionTopic", params],
+    queryKey: ["getLimitQuestionCLassRoom", params],
     queryFn: async () => {
-      const res = await Questions.getLimitQuestionTopic(params);
+      const res = await Questions.getLimitQuestionCLassRoom(params);
       return res?.data;
     },
     enabled: openChooseQuestions.open,
@@ -137,7 +150,7 @@ const CreateAndEditExamPage: React.FC = () => {
             const req = {
               name: value.name,
               questionIds: value.questionIds,
-              topicId: value.topicId,
+              classRoomId: value.classRoomId,
               private: isPrivate,
             };
             addExam.mutate(req);
@@ -145,17 +158,20 @@ const CreateAndEditExamPage: React.FC = () => {
           layout="vertical"
         >
           <Form.Item
-            label="Chủ đề"
-            name="topicId"
+            label="Lớp "
+            name="classRoomId"
             className="mb-2"
             required
-            rules={[validateRequire("Chủ đề không được bỏ trống")]}
+            rules={[validateRequire("Lớp không được bỏ trống")]}
           >
             <Select
-              placeholder="Chọn chủ đề"
-              options={allTopics}
+              placeholder="Chọn lớp"
+              options={allClass}
               onChange={(e) => {
-                setOpenChooseQuestions({ ...openChooseQuestions, topicId: e });
+                setOpenChooseQuestions({
+                  ...openChooseQuestions,
+                  classRoomId: e,
+                });
                 form.setFieldValue("lstQuestions", []);
               }}
             />
@@ -209,6 +225,7 @@ const CreateAndEditExamPage: React.FC = () => {
               onClose={() =>
                 setOpenChooseQuestions({ ...openChooseQuestions, open: false })
               }
+              loading={isFetching}
             />
           </Form.Item>
 

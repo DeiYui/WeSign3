@@ -55,11 +55,11 @@ const ExamListPage = ({ isPrivate }: any) => {
 
   // xử lý khi hover vào row
   const [filterParams, setFilterParams] = useState<{
-    topicId: number;
+    classRoomId: number;
     nameSearch: string;
     isPrivate: boolean;
   }>({
-    topicId: 0,
+    classRoomId: 0,
     nameSearch: "",
     isPrivate: isPrivate,
   });
@@ -83,6 +83,18 @@ const ExamListPage = ({ isPrivate }: any) => {
         value: item.topicId,
         label: item.content,
         text: item.content,
+      }));
+    },
+  });
+
+  // Dánh sách lớp
+  const { data: allClass, isFetching: isFetchingClass } = useQuery({
+    queryKey: ["getListClass"],
+    queryFn: async () => {
+      const res = await Learning.getListClass();
+      return res?.data?.map((item: { classRoomId: any; content: any }) => ({
+        value: item.classRoomId,
+        label: item.content,
       }));
     },
   });
@@ -172,10 +184,10 @@ const ExamListPage = ({ isPrivate }: any) => {
         <Select
           className="w-full"
           allowClear
-          placeholder="Chủ đề"
-          options={allTopics}
+          placeholder="Lớp học"
+          options={allClass}
           onChange={(value, option: any) =>
-            setFilterParams({ ...filterParams, topicId: value })
+            setFilterParams({ ...filterParams, classRoomId: value })
           }
         />
       </div>

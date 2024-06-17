@@ -37,6 +37,17 @@ class Exam extends Base {
     return res.data;
   };
 
+  // Lưu kết quả câu hỏi bài kiểm tra
+  saveExam = async (body: any) => {
+    const res = await this.apiPost(`/exams/exam-saved`, body);
+    return res.data;
+  };
+
+  // Chi tiét bài kiểm tra
+  getDetailSaveExam = async (examId: any) => {
+    const res = await this.apiGet(`/exams/exam-saved/${examId}`);
+    return res.data;
+  };
   // Xoá bài kiểm tra
   deleteExam = async (id: number) => {
     const res = await this.apiDelete(`/exams/${id}`);

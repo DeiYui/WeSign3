@@ -15,8 +15,8 @@ import {
   Spin,
   message,
 } from "antd";
-import { useParams, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 const PAGE_SIZE = 20;
 
@@ -28,6 +28,8 @@ const ExamDetailPage: React.FC = () => {
   const [score, setScore] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [isDirty, setIsDirty] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+  const isRedo = searchParams.get("redo");
 
   const [form] = Form.useForm();
 
@@ -44,14 +46,62 @@ const ExamDetailPage: React.FC = () => {
     enabled: !!id,
   });
 
+  // Danh sách câu hỏi theo bài kiểm tra
   const { data: lstQuestions, isFetching: isFetchingQuestions } = useQuery({
     queryKey: ["getLstQuestionExam", id],
     queryFn: async () => {
       const responsive = await Questions.getLstQuestionExam(id);
+      form.setFieldsValue({
+        questionId: responsive?.data?.map(
+          (question: any) => question.questionId,
+        ),
+      });
       return responsive?.data;
     },
     enabled: !!id,
   });
+
+  // api lấy chi tiết đáp án của bải kiểm tra
+  const { data: detailExamSave, isFetching: isFetchingDetail } = useQuery({
+    queryKey: ["getDetailSaveExam", id],
+    queryFn: async () => {
+      const responsive = await Exam.getDetailSaveExam(id);
+
+      return responsive?.data;
+    },
+    enabled: !!id,
+  });
+
+  useEffect(() => {
+    if (detailExamSave && lstQuestions && !isRedo) {
+      const initialValues = lstQuestions.reduce(
+        (acc: any, question: any, index: number) => {
+          const savedAnswer = detailExamSave.find(
+            (item: any) => item.questionId === question.questionId,
+          );
+          if (savedAnswer) {
+            const selectedAnswers = savedAnswer.selectedAnswers;
+            acc.answerList = acc.answerList || [];
+            acc.answerList[index] = {
+              answerId:
+                question.questionType === "ONE_ANSWER"
+                  ? selectedAnswers[0]
+                  : selectedAnswers,
+            };
+            acc.answer = acc.answer || [];
+            acc.answer[index] = question.answerResList.some(
+              (ans: any) =>
+                selectedAnswers.includes(ans.answerId) && ans.correct,
+            );
+          }
+          return acc;
+        },
+        {},
+      );
+
+      form.setFieldsValue(initialValues);
+    }
+  }, [detailExamSave, lstQuestions]);
 
   // Chấm điểm
   const markExam = useMutation({
@@ -59,7 +109,32 @@ const ExamDetailPage: React.FC = () => {
     onSuccess: () => {},
   });
 
+  // Lưu đáp án
+  const saveExam = useMutation({
+    mutationFn: Exam.saveExam,
+    onSuccess: () => {
+      message.success("Chấm điểm thành công");
+    },
+  });
+
   const submitExam = (values: any) => {
+    // Data truyền cho api
+    const req = lstQuestions.map(
+      (question: { questionId: any }, index: string | number) => {
+        const correctAnswer = values?.answerList[index];
+        const selectedAnswers =
+          typeof correctAnswer.answerId === "number"
+            ? [correctAnswer.answerId]
+            : correctAnswer.answerId;
+
+        return {
+          questionId: question.questionId,
+          examId: Number(id),
+          selectedAnswers,
+        };
+      },
+    );
+
     const unansweredQuestions = lstQuestions.filter(
       (q: any, index: number) =>
         !values.answer || values.answer[index] === undefined,
@@ -70,6 +145,7 @@ const ExamDetailPage: React.FC = () => {
     } else {
       calculateScore(values);
     }
+    saveExam.mutate(req);
   };
 
   const calculateScore = (values: any) => {
@@ -101,9 +177,9 @@ const ExamDetailPage: React.FC = () => {
 
   // Hiển thị icon biểu cảm
   const calculateRating = () => {
-    if (score >= 70) {
+    if (score >= 7) {
       return <SmileOutlined style={{ fontSize: "140px", color: "#53d100" }} />;
-    } else if (score >= 40 && score < 70) {
+    } else if (score >= 4 && score < 7) {
       return <MehOutlined style={{ fontSize: "140px", color: "orange" }} />;
     } else {
       return <FrownOutlined style={{ fontSize: "140px", color: "red" }} />;
@@ -161,6 +237,7 @@ const ExamDetailPage: React.FC = () => {
                     </div>
                   )}
                   <Form.Item name={["answer", index]} hidden />
+                  <Form.Item name={["questionId", index]} hidden />
 
                   <Form.Item name={["answerList", index, "answerId"]}>
                     {q.answerResList?.filter(

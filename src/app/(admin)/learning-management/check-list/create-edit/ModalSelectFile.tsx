@@ -33,7 +33,6 @@ export function isImageLocation(url: string | undefined) {
 interface QuestionModalProps {
   openChooseVideo: boolean;
   setOpenChooseVideo: (value: boolean) => void;
-  topicId: number;
   children: ReactNode;
   file?: any;
   onChange?: any;
@@ -42,11 +41,25 @@ interface QuestionModalProps {
 const QuestionModal: React.FC<QuestionModalProps> = ({
   openChooseVideo,
   setOpenChooseVideo,
-  topicId,
   children,
   file,
   onChange,
 }) => {
+  const [topicId, setTopicId] = useState<number | undefined>(undefined);
+
+  const { data: allTopics, refetch } = useQuery({
+    queryKey: ["getAllTopics"],
+    queryFn: async () => {
+      const res = await Learning.getAllTopics();
+      return res?.data?.map((item: { topicId: any; content: any }) => ({
+        id: item.topicId,
+        value: item.topicId,
+        label: item.content,
+        text: item.content,
+      }));
+    },
+  });
+
   // Lựa chọn hình ảnh/ hoặc video
   const [selectedFileType, setSelectedFileType] = useState<string | null>(
     "image",
@@ -70,8 +83,10 @@ const QuestionModal: React.FC<QuestionModalProps> = ({
   const { data: listVideoAndImage } = useQuery({
     queryKey: ["listVideo", topicId],
     queryFn: async () => {
-      const res = await Learning.getVocabularyTopic(topicId);
-      return res.data;
+      if (topicId) {
+        const res = await Learning.getVocabularyTopic(topicId);
+        return res.data;
+      }
     },
     enabled: !!topicId && openChooseVideo,
   });
@@ -296,15 +311,25 @@ const QuestionModal: React.FC<QuestionModalProps> = ({
           destroyOnClose
         >
           <div className="">
-            <Select
-              style={{ width: "100%" }}
-              placeholder="Chọn ảnh / video"
-              onChange={handleSelectFileType}
-              defaultValue="image"
-            >
-              <Select.Option value="image">Chọn hình ảnh</Select.Option>
-              <Select.Option value="video">Chọn video</Select.Option>
-            </Select>
+            <div className="flex w-full items-center gap-4">
+              <Select
+                className="w-1/2"
+                placeholder="Chọn chủ đề"
+                value={topicId}
+                options={allTopics}
+                onChange={(e) => setTopicId(e)}
+              />
+              <Select
+                className="w-1/2"
+                placeholder="Chọn ảnh / video"
+                onChange={handleSelectFileType}
+                defaultValue="image"
+              >
+                <Select.Option value="image">Chọn hình ảnh</Select.Option>
+                <Select.Option value="video">Chọn video</Select.Option>
+              </Select>
+            </div>
+
             <Collapse
               className="mt-6"
               defaultActiveKey={["1", "2"]}

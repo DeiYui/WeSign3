@@ -30,10 +30,10 @@ const ExamListPage: React.FC = () => {
   const user: User = useSelector((state: RootState) => state.admin);
   // xử lý khi hover vào row
   const [filterParams, setFilterParams] = useState<{
-    topicId: number;
+    classRoomId: number;
     nameSearch: string;
   }>({
-    topicId: 0,
+    classRoomId: 0,
     nameSearch: "",
   });
 
@@ -93,6 +93,18 @@ const ExamListPage: React.FC = () => {
     },
   });
 
+  // Dánh sách lớp
+  const { data: allClass, isFetching: isFetchingClass } = useQuery({
+    queryKey: ["getListClass"],
+    queryFn: async () => {
+      const res = await Learning.getListClass();
+      return res?.data?.map((item: { classRoomId: any; content: any }) => ({
+        value: item.classRoomId,
+        label: item.content,
+      }));
+    },
+  });
+
   const columns = [
     {
       title: "STT",
@@ -146,9 +158,8 @@ const ExamListPage: React.FC = () => {
       key: "name",
       render: (text: string, record: any) => (
         <div
-          onClick={() =>
-            !record?.finish && router.push(`/exam/${record?.examId}`)
-          }
+          className="hover:cursor-pointer"
+          onClick={() => router.push(`/exam/${record?.examId}`)}
         >
           <div className="text-blue-500">{text}</div>
         </div>
@@ -191,7 +202,9 @@ const ExamListPage: React.FC = () => {
       render: (value: number, record: any) => (
         <div className="flex items-center gap-4">
           {record?.finish ? (
-            <Button onClick={() => router.push(`/exam/${record?.examId}`)}>
+            <Button
+              onClick={() => router.push(`/exam/${record?.examId}/?redo=true`)}
+            >
               Làm lại
             </Button>
           ) : null}
@@ -226,10 +239,10 @@ const ExamListPage: React.FC = () => {
         <Select
           className="w-full"
           allowClear
-          placeholder="Chủ đề"
-          options={allTopics}
+          placeholder="Lớp"
+          options={allClass}
           onChange={(value, option: any) =>
-            setFilterParams({ ...filterParams, topicId: value })
+            setFilterParams({ ...filterParams, classRoomId: value })
           }
         />
       </div>

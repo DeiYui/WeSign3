@@ -60,7 +60,7 @@ function convertQuestions(input: any) {
     explanation: "",
     imageLocation: isImage(question.file) ? question.file : "",
     videoLocation: !isImage(question.file) ? question.file : "",
-    topicId: input.topicId,
+    classRoomId: input.classRoomId,
     questionType: question.type,
     fileType: question.typeFile,
     answerReqs: question.answerReqs.map((answer: any) => ({
@@ -80,19 +80,17 @@ const QuestionCreate: React.FC = () => {
   const questionsPerPage = 10;
 
   const questions: Question[] = Form.useWatch("questions", form);
-  const topicId = Form.useWatch("topicId", form);
 
   const [openChooseVideo, setOpenChooseVideo] = useState<boolean>(false);
 
-  const { data: allTopics, refetch } = useQuery({
-    queryKey: ["getAllTopics"],
+  // Danh sách lớp
+  const { data: allClass, isFetching: isFetchingClass } = useQuery({
+    queryKey: ["getListClass"],
     queryFn: async () => {
-      const res = await Learning.getAllTopics();
-      return res?.data?.map((item: { topicId: any; content: any }) => ({
-        id: item.topicId,
-        value: item.topicId,
+      const res = await Learning.getListClass();
+      return res?.data?.map((item: { classRoomId: any; content: any }) => ({
+        value: item.classRoomId,
         label: item.content,
-        text: item.content,
       }));
     },
   });
@@ -115,7 +113,7 @@ const QuestionCreate: React.FC = () => {
         explanation: "",
         imageLocation: "",
         videoLocation: "",
-        topicId: 0,
+        classRoomId: 0,
         type: "ONE_ANSWER",
         answerReqs: [
           { content: "", imageLocation: "", videoLocation: "", correct: true },
@@ -146,15 +144,12 @@ const QuestionCreate: React.FC = () => {
 
   const lstQuestions = form.getFieldsValue();
 
-  console.log("lstQuestions", lstQuestions);
-
   return (
     <div className="container mx-auto bg-white p-4">
       <h1 className="mb-4 text-2xl font-bold">Thêm câu hỏi</h1>
       <Form
         form={form}
         onFinish={(value) => {
-
           const newValue = convertQuestions(value);
 
           mutationAdd.mutate(newValue);
@@ -162,12 +157,16 @@ const QuestionCreate: React.FC = () => {
         layout="vertical"
       >
         <Form.Item
-          label="Chủ đề"
-          name="topicId"
+          label="Lớp học"
+          name="classRoomId"
           required
-          rules={[validateRequire("Chủ đề không được bỏ trống")]}
+          rules={[validateRequire("Lớp học không được bỏ trống")]}
         >
-          <Select placeholder="Chọn chủ đề" options={allTopics} />
+          <Select
+            loading={isFetchingClass}
+            placeholder="Chọn lớp"
+            options={allClass}
+          />
         </Form.Item>
         <Form.Item
           label="Số câu hỏi muốn tạo (không quá 100):"
@@ -195,6 +194,7 @@ const QuestionCreate: React.FC = () => {
                 <h2 className="mb-2 text-xl font-bold">
                   Câu hỏi {(currentPage - 1) * questionsPerPage + index + 1}
                 </h2>
+
                 <Form.Item
                   label="Tên câu hỏi:"
                   name={["questions", index, "content"]}
@@ -226,7 +226,7 @@ const QuestionCreate: React.FC = () => {
                   </Select>
                 </Form.Item>
 
-                <div className="mt-4">
+                <div className="mt-2">
                   {lstQuestions.questions?.length && (
                     <>
                       <Form.Item
@@ -236,25 +236,24 @@ const QuestionCreate: React.FC = () => {
                         rules={[
                           validateRequire("Không được bỏ trống trường này"),
                         ]}
+                        hidden={
+                          lstQuestions?.questions[index]?.typeFile ===
+                          "NOT_EXISTED"
+                        }
                       >
                         {lstQuestions?.questions[index]?.typeFile ===
                           "EXISTED" && (
                           <QuestionModal
                             openChooseVideo={openChooseVideo}
                             setOpenChooseVideo={setOpenChooseVideo}
-                            topicId={topicId}
                             file={lstQuestions?.questions[index]?.file}
                           >
                             <div
                               onClick={() => {
-                                if (topicId) {
-                                  setOpenChooseVideo(true);
-                                } else {
-                                  message.warning("Vui lòng chọn chủ đề");
-                                }
+                                setOpenChooseVideo(true);
                               }}
                             >
-                              <Button disabled={!topicId}>Chọn file</Button>
+                              <Button>Chọn file</Button>
                               {lstQuestions?.questions[index]?.file && (
                                 <div className="">
                                   {isImage(
@@ -297,6 +296,9 @@ const QuestionCreate: React.FC = () => {
                         rules={[
                           validateRequire("Không được bỏ trống trường này"),
                         ]}
+                        hidden={
+                          lstQuestions?.questions[index]?.typeFile === "EXISTED"
+                        }
                       >
                         {lstQuestions?.questions[index]?.typeFile ===
                           "NOT_EXISTED" && <MediaUpload />}

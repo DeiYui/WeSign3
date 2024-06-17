@@ -28,7 +28,9 @@ export const MediaUpload: FC<MediaUploadProps> = ({ value, onChange }) => {
   const [mediaList, setMediaList] = useState<any[]>([]);
 
   const mediaType = useMemo(() => {
-    return isImage(mediaList[0]);
+    if (mediaList[0]) {
+      return isImage(mediaList[0]?.length && mediaList[0]);
+    }
   }, [mediaList]);
 
   const validateMedia: (file: File) => boolean = useCallback(
@@ -49,7 +51,7 @@ export const MediaUpload: FC<MediaUploadProps> = ({ value, onChange }) => {
       if (!viableSize) message.error("Tệp tin không được quá 10MB").then();
       return viableExtension && viableSize;
     },
-    [mediaType],
+    [value],
   );
 
   const handleUpload: (value: { file: File }) => void = useCallback(
@@ -99,17 +101,18 @@ export const MediaUpload: FC<MediaUploadProps> = ({ value, onChange }) => {
   return (
     <>
       <div className="flex flex-wrap items-center gap-4">
-        {mediaList?.length > 0 ? (
+        {mediaList[0]?.length > 0 ? (
           mediaList?.slice(0, ITEM_DISPLAY)?.map((e: any, index: number) => (
             <div key={index} className="relative ">
-              {mediaType ? (
+              {mediaType && (
                 <Image
                   alt=""
                   className="rounded-lg object-contain"
                   style={{ width: 200, height: 200 }}
                   src={e}
                 />
-              ) : (
+              )}
+              {!isImage(e) && (
                 <video controls={false} style={{ width: 200, height: 200 }}>
                   <source src={e} type="video/mp4" />
                 </video>

@@ -16,6 +16,8 @@ import {
 import { UploadFile } from "antd/es/upload/interface";
 import React, { useEffect, useState } from "react";
 import { CustomTable } from "../ExamList";
+import { useQuery } from "@tanstack/react-query";
+import Questions from "@/model/Questions";
 
 interface Answer {
   id: number;
@@ -35,6 +37,7 @@ interface ModalChooseQuestionsProps {
   open: boolean;
   onClose: () => void;
   questions: Question[];
+  loading?: boolean;
 }
 
 export const renderAnswerValue = (listValue: any) => {
@@ -62,11 +65,13 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
   open,
   onClose,
   questions,
+  loading,
 }) => {
   const form = Form.useFormInstance();
   const [searchValue, setSearchValue] = useState<string>("");
   // list câu hỏi
   const questionIds = Form.useWatch("questionIds");
+  const classRoomId = Form.useWatch("classRoomId");
 
   // Lưu rowKey của những row đang được mở
   const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([]);
@@ -84,6 +89,16 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
     open: false,
     file: "",
     fileVideo: "",
+  });
+
+  // Danh sách câu hỏi theo lớp
+  const { data: lstQuestion, isFetching } = useQuery({
+    queryKey: ["getLstQuestionClass", classRoomId],
+    queryFn: async () => {
+      const res = await Questions.getLstQuestionClass(classRoomId);
+      return res.data;
+    },
+    enabled: open && !!classRoomId,
   });
 
   // Cập nhật dánh sách lựa chọn
@@ -233,14 +248,15 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
               </div>
             </div>
           )}
-
+          <div className="my-2">Tổng số câu hỏi: {lstQuestion?.length}</div>
           <CustomTable
             className="mt-4"
             rowSelection={rowSelection}
             rowKey={(record: any) => record.questionId}
             columns={columns}
-            dataSource={questions}
+            dataSource={questions || lstQuestion}
             pagination={false}
+            loading={loading}
             expandable={{
               rowExpandable: (record: any) => !!record.answerResList,
               expandedRowKeys,
