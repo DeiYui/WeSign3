@@ -372,7 +372,7 @@ const TopicList = (props: any) => {
                 } else {
                   payload.classRoomId = value.classRoomId;
                   if (isPrivate) {
-                    payload.isPrivate = true;
+                    payload.private = true;
                   }
                   mutationCreateUpdate.mutate(payload);
                 }

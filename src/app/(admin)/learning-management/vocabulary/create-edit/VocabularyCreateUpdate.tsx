@@ -301,8 +301,8 @@ const VocabularyCreateUpdate: React.FC = () => {
               onFinish={(value) => {
                 mutationCreate.mutate({
                   ...value,
-                  vocabularyImageReqs: value?.vocabularyImageReqs || "",
-                  vocabularyVideoReqs: value?.vocabularyVideoReqs || "",
+                  vocabularyImageReqs: value?.vocabularyImageReqs || undefined,
+                  vocabularyVideoReqs: value?.vocabularyVideoReqs || undefined,
                   private: isPrivate,
                 });
               }}

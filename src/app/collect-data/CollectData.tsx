@@ -10,10 +10,8 @@ import {
   WarningFilled,
 } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ReactMediaRecorder } from "react-media-recorder-2";
 import {
   Button,
-  DatePicker,
   Empty,
   Image,
   Modal,
@@ -24,13 +22,14 @@ import {
   Tooltip,
   message,
 } from "antd";
+import { ReactMediaRecorder } from "react-media-recorder-2";
 
 import Webcam from "react-webcam";
 
-import { useRef, useState } from "react";
-import UploadModel from "@/model/UploadModel";
-import styled from "styled-components";
 import { isImage } from "@/components/common/constants";
+import UploadModel from "@/model/UploadModel";
+import { useRef, useState } from "react";
+import styled from "styled-components";
 
 interface FilterParams {
   page: number;
@@ -106,6 +105,16 @@ const optionScore = [
     value: 10,
   },
 ];
+
+export const formatTime = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+  const formattedHours = String(hours).padStart(2, "0");
+  const formattedMinutes = String(minutes).padStart(2, "0");
+  const formattedSeconds = String(remainingSeconds).padStart(2, "0");
+  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+};
 
 function normalizeString(inputString: any) {
   let lowercasedString = inputString.toLowerCase();
@@ -381,15 +390,6 @@ export default function CollectData() {
   ];
 
   // quay vide
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-    const formattedHours = String(hours).padStart(2, "0");
-    const formattedMinutes = String(minutes).padStart(2, "0");
-    const formattedSeconds = String(remainingSeconds).padStart(2, "0");
-    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-  };
 
   // Bắt đầu quay
   const handleStartRecording = (startRecording: any) => {
