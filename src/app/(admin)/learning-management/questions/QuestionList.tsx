@@ -13,6 +13,7 @@ import {
   Dropdown,
   Empty,
   Image,
+  Input,
   Modal,
   Popover,
   Select,
@@ -21,13 +22,14 @@ import {
   message,
 } from "antd";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import styled from "styled-components";
 import { CustomTable } from "../check-list/ExamList";
 import { CaretRightIcon } from "@/assets/icons";
 import { renderAnswerValue } from "../check-list/create-edit/ModalChooseQuestions";
 import { colors } from "@/assets/colors";
 import { ConfirmModal } from "@/components/UI/Modal/ConfirmModal";
+import { debounce } from "lodash";
 
 interface Answer {
   id: number;
@@ -42,13 +44,15 @@ const QuestionList = () => {
 
   // filter
   const [filterParams, setFilterParams] = useState<{
-    topicId: number;
+    contentSearch: string;
     page?: number;
     size?: number;
+    classRoomId?: number;
   }>({
-    topicId: 0,
+    contentSearch: "",
     page: 0,
     size: 10,
+    classRoomId: 0,
   });
 
   // preview
@@ -105,6 +109,18 @@ const QuestionList = () => {
         value: item.topicId,
         label: item.content,
         text: item.content,
+      }));
+    },
+  });
+
+  // Dánh sách lớp
+  const { data: allClass, isFetching: isFetchingClass } = useQuery({
+    queryKey: ["getListClass"],
+    queryFn: async () => {
+      const res = await Learning.getListClass();
+      return res?.data?.map((item: { classRoomId: any; content: any }) => ({
+        value: item.classRoomId,
+        label: item.content,
       }));
     },
   });
@@ -254,6 +270,17 @@ const QuestionList = () => {
     },
   };
 
+  // xử lý khi tìm kiếm theo tên câu hỏi
+  const handleSearch = useCallback((e: any) => {
+    debounce(() => {
+      setFilterParams({
+        ...filterParams,
+        contentSearch: e.target.value,
+        page: 0,
+      });
+    }, 1000);
+  }, []);
+
   return (
     <div className="w-full p-4">
       <h1 className="mb-4 text-2xl font-bold">Danh sách câu hỏi</h1>
@@ -262,11 +289,16 @@ const QuestionList = () => {
           <Select
             className="w-[300px]"
             allowClear
-            placeholder="Chủ đề"
-            options={allTopics}
+            placeholder="Lớp học"
+            options={allClass}
             onChange={(value, option: any) =>
-              setFilterParams({ ...filterParams, topicId: value })
+              setFilterParams({ ...filterParams, classRoomId: value })
             }
+          />
+          <Input
+            className="w-[300px]"
+            placeholder="Nhập tên câu hỏi"
+            onChange={handleSearch}
           />
         </div>
 
