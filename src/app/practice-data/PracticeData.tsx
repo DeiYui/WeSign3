@@ -431,7 +431,7 @@ const PracticeData: React.FC = () => {
               stopRecording,
               mediaBlobUrl,
             }) => (
-              <div>
+              <div className="absolute bottom-0 left-0 z-999 flex gap-4 object-contain">
                 <p>Trạng thái quay video: {status}</p>
                 <Button
                   onClick={() => handleStartRecording(startRecording)}
@@ -481,12 +481,7 @@ const PracticeData: React.FC = () => {
               </div>
             )}
           />
-          <Button className="absolute bottom-0 left-0 z-999 object-contain">
-            Quay
-          </Button>
-          <Button className="absolute bottom-0 left-20 z-999 object-contain">
-            Dừng quay
-          </Button>
+
           <canvas
             ref={canvasRef}
             width={600}
@@ -496,7 +491,7 @@ const PracticeData: React.FC = () => {
         </div>
         <div className="flex w-1/2 justify-center">kết quả</div>
       </div>
-      <div className="flex w-full justify-center">
+      <div className="mt-4 flex w-full justify-center">
         <ButtonPrimary className="text-center">Kiểm tra</ButtonPrimary>
       </div>
       {!loaded && (
