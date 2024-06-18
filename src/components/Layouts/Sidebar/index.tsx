@@ -129,7 +129,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 </h3>
 
                 <ul className="mb-6 flex flex-col gap-1.5">
-                  {AdminSystem()?.map((item: any) => (
+                  {AdminSystem(admin)?.map((item: any) => (
                     <React.Fragment key={item.label}>
                       {renderChildItems([item])}
                     </React.Fragment>
