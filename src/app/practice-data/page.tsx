@@ -2,6 +2,7 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
 import PracticeData from "./PracticeData";
+import Learning from "./Learning";
 
 export const metadata: Metadata = {
   title: "Practice-data - We_sign",
@@ -27,6 +28,7 @@ export default function CollectDataPage() {
     <DefaultLayout>
       <div className="mb-2 text-xl font-bold">Luyện tập ký hiệu</div>
       <PracticeData />
+      {/* <Learning /> */}
     </DefaultLayout>
   );
 }
