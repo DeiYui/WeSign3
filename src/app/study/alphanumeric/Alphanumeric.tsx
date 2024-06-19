@@ -3,7 +3,7 @@ import LearnHome from "@/components/Study/LearnHome";
 import StudyComponent from "@/components/Study/StudyComponent";
 import Learning from "@/model/Learning";
 import { useMutation } from "@tanstack/react-query";
-import { Empty, Image, message } from "antd";
+import { message } from "antd";
 import React, { useEffect, useState } from "react";
 
 export interface letter {

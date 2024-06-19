@@ -1,48 +1,109 @@
-// Define our labelmap
-const labelMap: { [key: number]: { name: string; color: string } } = {
-  1: { name: "Hello", color: "red" },
-  2: { name: "Thank You", color: "yellow" },
-  3: { name: "I Love You", color: "lime" },
-  4: { name: "Yes", color: "blue" },
-  5: { name: "No", color: "purple" },
+// utilities/drawHand.ts
+
+interface FingerJoints {
+  thumb: number[];
+  indexFinger: number[];
+  middleFinger: number[];
+  ringFinger: number[];
+  pinky: number[];
+}
+
+const fingerJoints: FingerJoints = {
+  thumb: [0, 1, 2, 3, 4],
+  indexFinger: [0, 5, 6, 7, 8],
+  middleFinger: [0, 9, 10, 11, 12],
+  ringFinger: [0, 13, 14, 15, 16],
+  pinky: [0, 17, 18, 19, 20],
 };
 
-// Define a drawing function
-export const drawRect = (
-  boxes: number[][],
-  classes: number[],
-  scores: number[],
-  threshold: number,
-  imgWidth: number,
-  imgHeight: number,
+interface Style {
+  [key: number]: { color: string; size: number };
+}
+
+const style: Style = {
+  0: { color: "yellow", size: 15 },
+  1: { color: "gold", size: 6 },
+  2: { color: "green", size: 10 },
+  3: { color: "gold", size: 6 },
+  4: { color: "gold", size: 6 },
+  5: { color: "purple", size: 10 },
+  6: { color: "gold", size: 6 },
+  7: { color: "gold", size: 6 },
+  8: { color: "gold", size: 6 },
+  9: { color: "blue", size: 10 },
+  10: { color: "gold", size: 6 },
+  11: { color: "gold", size: 6 },
+  12: { color: "gold", size: 6 },
+  13: { color: "red", size: 10 },
+  14: { color: "gold", size: 6 },
+  15: { color: "gold", size: 6 },
+  16: { color: "gold", size: 6 },
+  17: { color: "orange", size: 10 },
+  18: { color: "gold", size: 6 },
+  19: { color: "gold", size: 6 },
+  20: { color: "gold", size: 6 },
+};
+
+interface Landmark {
+  0: number;
+  1: number;
+}
+
+interface Prediction {
+  landmarks: Landmark[];
+}
+
+// Drawing function
+export const drawHand = (
+  predictions: Prediction[],
   ctx: CanvasRenderingContext2D,
 ): void => {
-  for (let i = 0; i < boxes.length; i++) {
-    if (boxes[i] && classes[i] && scores[i] > threshold) {
-      // Extract variables
-      const [y, x, height, width] = boxes[i];
-      const text = classes[i];
+  // Check if we have predictions
+  if (predictions.length > 0) {
+    // Loop through each prediction
+    predictions.forEach((prediction) => {
+      // Grab landmarks
+      const landmarks = prediction.landmarks;
 
-      // Set styling
-      ctx.strokeStyle = labelMap[text].color;
-      ctx.lineWidth = 10;
-      ctx.fillStyle = "white";
-      ctx.font = "30px Arial";
+      // Loop through fingers
+      Object.keys(fingerJoints).forEach((finger) => {
+        const joints = fingerJoints[finger as keyof FingerJoints];
+        // Loop through pairs of joints
+        for (let k = 0; k < joints.length - 1; k++) {
+          // Get pairs of joints
+          const firstJointIndex = joints[k];
+          const secondJointIndex = joints[k + 1];
 
-      // DRAW!!
-      ctx.beginPath();
-      ctx.fillText(
-        `${labelMap[text].name} - ${Math.round(scores[i] * 100) / 100}`,
-        x * imgWidth,
-        y * imgHeight - 10,
-      );
-      ctx.rect(
-        x * imgWidth,
-        y * imgHeight,
-        (width * imgWidth) / 2,
-        (height * imgHeight) / 1.5,
-      );
-      ctx.stroke();
-    }
+          // Draw path
+          ctx.beginPath();
+          ctx.moveTo(
+            landmarks[firstJointIndex][0],
+            landmarks[firstJointIndex][1],
+          );
+          ctx.lineTo(
+            landmarks[secondJointIndex][0],
+            landmarks[secondJointIndex][1],
+          );
+          ctx.strokeStyle = "plum";
+          ctx.lineWidth = 4;
+          ctx.stroke();
+        }
+      });
+
+      // Loop through landmarks and draw them
+      for (let i = 0; i < landmarks.length; i++) {
+        // Get x point
+        const x = landmarks[i][0];
+        // Get y point
+        const y = landmarks[i][1];
+        // Start drawing
+        ctx.beginPath();
+        ctx.arc(x, y, style[i].size, 0, 3 * Math.PI);
+
+        // Set line color
+        ctx.fillStyle = style[i].color;
+        ctx.fill();
+      }
+    });
   }
 };

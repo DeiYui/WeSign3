@@ -27,8 +27,8 @@ export default function CollectDataPage() {
   return (
     <DefaultLayout>
       <div className="mb-2 text-xl font-bold">Luyện tập ký hiệu</div>
-      <PracticeData />
-      {/* <Learning /> */}
+      {/* <PracticeData /> */}
+      <Learning />
     </DefaultLayout>
   );
 }
