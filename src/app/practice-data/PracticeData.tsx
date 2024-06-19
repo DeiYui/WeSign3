@@ -1,16 +1,17 @@
 "use client";
 import UploadModel from "@/model/UploadModel";
+import Handsigns from "@/utils/handsigns";
 import { WarningFilled } from "@ant-design/icons";
 import { drawConnectors, drawLandmarks, lerp } from "@mediapipe/drawing_utils";
 import { HAND_CONNECTIONS, Hands, Results, VERSION } from "@mediapipe/hands";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Image, Modal, Spin, Tabs, Tooltip, message } from "antd";
+import * as fp from "fingerpose";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ReactMediaRecorder } from "react-media-recorder-2";
 import Webcam from "react-webcam";
 import { formatTime } from "../collect-data/CollectData";
 import LearningData from "./LearningData";
-import ButtonPrimary from "@/components/UI/Button/ButtonPrimary";
 
 const PracticeData: React.FC = () => {
   const [loaded, setLoaded] = useState(false);
@@ -26,6 +27,7 @@ const PracticeData: React.FC = () => {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+  const [emoji, setEmoji] = useState<string | null>(null);
 
   // Kết quả sau khi xử lý AI
   const [resultContent, setResultContent] = useState<{
@@ -91,13 +93,62 @@ const PracticeData: React.FC = () => {
         canvasRef.current.height,
       );
 
-      if (results.multiHandLandmarks && results.multiHandedness) {
+      if (
+        results.multiHandLandmarks?.length &&
+        results.multiHandedness?.length
+      ) {
         for (
           let index = 0;
           index < results.multiHandLandmarks.length;
           index++
         ) {
           const landmarks = results.multiHandLandmarks[index];
+          const GE = new fp.GestureEstimator([
+            Handsigns.aSign,
+            Handsigns.bSign,
+            Handsigns.cSign,
+            Handsigns.dSign,
+            Handsigns.eSign,
+            Handsigns.fSign,
+            Handsigns.gSign,
+            Handsigns.hSign,
+            Handsigns.iSign,
+            Handsigns.jSign,
+            Handsigns.kSign,
+            Handsigns.lSign,
+            Handsigns.mSign,
+            Handsigns.nSign,
+            Handsigns.oSign,
+            Handsigns.pSign,
+            Handsigns.qSign,
+            Handsigns.rSign,
+            Handsigns.sSign,
+            Handsigns.tSign,
+            Handsigns.uSign,
+            Handsigns.vSign,
+            Handsigns.wSign,
+            Handsigns.xSign,
+            Handsigns.ySign,
+            Handsigns.zSign,
+          ]);
+          const handData: any = results.multiHandLandmarks[0].map((item) => [
+            item.x,
+            item.y,
+            item.z,
+          ]);
+          const gesture = await GE.estimate(handData, 6.5);
+          console.log("gesture.gestures", gesture.gestures);
+
+          if (gesture.gestures && gesture.gestures.length > 0) {
+            const confidence = gesture.gestures.map((p) => p.score);
+            const maxConfidence = confidence.indexOf(
+              Math.max.apply(undefined, confidence),
+            );
+
+            setEmoji(gesture.gestures[maxConfidence].name);
+          } else {
+            setEmoji("");
+          }
 
           drawConnectors(contextRef.current, landmarks, HAND_CONNECTIONS, {
             color: "#00FF00",
@@ -112,6 +163,8 @@ const PracticeData: React.FC = () => {
             },
           });
         }
+      } else {
+        setEmoji("");
       }
 
       contextRef.current.restore();
@@ -245,6 +298,20 @@ const PracticeData: React.FC = () => {
                 height={450}
                 className="absolute left-0 top-0 z-999 object-cover"
               />
+              <div
+                style={{
+                  top: "10%",
+                  position: "absolute",
+                  left: "25%",
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                  textAlign: "center",
+                  zIndex: 999,
+                }}
+                className="text-[50px] text-red"
+              >
+                {emoji}
+              </div>
             </div>
             <div className="flex w-1/2 justify-center gap-x-5">
               kết quả

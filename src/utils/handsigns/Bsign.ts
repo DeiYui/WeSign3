@@ -35,9 +35,8 @@ export const bSign = new GestureDescription("B");
 //   ]
 
 //Thumb
-bSign.addCurl(Finger.Thumb, FingerCurl.HalfCurl, 1.0);
-bSign.addDirection(Finger.Index, FingerDirection.DiagonalUpLeft, 0.7);
-bSign.addDirection(Finger.Index, FingerDirection.DiagonalUpRight, 0.7);
+bSign.addCurl(Finger.Thumb, FingerCurl.FullCurl, 1.0);
+bSign.addDirection(Finger.Thumb, FingerDirection.VerticalUp, 0.7);
 
 //Index
 bSign.addCurl(Finger.Index, FingerCurl.NoCurl, 1);

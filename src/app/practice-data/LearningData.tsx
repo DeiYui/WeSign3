@@ -78,6 +78,7 @@ const LearningData: React.FC = () => {
           Handsigns.ySign,
           Handsigns.zSign,
         ]);
+
         const gesture = await GE.estimate(hand[0].landmarks, 6.5);
         if (gesture.gestures && gesture.gestures.length > 0) {
           const confidence = gesture.gestures.map((p) => p.score);
@@ -152,7 +153,7 @@ const LearningData: React.FC = () => {
             textAlign: "center",
             zIndex: 9,
           }}
-          className="text-[50px]"
+          className="text-[50px] text-red"
         >
           {emoji}
         </div>
