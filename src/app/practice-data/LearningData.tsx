@@ -1,15 +1,16 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
+import Handsigns from "@/utils/handsigns";
+import * as handpose from "@tensorflow-models/handpose";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-backend-webgl";
-import * as handpose from "@tensorflow-models/handpose";
-import Webcam from "react-webcam";
 import * as fp from "fingerpose";
-import { Image } from "antd";
+import React, { useEffect, useRef, useState } from "react";
+import Webcam from "react-webcam";
 import { drawHand } from "./utilities";
-import Handsigns from "@/utils/handsigns";
 
-const Home: React.FC = () => {
+const LearningData: React.FC = () => {
+  const [loaded, setLoaded] = useState(false);
+
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -27,6 +28,8 @@ const Home: React.FC = () => {
   };
 
   const detect = async (net: any) => {
+    setLoaded(true);
+
     if (
       webcamRef.current &&
       webcamRef.current.video &&
@@ -48,8 +51,6 @@ const Home: React.FC = () => {
 
       if (hand.length > 0) {
         const GE = new fp.GestureEstimator([
-          fp.Gestures.VictoryGesture,
-          fp.Gestures.ThumbsUpGesture,
           Handsigns.aSign,
           Handsigns.bSign,
           Handsigns.cSign,
@@ -77,15 +78,16 @@ const Home: React.FC = () => {
           Handsigns.ySign,
           Handsigns.zSign,
         ]);
-        const gesture = await GE.estimate(hand[0].landmarks, 4);
+        const gesture = await GE.estimate(hand[0].landmarks, 6.5);
         if (gesture.gestures && gesture.gestures.length > 0) {
-          const confidence = gesture.gestures.map(
-            (prediction: any) => prediction.confidence,
-          );
+          const confidence = gesture.gestures.map((p) => p.score);
           const maxConfidence = confidence.indexOf(
-            Math.max.apply(null, confidence),
+            Math.max.apply(undefined, confidence),
           );
+
           setEmoji(gesture.gestures[maxConfidence].name);
+        } else {
+          setEmoji("");
         }
       }
 
@@ -132,31 +134,27 @@ const Home: React.FC = () => {
             height: 480,
           }}
         />
-        {emoji !== null ? (
-          <Image
-            src={
-              emoji === "victory"
-                ? "/images/victory.png"
-                : "/images/thumbs_up.png"
-            }
-            alt={emoji}
-            style={{
-              position: "absolute",
-              marginLeft: "auto",
-              marginRight: "auto",
-              left: 400,
-              bottom: 500,
-              right: 0,
-              textAlign: "center",
-              height: 100,
-            }}
-          />
-        ) : (
-          ""
-        )}
+        <div
+          style={{
+            position: "absolute",
+            marginLeft: "auto",
+            marginRight: "auto",
+            textAlign: "center",
+            zIndex: 9,
+          }}
+          className="text-[50px]"
+        >
+          {emoji}
+        </div>
       </header>
+      {!loaded && (
+        <div className="loading absolute inset-0 z-999 flex items-center justify-center bg-gray-2">
+          <div className="spinner h-32 w-32 animate-spin rounded-full border-8 border-t-8 border-t-blue-500"></div>
+          <div className="absolute text-xl text-white">Loading</div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Home;
+export default LearningData;

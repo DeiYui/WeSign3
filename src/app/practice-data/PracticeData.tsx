@@ -1,17 +1,15 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Hands, Results, HAND_CONNECTIONS, VERSION } from "@mediapipe/hands";
-import { drawConnectors, drawLandmarks, lerp } from "@mediapipe/drawing_utils";
-import { ReactMediaRecorder } from "react-media-recorder-2";
-import { Button, Image, Modal, Spin, Tooltip, message } from "antd";
-import { WarningFilled } from "@ant-design/icons";
-import Webcam from "react-webcam";
-import * as fingerpose from "fingerpose";
-import * as fp from "fingerpose";
-import { formatTime } from "../collect-data/CollectData";
-import Handsigns from "@/utils/handsigns";
-import { useMutation } from "@tanstack/react-query";
 import UploadModel from "@/model/UploadModel";
+import { WarningFilled } from "@ant-design/icons";
+import { drawConnectors, drawLandmarks, lerp } from "@mediapipe/drawing_utils";
+import { HAND_CONNECTIONS, Hands, Results, VERSION } from "@mediapipe/hands";
+import { useMutation } from "@tanstack/react-query";
+import { Button, Image, Modal, Spin, Tabs, Tooltip, message } from "antd";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ReactMediaRecorder } from "react-media-recorder-2";
+import Webcam from "react-webcam";
+import { formatTime } from "../collect-data/CollectData";
+import LearningData from "./LearningData";
 
 const PracticeData: React.FC = () => {
   const [loaded, setLoaded] = useState(false);
@@ -27,8 +25,6 @@ const PracticeData: React.FC = () => {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
-
-  const sign = useRef<string | null>(null);
 
   // Kết quả sau khi xử lý AI
   const [resultContent, setResultContent] = useState<{
@@ -93,35 +89,6 @@ const PracticeData: React.FC = () => {
         canvasRef.current.width,
         canvasRef.current.height,
       );
-      const GE = new fp.GestureEstimator([
-        fp.Gestures.ThumbsUpGesture,
-        Handsigns.aSign,
-        Handsigns.bSign,
-        Handsigns.cSign,
-        Handsigns.dSign,
-        Handsigns.eSign,
-        Handsigns.fSign,
-        Handsigns.gSign,
-        Handsigns.hSign,
-        Handsigns.iSign,
-        Handsigns.jSign,
-        Handsigns.kSign,
-        Handsigns.lSign,
-        Handsigns.mSign,
-        Handsigns.nSign,
-        Handsigns.oSign,
-        Handsigns.pSign,
-        Handsigns.qSign,
-        Handsigns.rSign,
-        Handsigns.sSign,
-        Handsigns.tSign,
-        Handsigns.uSign,
-        Handsigns.vSign,
-        Handsigns.wSign,
-        Handsigns.xSign,
-        Handsigns.ySign,
-        Handsigns.zSign,
-      ]);
 
       if (results.multiHandLandmarks && results.multiHandedness) {
         for (
@@ -130,30 +97,6 @@ const PracticeData: React.FC = () => {
           index++
         ) {
           const landmarks = results.multiHandLandmarks[index];
-
-          console.log("landmarks", landmarks);
-
-          const estimatedGestures = await GE.estimate(landmarks, 6.5);
-          console.log("estimatedGestures", estimatedGestures);
-
-          if (
-            estimatedGestures.gestures &&
-            estimatedGestures.gestures.length > 0
-          ) {
-            const confidence = estimatedGestures.gestures.map((p) => p.score);
-            const maxConfidence = confidence.indexOf(
-              Math.max.apply(undefined, confidence),
-            );
-            console.log("maxConfidence", maxConfidence);
-
-            if (
-              estimatedGestures.gestures[maxConfidence].name !== "thumbs_up"
-            ) {
-              sign.current = estimatedGestures.gestures[maxConfidence].name;
-            } else {
-              sign.current = null;
-            }
-          }
 
           drawConnectors(contextRef.current, landmarks, HAND_CONNECTIONS, {
             color: "#00FF00",
@@ -186,15 +129,27 @@ const PracticeData: React.FC = () => {
     setRecordingTimerId(timerId);
   };
 
-  const handleStopRecording = (stopRecording: any) => {
+  const uploadVideo = async (mediaBlobUrl: any) => {
+    const formData = new FormData();
+    const response = await fetch(mediaBlobUrl as any);
+    const blob: any = await response.blob();
+    const metadata = { type: blob.type, lastModified: blob.lastModified };
+    const file = new File([blob], `volunteer_${Date.now()}.mp4`, metadata);
+    formData.append("file", file);
+    return await UploadModel.uploadFile(formData);
+  };
+
+  const handleStopRecording = async (stopRecording: any, mediaBlobUrl: any) => {
     stopRecording();
     clearInterval(recordingTimerId);
     setRecordingTime(0);
-    message.success("Video đã được lưu. Bạn có thể xem lại video");
     setShowModalPreview({
       ...showModalPreview,
       type: "video",
     });
+    const link = await uploadVideo(mediaBlobUrl);
+    setMediaFile(link || "");
+    message.success("Video đã được lưu. Bạn có thể xem lại video");
   };
 
   // Kiểm tra AI
@@ -203,112 +158,122 @@ const PracticeData: React.FC = () => {
     onSuccess: (res) => {
       message.success("Xử lý dữ liệu thành công");
       setResultContent({ content: res.data?.content });
+      setMediaFile("");
     },
   });
 
   return (
     <>
-      <div className="relative flex h-[500px] items-center justify-between overflow-hidden bg-gray-2">
-        <div className="w-1/2">
-          <Webcam
-            className="absolute left-0 top-0 z-999 object-contain"
-            width={600}
-            height={400}
-            ref={webcamRef}
-            audio={false}
-            onUserMedia={handleWebcamReady}
-          />
-          <ReactMediaRecorder
-            video={true}
-            render={({
-              status,
-              startRecording,
-              stopRecording,
-              mediaBlobUrl,
-            }) => (
-              <div className="absolute bottom-0 left-0 z-999 flex gap-4 object-contain">
-                <p>Trạng thái quay video: {status}</p>
-                <Button
-                  onClick={() => handleStartRecording(startRecording)}
-                  disabled={status === "recording"}
-                  icon={
-                    <Tooltip
-                      title="Thời gian tối đa cho mỗi video là 5s."
-                      placement="top"
-                      trigger="hover"
-                      color="#4096ff"
+      <Tabs defaultActiveKey="1">
+        <Tabs.TabPane tab="Luyện tập các ký tự" key="1">
+          <div className="relative flex h-[500px] items-center justify-between overflow-hidden bg-gray-2">
+            <div className="w-1/2">
+              <Webcam
+                className="absolute left-0 top-0 z-999 object-contain"
+                width={600}
+                height={400}
+                ref={webcamRef}
+                audio={false}
+                onUserMedia={handleWebcamReady}
+              />
+              <ReactMediaRecorder
+                video={true}
+                render={({
+                  status,
+                  startRecording,
+                  stopRecording,
+                  mediaBlobUrl,
+                }) => (
+                  <div className="absolute bottom-0 left-0 z-999 flex gap-4 object-contain">
+                    <p>Trạng thái quay video: {status}</p>
+                    <Button
+                      onClick={() => handleStartRecording(startRecording)}
+                      disabled={status === "recording"}
+                      icon={
+                        <Tooltip
+                          title="Thời gian tối đa cho mỗi video là 5s."
+                          placement="top"
+                          trigger="hover"
+                          color="#4096ff"
+                        >
+                          <WarningFilled style={{ color: "#4096ff" }} />
+                        </Tooltip>
+                      }
                     >
-                      <WarningFilled style={{ color: "#4096ff" }} />
-                    </Tooltip>
-                  }
-                >
-                  Bắt đầu quay
-                  {recordingTime !== 0 && (
-                    <p style={{ color: "red" }}>{formatTime(recordingTime)}</p>
-                  )}
-                </Button>
-                <Button
-                  onClick={() => {
-                    handleStopRecording(stopRecording);
-                    setMediaFile(mediaBlobUrl || "");
-                  }}
-                  disabled={status !== "recording"}
-                >
-                  Dừng quay
-                </Button>
-                <Button
-                  disabled={!mediaBlobUrl}
-                  onClick={() => {
-                    if (showModalPreview.type === "image") {
-                      setShowModalPreview({
-                        ...showModalPreview,
-                        open: true,
-                      });
-                    } else {
-                      setShowModalPreview({
-                        ...showModalPreview,
-                        open: true,
-                        preview: mediaBlobUrl,
-                      });
-                    }
-                  }}
-                >
-                  Xem lại file
-                </Button>
-              </div>
-            )}
-          />
+                      Bắt đầu quay
+                      {recordingTime !== 0 && (
+                        <p style={{ color: "red" }}>
+                          {formatTime(recordingTime)}
+                        </p>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        handleStopRecording(stopRecording, mediaBlobUrl);
+                      }}
+                      disabled={status !== "recording"}
+                    >
+                      Dừng quay
+                    </Button>
+                    <Button
+                      disabled={!mediaBlobUrl}
+                      onClick={() => {
+                        if (showModalPreview.type === "image") {
+                          setShowModalPreview({
+                            ...showModalPreview,
+                            open: true,
+                          });
+                        } else {
+                          setShowModalPreview({
+                            ...showModalPreview,
+                            open: true,
+                            preview: mediaBlobUrl,
+                          });
+                        }
+                      }}
+                    >
+                      Xem lại file
+                    </Button>
+                  </div>
+                )}
+              />
 
-          <canvas
-            ref={canvasRef}
-            width={600}
-            height={450}
-            className="absolute left-0 top-0 z-999 object-cover"
-          />
-        </div>
-        <div className="flex w-1/2 justify-center">
-          kết quả
-          <Spin spinning={mutationDetectAI.isPending}>
-            <div className="text-center text-3xl font-bold">
-              {resultContent.content}
+              <canvas
+                ref={canvasRef}
+                width={600}
+                height={450}
+                className="absolute left-0 top-0 z-999 object-cover"
+              />
             </div>
-          </Spin>
-        </div>
-      </div>
-      <div className="mt-4 flex w-full justify-center">
-        <Button
-          className="text-center"
-          onClick={() => mutationDetectAI.mutate({ videoUrl: mediaFile })}
-        >
-          Kiểm tra
-        </Button>
-      </div>
-      {!loaded && (
-        <div className="loading absolute inset-0 flex items-center justify-center bg-gray-2">
-          <div className="spinner h-32 w-32 animate-spin rounded-full border-8 border-t-8 border-t-blue-500"></div>
-          <div className="absolute text-xl text-white">Loading</div>
-        </div>
-      )}
+            <div className="flex w-1/2 justify-center gap-x-5">
+              kết quả
+              <Spin spinning={mutationDetectAI.isPending}>
+                <div className="text-center text-[60px] font-bold">
+                  {resultContent.content}
+                </div>
+              </Spin>
+            </div>
+          </div>
+          <div className="mt-4 flex w-full justify-center">
+            <Button
+              disabled={!mediaFile}
+              className="text-center"
+              onClick={() => mutationDetectAI.mutate({ videoUrl: mediaFile })}
+            >
+              Kiểm tra
+            </Button>
+          </div>
+          {!loaded && (
+            <div className="loading absolute inset-0 flex items-center justify-center bg-gray-2">
+              <div className="spinner h-32 w-32 animate-spin rounded-full border-8 border-t-8 border-t-blue-500"></div>
+              <div className="absolute text-xl text-white">Loading</div>
+            </div>
+          )}
+        </Tabs.TabPane>
+        <Tabs.TabPane tab="Luyện tập theo bảng chữ cái" key="2">
+          <LearningData />
+        </Tabs.TabPane>
+      </Tabs>
 
       {/* Modal xem lại */}
       <Modal
