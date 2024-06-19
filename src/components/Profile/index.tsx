@@ -84,7 +84,9 @@ const Profile = () => {
             <h3 className="mb-1.5 text-2xl font-semibold text-black dark:text-white">
               {user?.name}
             </h3>
-            <p className="font-medium">{user?.address}</p>
+            <p className="font-medium">
+              {user?.address || "Chưa có thông tin"}
+            </p>
 
             <div className="mx-auto mt-4 max-w-[460px]">
               <h4 className="font-semibold text-black dark:text-white">
@@ -109,7 +111,7 @@ const Profile = () => {
                   </p>
                 </div>
                 <p className="text-black dark:text-white">
-                  {user?.phoneNumber}
+                  {user?.phoneNumber || "Chưa có thông tin"}
                 </p>
               </div>
 
@@ -125,7 +127,7 @@ const Profile = () => {
                   </p>
                 </div>
                 <p className="text-black dark:text-white">
-                  {VALUE_GENDER[user?.gender]}
+                  {VALUE_GENDER[user?.gender] || "Chưa có thông tin"}
                 </p>
               </div>
 
@@ -139,7 +141,9 @@ const Profile = () => {
                   </p>
                 </div>
                 <p className="text-black dark:text-white">
-                  {moment(user?.birthDay).format("DD/MM/YYYY")}
+                  {user?.birthDay
+                    ? moment(user?.birthDay).format("DD/MM/YYYY")
+                    : "Chưa có thông tin"}
                 </p>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import http from "@/utils/api/http";
 
-export const API_ROOT = "https://wetalk.ibme.edu.vn";
-
+export const API_ROOT = process.env.NEXT_PUBLIC_API_ROOT;
+export const API_SOCKET = process.env.NEXT_PUBLIC_API_SOCKET;
 export class Base {
   private readonly apiRoot: string | undefined;
   private readonly apiPrefix: string | undefined;

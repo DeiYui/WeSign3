@@ -11,7 +11,7 @@ class UploadModel extends Base {
   // check AI
   checkAI = async (body: any) => {
     const res = await this.apiPostWithoutPrefix(
-      "/ai-service/ai/detection",
+      "/emg-label-tool/ai/detection",
       body,
     );
     return res.data;
@@ -25,6 +25,8 @@ class UploadModel extends Base {
     );
     return res.data;
   };
+
+  // detact
 }
 
 export default new UploadModel("data-collection-service");

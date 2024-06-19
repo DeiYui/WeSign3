@@ -3,13 +3,15 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Hands, Results, HAND_CONNECTIONS, VERSION } from "@mediapipe/hands";
 import { drawConnectors, drawLandmarks, lerp } from "@mediapipe/drawing_utils";
 import { ReactMediaRecorder } from "react-media-recorder-2";
-import { Button, Modal, Tooltip, message } from "antd";
+import { Button, Image, Modal, Spin, Tooltip, message } from "antd";
 import { WarningFilled } from "@ant-design/icons";
 import Webcam from "react-webcam";
 import * as fingerpose from "fingerpose";
 import * as fp from "fingerpose";
 import { formatTime } from "../collect-data/CollectData";
 import Handsigns from "@/utils/handsigns";
+import { useMutation } from "@tanstack/react-query";
+import UploadModel from "@/model/UploadModel";
 
 const PracticeData: React.FC = () => {
   const [loaded, setLoaded] = useState(false);
@@ -21,14 +23,19 @@ const PracticeData: React.FC = () => {
     preview: string | undefined;
     type: string;
   }>({ open: false, preview: "", type: "" });
-
+  const [mediaFile, setMediaFile] = useState("");
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const fingerPoseRef = useRef(
-    new fingerpose.GestureEstimator(Object.values(Handsigns)),
-  );
-  const sign = useRef(null);
+
+  const sign = useRef<string | null>(null);
+
+  // Kết quả sau khi xử lý AI
+  const [resultContent, setResultContent] = useState<{
+    content: string;
+  }>({
+    content: "",
+  });
 
   useEffect(() => {
     const hands = new Hands({
@@ -142,9 +149,9 @@ const PracticeData: React.FC = () => {
             if (
               estimatedGestures.gestures[maxConfidence].name !== "thumbs_up"
             ) {
-              sign.value = estimatedGestures.gestures[maxConfidence].name;
+              sign.current = estimatedGestures.gestures[maxConfidence].name;
             } else {
-              sign.value = null;
+              sign.current = null;
             }
           }
 
@@ -190,6 +197,15 @@ const PracticeData: React.FC = () => {
     });
   };
 
+  // Kiểm tra AI
+  const mutationDetectAI = useMutation({
+    mutationFn: UploadModel.checkAI,
+    onSuccess: (res) => {
+      message.success("Xử lý dữ liệu thành công");
+      setResultContent({ content: res.data?.content });
+    },
+  });
+
   return (
     <>
       <div className="relative flex h-[500px] items-center justify-between overflow-hidden bg-gray-2">
@@ -232,7 +248,10 @@ const PracticeData: React.FC = () => {
                   )}
                 </Button>
                 <Button
-                  onClick={() => handleStopRecording(stopRecording)}
+                  onClick={() => {
+                    handleStopRecording(stopRecording);
+                    setMediaFile(mediaBlobUrl || "");
+                  }}
                   disabled={status !== "recording"}
                 >
                   Dừng quay
@@ -267,10 +286,22 @@ const PracticeData: React.FC = () => {
             className="absolute left-0 top-0 z-999 object-cover"
           />
         </div>
-        <div className="flex w-1/2 justify-center">kết quả</div>
+        <div className="flex w-1/2 justify-center">
+          kết quả
+          <Spin spinning={mutationDetectAI.isPending}>
+            <div className="text-center text-3xl font-bold">
+              {resultContent.content}
+            </div>
+          </Spin>
+        </div>
       </div>
       <div className="mt-4 flex w-full justify-center">
-        <Button className="text-center">Kiểm tra</Button>
+        <Button
+          className="text-center"
+          onClick={() => mutationDetectAI.mutate({ videoUrl: mediaFile })}
+        >
+          Kiểm tra
+        </Button>
       </div>
       {!loaded && (
         <div className="loading absolute inset-0 flex items-center justify-center bg-gray-2">
@@ -292,7 +323,7 @@ const PracticeData: React.FC = () => {
         zIndex={10000}
       >
         {!(showModalPreview.type === "video") ? (
-          <img src={showModalPreview.preview} alt="preview" />
+          <Image preview={false} src={showModalPreview.preview} alt="preview" />
         ) : (
           <video controls src={showModalPreview.preview}></video>
         )}

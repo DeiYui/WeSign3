@@ -73,14 +73,17 @@ const ChatInput = ({
   onKeyDown,
   onBlur,
   onChange,
+  isFetching,
 }: {
   selectedFiles: any;
   setSelectedFiles: any;
   onKeyDown: any;
   onBlur?: any;
   onChange: any;
+  isFetching: any;
 }) => {
   const [message, setMessage] = useState("");
+  const [valueEmoji, setValueEmoji] = useState<string>("");
 
   const handleFileChange = async ({ file }: any) => {
     const formData = new FormData();
@@ -94,9 +97,10 @@ const ChatInput = ({
   };
 
   const handleSendMessage = () => {
-    if (message.trim()) {
+    if (message.trim() && !isFetching) {
       isFunction(onKeyDown) && onKeyDown(message);
       setMessage("");
+      setValueEmoji("");
     }
   };
 
@@ -109,8 +113,12 @@ const ChatInput = ({
 
   const handleChange = (e: any) => {
     if (isFunction(onChange)) {
-      onChange(e.target.value);
-      setMessage(e.target.value);
+      valueEmoji
+        ? onChange(valueEmoji.concat(" ").concat(e.target.value))
+        : onChange(e.target.value);
+      valueEmoji
+        ? setMessage(valueEmoji.concat(" ").concat(e.target.value))
+        : setMessage(e.target.value);
     }
   };
 
@@ -133,10 +141,18 @@ const ChatInput = ({
             isImage={isImage}
           />
           <Input
+            disabled={isFetching}
             suffix={
               <div className="flex items-center gap-3">
                 <Popover
-                  content={<EmojiPicker />}
+                  content={
+                    <EmojiPicker
+                      onEmojiClick={(e) => {
+                        setValueEmoji((prev) => prev.concat(e.emoji));
+                        setMessage(message.concat(e.emoji));
+                      }}
+                    />
+                  }
                   title="Emoji"
                   trigger="click"
                   placement="topRight"

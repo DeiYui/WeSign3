@@ -4,7 +4,6 @@ import { isImage } from "@/components/common/constants";
 import { UserOutlined } from "@ant-design/icons";
 import { Avatar, Image, Modal, Spin } from "antd";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
-import vi from "date-fns/locale/vi";
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 

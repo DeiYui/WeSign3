@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import CardDataStats from "../CardDataStats";
 import { useQuery } from "@tanstack/react-query";
 import Learning from "@/model/Learning";
-import { Select } from "antd";
+import { Select, Spin } from "antd";
 import { useRouter } from "next/navigation";
 import { usePage } from "@/hooks/usePage";
 import Exam from "@/model/Exam";
@@ -20,15 +20,14 @@ const DashboardApp: React.FC = () => {
     totalTopic: number;
     totalVocabulary: number;
     totalVocabularyTopic?: number;
-    totalClasses: number;
   }>({
     topicsId: 0,
     topicName: "",
     totalTopic: 0,
     totalVocabulary: 0,
     totalVocabularyTopic: 0,
-    totalClasses: 0,
   });
+
 
   const {
     topicsId,
@@ -36,27 +35,25 @@ const DashboardApp: React.FC = () => {
     totalVocabulary,
     totalVocabularyTopic,
     topicName,
-    totalClasses,
   } = stateDashboard;
 
   // Danh sách lớp
-  const { data: allCLass } = useQuery({
-    queryKey: ["getListClass"],
+  const { data: totalClasses, isFetching } = useQuery({
+    queryKey: ["getListClassName"],
     queryFn: async () => {
       const res = await Learning.getListClass();
-      setStateDashboard({
-        ...stateDashboard,
-        totalClasses: res?.data?.length,
-      });
-      return res.data;
+      return res.data?.length;
     },
   });
 
   // API lấy danh sách  bài kiểm tra
-  const { total: totalExam } = usePage(["getLstExam"], Exam.getLstExam, {});
+  const { total, refetch } = usePage(["getLstExam"], Exam.getLstExam, {
+    classRoomId: 0,
+    nameSearch: "",
+  });
 
   // Danh sách topic
-  const { data: allTopics } = useQuery({
+  const { data: allTopics, isFetching: isFetchingTopic } = useQuery({
     queryKey: ["getAllTopics"],
     queryFn: async () => {
       const res = await Learning.getAllTopics();
@@ -91,7 +88,7 @@ const DashboardApp: React.FC = () => {
   });
 
   return (
-    <>
+    <Spin spinning={isFetching || isFetchingTopic}>
       <div className="mb-3 flex justify-between text-xl font-semibold uppercase">
         <div className="font-bold ">
           Lớp học & Chủ đề & Từ vựng & Bài kiểm tra{" "}
@@ -107,7 +104,7 @@ const DashboardApp: React.FC = () => {
         <CardDataStats title="Từ vựng" total={`${totalVocabulary}`}>
           <AlphabetIcon size={24} color="#3C50E0" />
         </CardDataStats>
-        <CardDataStats title="Bài kiểm tra" total={`${totalExam}`}>
+        <CardDataStats title="Bài kiểm tra" total={`${total}`}>
           <ExamIcon size={24} color="#3C50E0" />
         </CardDataStats>
       </div>
@@ -196,7 +193,7 @@ const DashboardApp: React.FC = () => {
           </div>
         ) : null}
       </div>
-    </>
+    </Spin>
   );
 };
 

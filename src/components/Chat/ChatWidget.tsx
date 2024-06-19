@@ -67,7 +67,7 @@ const ChatWidget = () => {
             ...val,
           })),
         )
-        .filter((e: Contact) => e.contactId !== user.userId);
+        ?.filter((e: Contact) => e.contactId !== user.userId);
       return flattenedArray;
     },
   });
@@ -137,6 +137,7 @@ const ChatWidget = () => {
         messageType: "TEXT",
         mediaLocation: selectedFiles?.length ? selectedFiles[0] : null,
       });
+      setSelectedFiles([]);
     }
   };
 
@@ -282,6 +283,7 @@ const ChatWidget = () => {
                 sendStopTypingEvent();
               }}
               onChange={handleInputChange}
+              isFetching={isFetchingMessage}
             />
           </div>
         ) : null}

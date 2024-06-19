@@ -7,6 +7,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Button,
   Checkbox,
+  Empty,
   Form,
   Image,
   Modal,
@@ -27,9 +28,17 @@ const ExamDetailPage: React.FC = () => {
   const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
   const [score, setScore] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isDirty, setIsDirty] = useState<boolean>(false);
   const searchParams = useSearchParams();
+  // Làm lại bài kiểm tra
   const isRedo = searchParams.get("redo");
+  // Xem đáp án
+  const [showResultAnswer, setShowResultAnswer] = useState<{
+    open: boolean;
+    lstAnswer: any;
+  }>({
+    open: false,
+    lstAnswer: [],
+  });
 
   const [form] = Form.useForm();
 
@@ -200,12 +209,20 @@ const ExamDetailPage: React.FC = () => {
               ]}
             />
           </div>
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={submitExam}
-            onFieldsChange={() => setIsDirty(true)}
-          >
+          {!isRedo && (
+            <Button
+              className="mb-2"
+              onClick={() =>
+                setShowResultAnswer({
+                  open: true,
+                  lstAnswer: [],
+                })
+              }
+            >
+              Xem đáp án
+            </Button>
+          )}
+          <Form form={form} layout="vertical" onFinish={submitExam}>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {currentQuestions?.map((q: any, index: number) => (
                 <div
@@ -348,7 +365,104 @@ const ExamDetailPage: React.FC = () => {
             <p>Bạn chưa hoàn thành bài kiểm tra, bạn có muốn tiếp tục?</p>
           </Modal>
         </div>
-      ) : null}
+      ) : (
+        <Empty description="Không có câu hỏi nào" />
+      )}
+
+      {/* Modal hiển thị đáp án đúng */}
+      <Modal
+        open={showResultAnswer.open}
+        onCancel={() => {
+          setShowResultAnswer({
+            open: false,
+            lstAnswer: [],
+          });
+        }}
+        footer={
+          <>
+            <Button
+              onClick={() =>
+                setShowResultAnswer({
+                  open: false,
+                  lstAnswer: [],
+                })
+              }
+            >
+              Đóng
+            </Button>
+          </>
+        }
+        maskClosable={false}
+        destroyOnClose
+        width={800}
+      >
+        <div className="w-full p-4">
+          {currentQuestions?.map((q: any, index: number) => (
+            <div
+              key={q.key}
+              className="rounded-md border bg-white p-4 shadow-md"
+            >
+              <div className="text-base">
+                <span className="text-base font-bold">
+                  Câu {`${index + 1}`} :
+                </span>{" "}
+                {q.content}
+              </div>
+
+              {(q.imageLocation || q.videoLocation) && (
+                <div className="mb-4 flex justify-center">
+                  {q.imageLocation && (
+                    <Image
+                      style={{ height: "256px" }}
+                      src={q.imageLocation}
+                      alt="question media"
+                      className="h-64 w-full object-cover"
+                    />
+                  )}
+                  {q.videoLocation && (
+                    <video controls className="h-64 w-full object-cover">
+                      <source src={q.videoLocation} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                </div>
+              )}
+
+              {q.answerResList?.filter(
+                (item: { correct: boolean }) => item.correct,
+              )?.length > 1 ? (
+                <Checkbox.Group
+                  disabled
+                  value={q.answerResList
+                    ?.filter((item: { correct: boolean }) => item.correct)
+                    ?.map((item: { answerId: any }) => item.answerId)}
+                  options={q.answerResList?.map(
+                    (e: { content: any; answerId: any }) => ({
+                      label: e.content,
+                      value: e.answerId,
+                    }),
+                  )}
+                />
+              ) : (
+                <Radio.Group
+                  disabled
+                  value={
+                    q.answerResList?.find(
+                      (item: { correct: boolean }) => item.correct,
+                    )?.answerId
+                  }
+                >
+                  {q.answerResList.map((answer: any) => (
+                    <Radio value={answer.answerId} key={answer.answerId}>
+                      {answer.content}
+                    </Radio>
+                  ))}
+                </Radio.Group>
+              )}
+            </div>
+          ))}
+        </div>
+      </Modal>
     </Spin>
   );
 };
