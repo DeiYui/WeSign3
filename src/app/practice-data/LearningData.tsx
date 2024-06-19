@@ -100,6 +100,16 @@ const LearningData: React.FC = () => {
 
   useEffect(() => {
     runHandpose();
+    return () => {
+      if (
+        webcamRef.current &&
+        webcamRef.current.video &&
+        webcamRef.current.video.srcObject
+      ) {
+        const stream = webcamRef.current.video.srcObject as MediaStream;
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
   }, []);
 
   return (

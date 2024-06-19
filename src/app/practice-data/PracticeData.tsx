@@ -10,6 +10,7 @@ import { ReactMediaRecorder } from "react-media-recorder-2";
 import Webcam from "react-webcam";
 import { formatTime } from "../collect-data/CollectData";
 import LearningData from "./LearningData";
+import ButtonPrimary from "@/components/UI/Button/ButtonPrimary";
 
 const PracticeData: React.FC = () => {
   const [loaded, setLoaded] = useState(false);
@@ -256,6 +257,8 @@ const PracticeData: React.FC = () => {
           </div>
           <div className="mt-4 flex w-full justify-center">
             <Button
+              size="large"
+              type="primary"
               disabled={!mediaFile}
               className="text-center"
               onClick={() => mutationDetectAI.mutate({ videoUrl: mediaFile })}
@@ -264,7 +267,7 @@ const PracticeData: React.FC = () => {
             </Button>
           </div>
           {!loaded && (
-            <div className="loading absolute inset-0 flex items-center justify-center bg-gray-2">
+            <div className="loading absolute inset-0 z-999 flex items-center justify-center bg-gray-2">
               <div className="spinner h-32 w-32 animate-spin rounded-full border-8 border-t-8 border-t-blue-500"></div>
               <div className="absolute text-xl text-white">Loading</div>
             </div>
