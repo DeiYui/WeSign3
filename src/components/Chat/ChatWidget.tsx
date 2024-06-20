@@ -6,7 +6,7 @@ import Conversations from "@/model/Conversations";
 import User from "@/model/User";
 import { RootState } from "@/store";
 import { chatAndCall } from "@/store/slices/chatSlice";
-import { CloseOutlined } from "@ant-design/icons";
+import { CloseOutlined, DoubleLeftOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
 import { Spin, Typography } from "antd";
 import { motion } from "framer-motion";
@@ -159,136 +159,138 @@ const ChatWidget = () => {
   };
 
   return (
-    <div
-      className="fixed bottom-0 right-0 top-0 z-[1000] rounded-md bg-white"
-      style={{ width: chatOpen ? "360px" : "60px" }}
-    >
-      <div className="">
-        {/* Header */}
-        <div className="flex h-20 cursor-pointer items-center justify-between bg-neutral-700 px-4 transition-all">
-          <div
-            className="flex items-center gap-5 text-white"
-            onClick={() => setChatOpen(true)}
-          >
-            <MessageIcon size={36} color={colors.primary600} />
-            {(chatOpen && selectedContact.contactName) || "MY CHAT"}
-          </div>
-          {chatOpen && (
-            <div className="flex gap-2">
-              {selectedContact.contactId ? (
-                <div
-                  className="hover:cursor-pointer"
-                  onClick={() => {
-                    setName({
-                      myUser: user,
-                      remoteUser: userInfo,
-                    });
-                    callUser();
-                  }}
-                >
-                  <CallIcon size={24} color="white" />
-                </div>
-              ) : null}
-              <CloseOutlined
-                style={{ color: "white", fontWeight: "bold" }}
-                onClick={() => {
-                  setChatOpen(false);
-                  setSelectedContact({ ...selectedContact, contactId: 0 });
-                }}
-              />
-            </div>
-          )}
-        </div>
-        {/* content */}
-        <div className="relative flex w-full ">
-          <div
-            className="custom-scrollbar flex h-[700px] w-[60px] shrink-0 flex-col"
-            style={{ borderRight: "1px solid #cccc" }}
-          >
-            {lstConversations &&
-              lstConversations.map((contact) => {
-                return (
-                  <motion.div variants={item} key={contact.contactId}>
-                    <ContactButton
-                      contact={contact}
-                      selectedContactId={selectedContact?.contactId}
-                      onClick={(value) => {
-                        setSelectedContact({
-                          contactId: value.contactId,
-                          contactName: value.contactName,
-                          conversationId: contact.conversationId || 0,
-                        });
-                        setChatOpen(true);
-                        dispatch(
-                          chatAndCall({
-                            contactId: value.contactId,
-                            conversationId: contact.conversationId || 0,
-                          }),
-                        );
-                      }}
-                    />
-                  </motion.div>
-                );
-              })}
-          </div>
-          {/* Message */}
-          {messageList?.length && selectedContact.contactId ? (
+    <>
+      <div
+        className="fixed bottom-0 right-0 top-0 z-[1000] rounded-md bg-white"
+        style={{ width: chatOpen ? "360px" : "60px" }}
+      >
+        <div className="">
+          {/* Header */}
+          <div className="flex h-20 cursor-pointer items-center justify-between bg-neutral-700 px-4 transition-all">
             <div
-              className="custom-scrollbar  w-full  overscroll-contain px-2 pt-4 "
-              style={{
-                height: "calc(100vh - 100px)",
-                paddingBottom: selectedFiles?.length > 0 ? "120px" : "34px",
-                overflowY: "auto",
-              }}
+              className="flex items-center gap-5 text-white"
+              onClick={() => setChatOpen(true)}
             >
-              <Spin spinning={isLoading}>
-                <ContentMessage
-                  messages={messageList}
-                  user={user}
-                  userInfo={userInfo}
-                  isFetching={isFetchingMessage}
-                  isTyping={isTyping}
-                  contactId={selectedContact.contactId}
-                />
-              </Spin>
+              <MessageIcon size={36} color={colors.primary600} />
+              {(chatOpen && selectedContact.contactName) || "MY CHAT"}
             </div>
-          ) : (
-            <div className="flex flex-1 flex-col items-center justify-center">
-              <div className="flex flex-col items-center justify-center">
-                <Image
-                  width={400}
-                  height={400}
-                  alt=""
-                  src="/images/chatBg.png"
+            {chatOpen && (
+              <div className="flex gap-2">
+                {selectedContact.contactId ? (
+                  <div
+                    className="hover:cursor-pointer"
+                    onClick={() => {
+                      setName({
+                        myUser: user,
+                        remoteUser: userInfo,
+                      });
+                      callUser();
+                    }}
+                  >
+                    <CallIcon size={24} color="white" />
+                  </div>
+                ) : null}
+                <CloseOutlined
+                  style={{ color: "white", fontWeight: "bold" }}
+                  onClick={() => {
+                    setChatOpen(false);
+                    setSelectedContact({ ...selectedContact, contactId: 0 });
+                  }}
                 />
               </div>
-              <Typography
-                className="text-bold px-16  pt-10 text-center text-title-sm"
-                color="text.secondary"
-              >
-                Chat cùng WeSign
-              </Typography>
-            </div>
-          )}
-        </div>
-
-        {/* Input */}
-        {selectedContact.contactId ? (
-          <div className="w-full">
-            <ChatInput
-              selectedFiles={selectedFiles}
-              setSelectedFiles={setSelectedFiles}
-              onKeyDown={handleKeyPress}
-              onBlur={() => {
-                sendStopTypingEvent();
-              }}
-              onChange={handleInputChange}
-              isFetching={isFetchingMessage}
-            />
+            )}
           </div>
-        ) : null}
+          {/* content */}
+          <div className="relative flex w-full ">
+            <div
+              className="custom-scrollbar flex h-[700px] w-[60px] shrink-0 flex-col"
+              style={{ borderRight: "1px solid #cccc" }}
+            >
+              {lstConversations &&
+                lstConversations.map((contact) => {
+                  return (
+                    <motion.div variants={item} key={contact.contactId}>
+                      <ContactButton
+                        contact={contact}
+                        selectedContactId={selectedContact?.contactId}
+                        onClick={(value) => {
+                          setSelectedContact({
+                            contactId: value.contactId,
+                            contactName: value.contactName,
+                            conversationId: contact.conversationId || 0,
+                          });
+                          setChatOpen(true);
+                          dispatch(
+                            chatAndCall({
+                              contactId: value.contactId,
+                              conversationId: contact.conversationId || 0,
+                            }),
+                          );
+                        }}
+                      />
+                    </motion.div>
+                  );
+                })}
+            </div>
+            {/* Message */}
+            {messageList?.length && selectedContact.contactId ? (
+              <div
+                className="custom-scrollbar  w-full  overscroll-contain px-2 pt-4 "
+                style={{
+                  height: "calc(100vh - 100px)",
+                  paddingBottom: selectedFiles?.length > 0 ? "120px" : "34px",
+                  overflowY: "auto",
+                }}
+              >
+                <Spin spinning={isLoading}>
+                  <ContentMessage
+                    messages={messageList}
+                    user={user}
+                    userInfo={userInfo}
+                    isFetching={isFetchingMessage}
+                    isTyping={isTyping}
+                    contactId={selectedContact.contactId}
+                  />
+                </Spin>
+              </div>
+            ) : (
+              <div className="flex flex-1 flex-col items-center justify-center">
+                <div className="flex flex-col items-center justify-center">
+                  <Image
+                    width={400}
+                    height={400}
+                    alt=""
+                    src="/images/chatBg.png"
+                  />
+                </div>
+                <Typography
+                  className="text-bold px-16  pt-10 text-center text-title-sm"
+                  color="text.secondary"
+                >
+                  Chat cùng WeSign
+                </Typography>
+              </div>
+            )}
+          </div>
+
+          {/* Input */}
+          {selectedContact.contactId ? (
+            <div className="w-full">
+              <ChatInput
+                selectedFiles={selectedFiles}
+                setSelectedFiles={setSelectedFiles}
+                onKeyDown={handleKeyPress}
+                onBlur={() => {
+                  sendStopTypingEvent();
+                }}
+                onChange={handleInputChange}
+                isFetching={isFetchingMessage}
+              />
+            </div>
+          ) : null}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -17,7 +17,7 @@ export default function DefaultLayout({
   const pathname = usePathname();
 
   const dispatch = useDispatch();
-  const admin = useSelector((state: RootState) => state.admin);
+  const user = useSelector((state: RootState) => state.admin);
 
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
     const savedState = localStorage.getItem("sidebarOpen");
@@ -71,7 +71,7 @@ export default function DefaultLayout({
         </div>
 
         {/* Chat */}
-        {admin && !pathname.includes("/chat") && <ChatWidget />}
+        {user && !pathname.includes("/chat") && <ChatWidget />}
       </div>
     </>
   );
