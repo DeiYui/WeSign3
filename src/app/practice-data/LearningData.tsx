@@ -62,7 +62,7 @@ const LearningData: React.FC = () => {
           );
 
           setEmoji(gesture.gestures[maxConfidence].name);
-          setScoreEmoji(Math.round(gesture.gestures[maxConfidence].score));
+          setScoreEmoji(gesture.gestures[maxConfidence].score);
         } else {
           setEmoji("");
           setScoreEmoji(undefined);
@@ -134,7 +134,7 @@ const LearningData: React.FC = () => {
           }}
           className="text-[50px] text-red"
         >
-          {emoji} - {scoreEmoji ? `${(scoreEmoji / 10) * 100} %` : null}
+          {emoji} - {scoreEmoji ? `${Math.round(scoreEmoji / 10)} ` : null}
         </div>
       </header>
       {!loaded && (
