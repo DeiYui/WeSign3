@@ -62,7 +62,7 @@ const LearningData: React.FC = () => {
           );
 
           setEmoji(gesture.gestures[maxConfidence].name);
-          setScoreEmoji(gesture.gestures[maxConfidence].score);
+          setScoreEmoji(Math.round(gesture.gestures[maxConfidence].score));
         } else {
           setEmoji("");
           setScoreEmoji(undefined);
