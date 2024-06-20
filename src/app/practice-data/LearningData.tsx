@@ -15,6 +15,7 @@ const LearningData: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [emoji, setEmoji] = useState<string | null>(null);
+  const [scoreEmoji, setScoreEmoji] = useState<number | undefined>(undefined);
 
   const runHandpose = async () => {
     // Set the backend to WebGL
@@ -50,36 +51,10 @@ const LearningData: React.FC = () => {
       const hand = await net.estimateHands(video);
 
       if (hand.length > 0) {
-        const GE = new fp.GestureEstimator([
-          Handsigns.aSign,
-          Handsigns.bSign,
-          Handsigns.cSign,
-          Handsigns.dSign,
-          Handsigns.eSign,
-          Handsigns.fSign,
-          Handsigns.gSign,
-          Handsigns.hSign,
-          Handsigns.iSign,
-          Handsigns.jSign,
-          Handsigns.kSign,
-          Handsigns.lSign,
-          Handsigns.mSign,
-          Handsigns.nSign,
-          Handsigns.oSign,
-          Handsigns.pSign,
-          Handsigns.qSign,
-          Handsigns.rSign,
-          Handsigns.sSign,
-          Handsigns.tSign,
-          Handsigns.uSign,
-          Handsigns.vSign,
-          Handsigns.wSign,
-          Handsigns.xSign,
-          Handsigns.ySign,
-          Handsigns.zSign,
-        ]);
+        const handSignsArray = Object.values(Handsigns);
+        const GE = new fp.GestureEstimator(handSignsArray);
 
-        const gesture = await GE.estimate(hand[0].landmarks, 6.5);
+        const gesture = await GE.estimate(hand[0].landmarks, 7);
         if (gesture.gestures && gesture.gestures.length > 0) {
           const confidence = gesture.gestures.map((p) => p.score);
           const maxConfidence = confidence.indexOf(
@@ -87,9 +62,13 @@ const LearningData: React.FC = () => {
           );
 
           setEmoji(gesture.gestures[maxConfidence].name);
+          setScoreEmoji(gesture.gestures[maxConfidence].score);
         } else {
           setEmoji("");
+          setScoreEmoji(undefined);
         }
+      } else {
+        setScoreEmoji(undefined);
       }
 
       const ctx = canvasRef.current?.getContext("2d");
@@ -155,7 +134,7 @@ const LearningData: React.FC = () => {
           }}
           className="text-[50px] text-red"
         >
-          {emoji}
+          {emoji} - {scoreEmoji ? `${(scoreEmoji / 10) * 100} %` : null}
         </div>
       </header>
       {!loaded && (

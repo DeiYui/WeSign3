@@ -12,6 +12,7 @@ import { ReactMediaRecorder } from "react-media-recorder-2";
 import Webcam from "react-webcam";
 import { formatTime } from "../collect-data/CollectData";
 import LearningData from "./LearningData";
+import LeaningTest from "./LeaningTest";
 
 const PracticeData: React.FC = () => {
   const [loaded, setLoaded] = useState(false);
@@ -103,34 +104,8 @@ const PracticeData: React.FC = () => {
           index++
         ) {
           const landmarks = results.multiHandLandmarks[index];
-          const GE = new fp.GestureEstimator([
-            Handsigns.aSign,
-            Handsigns.bSign,
-            Handsigns.cSign,
-            Handsigns.dSign,
-            Handsigns.eSign,
-            Handsigns.fSign,
-            Handsigns.gSign,
-            Handsigns.hSign,
-            Handsigns.iSign,
-            Handsigns.jSign,
-            Handsigns.kSign,
-            Handsigns.lSign,
-            Handsigns.mSign,
-            Handsigns.nSign,
-            Handsigns.oSign,
-            Handsigns.pSign,
-            Handsigns.qSign,
-            Handsigns.rSign,
-            Handsigns.sSign,
-            Handsigns.tSign,
-            Handsigns.uSign,
-            Handsigns.vSign,
-            Handsigns.wSign,
-            Handsigns.xSign,
-            Handsigns.ySign,
-            Handsigns.zSign,
-          ]);
+          const handSignsArray = Object.values(Handsigns);
+          const GE = new fp.GestureEstimator(handSignsArray);
           const handData: any = results.multiHandLandmarks[0].map((item) => [
             item.x,
             item.y,

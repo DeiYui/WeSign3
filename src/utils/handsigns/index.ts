@@ -24,6 +24,10 @@ import { wSign } from "./Wsign";
 import { xSign } from "./Xsign";
 import { ySign } from "./Ysign";
 import { zSign } from "./Zsign";
+import { byeSign } from "./ByeSign";
+import { helloSign } from "./HelloSign";
+import { iLoveYouSign } from "./ILoveYouSign";
+import { thankYouSign } from "./Thankyou";
 
 const Handsigns = {
   aSign,
@@ -52,6 +56,10 @@ const Handsigns = {
   xSign,
   ySign,
   zSign,
+  byeSign,
+  helloSign,
+  iLoveYouSign,
+  thankYouSign,
 };
 
 export default Handsigns;
