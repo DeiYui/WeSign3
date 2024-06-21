@@ -227,7 +227,6 @@ export default function CollectData() {
     mutationFn: Learning.editData,
     onSuccess: () => {
       message.success("Cập nhật thành công");
-      refetch();
     },
   });
 
@@ -421,16 +420,15 @@ export default function CollectData() {
     return file;
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (file: any) => {
     try {
       setIsLoading(true);
-      const formData = new FormData();
       let link = "";
 
       if (showModalPreview.type === "image") {
-        link = await uploadImage(formData);
+        link = await uploadImage(file);
       } else {
-        link = await uploadVideo(formData);
+        link = await uploadVideo(file);
       }
 
       if (link) {
@@ -444,14 +442,16 @@ export default function CollectData() {
     }
   };
 
-  const uploadImage = async (formData: FormData) => {
-    const file = await convertToBlob(showModalPreview.preview as any);
+  const uploadImage = async (link?: any) => {
+    const formData = new FormData();
+    const file = await convertToBlob(link as any);
     formData.append("file", file);
     return await UploadModel.uploadFile(formData);
   };
 
-  const uploadVideo = async (formData: FormData) => {
-    const response = await fetch(showModalPreview.preview as any);
+  const uploadVideo = async (link?: any) => {
+    const formData = new FormData();
+    const response = await fetch(link as any);
     const blob: any = await response.blob();
     const metadata = { type: blob.type, lastModified: blob.lastModified };
     const file = new File(
@@ -476,7 +476,7 @@ export default function CollectData() {
       if (modalVideo.typeModal === "create") {
         await Learning.sendData(body);
       } else {
-        await Learning.editData({
+        mutationEdit.mutate({
           ...body,
           dataCollectionId: filterParams.dataCollectionId,
         });
@@ -490,18 +490,22 @@ export default function CollectData() {
 
   const validateAIResponse = (aiContent: string) => {
     if (
+      aiContent &&
       normalizeString(aiContent) ===
-      normalizeString(modalVideo.vocabularyContent)
+        normalizeString(modalVideo.vocabularyContent)
     ) {
       message.success(
         `Thêm dữ liệu cho ${modalVideo.vocabularyContent} thành công.`,
       );
-    } else {
+    } else if (aiContent) {
       message.error(
         `AI nhận diện dữ liệu không hợp lệ (là ${aiContent}), vui lòng thử lại.`,
       );
+    } else {
+      message.error(`AI nhận diện dữ liệu không hợp lệ`);
     }
     setModalVideo({ ...modalVideo, open: false });
+    refetch();
   };
 
   return (
@@ -742,7 +746,9 @@ export default function CollectData() {
                       >
                         Chụp ảnh
                       </Button>
-                      <Button onClick={handleDownload}>Tải lên</Button>
+                      <Button onClick={() => handleDownload(mediaBlobUrl)}>
+                        Tải lên
+                      </Button>
                       <Button
                         disabled={!mediaBlobUrl}
                         onClick={() => {
