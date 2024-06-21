@@ -424,7 +424,6 @@ export default function CollectData() {
   const handleDownload = async () => {
     try {
       setIsLoading(true);
-
       const formData = new FormData();
       let link = "";
 

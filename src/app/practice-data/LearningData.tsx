@@ -124,6 +124,18 @@ const LearningData: React.FC = () => {
             height: 480,
           }}
         />
+
+        <div
+          id="singmoji"
+          style={{
+            zIndex: 9,
+            position: "fixed",
+            top: "50px",
+            right: "30px",
+          }}
+        ></div>
+
+        <img alt="" height="150px" id="emojimage" />
         <div
           style={{
             position: "absolute",

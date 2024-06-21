@@ -13,6 +13,7 @@ import Webcam from "react-webcam";
 import { formatTime } from "../collect-data/CollectData";
 import LearningData from "./LearningData";
 import LeaningTest from "./LeaningTest";
+import { Signpass } from "../../../public/handimage";
 
 const PracticeData: React.FC = () => {
   const [loaded, setLoaded] = useState(false);
@@ -115,6 +116,10 @@ const PracticeData: React.FC = () => {
           console.log("gesture.gestures", gesture.gestures);
 
           if (gesture.gestures && gesture.gestures.length > 0) {
+            const emojiImage = document.getElementById("emojimage");
+            if (emojiImage) {
+              emojiImage.classList.add("play");
+            }
             const confidence = gesture.gestures.map((p) => p.score);
             const maxConfidence = confidence.indexOf(
               Math.max.apply(undefined, confidence),
@@ -159,13 +164,16 @@ const PracticeData: React.FC = () => {
   };
 
   const uploadVideo = async (mediaBlobUrl: any) => {
-    const formData = new FormData();
-    const response = await fetch(mediaBlobUrl as any);
-    const blob: any = await response.blob();
-    const metadata = { type: blob.type, lastModified: blob.lastModified };
-    const file = new File([blob], `volunteer_${Date.now()}.mp4`, metadata);
-    formData.append("file", file);
-    return await UploadModel.uploadFile(formData);
+    if (mediaBlobUrl) {
+      const formData = new FormData();
+      const response = await fetch(mediaBlobUrl as any);
+      const blob: any = await response.blob();
+      const metadata = { type: blob.type, lastModified: blob.lastModified };
+      const file = new File([blob], `volunteer_${Date.now()}.mp4`, metadata);
+      formData.append("file", file);
+      return await UploadModel.uploadFile(formData);
+    }
+    return;
   };
 
   const handleStopRecording = async (stopRecording: any, mediaBlobUrl: any) => {

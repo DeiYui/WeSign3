@@ -10,7 +10,7 @@ import Handsigns from "@/utils/handsigns";
 import { drawHand } from "./utilities";
 
 // Ensure Signpass is imported or defined
-import { Signpass, Signimage } from "@/utils/handimage";
+import { Signpass, Signimage } from "../../../public/handimage";
 
 const { Title, Text } = Typography;
 const { Header, Content } = Layout;
@@ -91,18 +91,19 @@ export default function LeaningTest() {
           estimatedGestures.gestures.length > 0
         ) {
           const confidence = estimatedGestures.gestures.map(
-            (p: any) => p.confidence,
+            (p: any) => p.score,
           );
           const maxConfidence = confidence.indexOf(
             Math.max.apply(undefined, confidence),
           );
 
           if (
-            estimatedGestures.gestures[maxConfidence].name === "thumbs_up" &&
+            estimatedGestures.gestures[maxConfidence].name !== "thumbs_up" &&
             gamestate !== "played"
           ) {
             _signList();
             gamestate = "played";
+
             const emojiImage = document.getElementById("emojimage");
             if (emojiImage) {
               emojiImage.classList.add("play");
@@ -126,6 +127,7 @@ export default function LeaningTest() {
 
             const emojiImage = document.getElementById("emojimage");
             if (emojiImage && signList[currentSign].src.src) {
+
               emojiImage.setAttribute("src", signList[currentSign].src.src);
               if (
                 signList[currentSign].alt ===
@@ -231,7 +233,7 @@ export default function LeaningTest() {
               }}
             ></div>
 
-            <Image alt="" preview={false} height="150px" id="emojimage" />
+            <img alt="" height="150px" id="emojimage" />
           </Col>
         </Row>
 
