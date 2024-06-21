@@ -426,7 +426,7 @@ export default function CollectData() {
       let link = "";
 
       if (showModalPreview.type === "image") {
-        link = await uploadImage(file);
+        link = await uploadImage();
       } else {
         link = await uploadVideo(file);
       }
@@ -442,9 +442,9 @@ export default function CollectData() {
     }
   };
 
-  const uploadImage = async (link?: any) => {
+  const uploadImage = async () => {
     const formData = new FormData();
-    const file = await convertToBlob(link as any);
+    const file = await convertToBlob(showModalPreview.preview as any);
     formData.append("file", file);
     return await UploadModel.uploadFile(formData);
   };
@@ -558,6 +558,11 @@ export default function CollectData() {
         open={modalVideo?.open}
         onCancel={() => {
           setModalVideo({ ...modalVideo, open: false });
+          setShowModalPreview({
+            ...showModalPreview,
+            open: false,
+            preview: "",
+          });
           setFilterParams({
             page: 1,
             size: 999999,
@@ -750,7 +755,7 @@ export default function CollectData() {
                         Tải lên
                       </Button>
                       <Button
-                        disabled={!mediaBlobUrl}
+                        disabled={!mediaBlobUrl && !showModalPreview.preview}
                         onClick={() => {
                           if (showModalPreview.type === "image") {
                             setShowModalPreview({
