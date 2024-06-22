@@ -12,8 +12,6 @@ import { ReactMediaRecorder } from "react-media-recorder-2";
 import Webcam from "react-webcam";
 import { formatTime } from "../collect-data/CollectData";
 import LearningData from "./LearningData";
-import LeaningTest from "./LeaningTest";
-import { Signpass } from "../../../public/handimage";
 
 const PracticeData: React.FC = () => {
   const [loaded, setLoaded] = useState(false);
@@ -112,23 +110,23 @@ const PracticeData: React.FC = () => {
             item.y,
             item.z,
           ]);
-          const gesture = await GE.estimate(handData, 6.5);
-          console.log("gesture.gestures", gesture.gestures);
+          // const gesture = await GE.estimate(handData, 6.5);
+          // console.log("gesture.gestures", gesture.gestures);
 
-          if (gesture.gestures && gesture.gestures.length > 0) {
-            const emojiImage = document.getElementById("emojimage");
-            if (emojiImage) {
-              emojiImage.classList.add("play");
-            }
-            const confidence = gesture.gestures.map((p) => p.score);
-            const maxConfidence = confidence.indexOf(
-              Math.max.apply(undefined, confidence),
-            );
+          // if (gesture.gestures && gesture.gestures.length > 0) {
+          //   const emojiImage = document.getElementById("emojimage");
+          //   if (emojiImage) {
+          //     emojiImage.classList.add("play");
+          //   }
+          //   const confidence = gesture.gestures.map((p) => p.score);
+          //   const maxConfidence = confidence.indexOf(
+          //     Math.max.apply(undefined, confidence),
+          //   );
 
-            setEmoji(gesture.gestures[maxConfidence].name);
-          } else {
-            setEmoji("");
-          }
+          //   setEmoji(gesture.gestures[maxConfidence].name);
+          // } else {
+          //   setEmoji("");
+          // }
 
           drawConnectors(contextRef.current, landmarks, HAND_CONNECTIONS, {
             color: "#00FF00",
@@ -164,16 +162,13 @@ const PracticeData: React.FC = () => {
   };
 
   const uploadVideo = async (mediaBlobUrl: any) => {
-    if (mediaBlobUrl) {
-      const formData = new FormData();
-      const response = await fetch(mediaBlobUrl as any);
-      const blob: any = await response.blob();
-      const metadata = { type: blob.type, lastModified: blob.lastModified };
-      const file = new File([blob], `volunteer_${Date.now()}.mp4`, metadata);
-      formData.append("file", file);
-      return await UploadModel.uploadFile(formData);
-    }
-    return;
+    const formData = new FormData();
+    const response = await fetch(mediaBlobUrl as any);
+    const blob: any = await response.blob();
+    const metadata = { type: blob.type, lastModified: blob.lastModified };
+    const file = new File([blob], `volunteer_${Date.now()}.mp4`, metadata);
+    formData.append("file", file);
+    return await UploadModel.uploadFile(formData);
   };
 
   const handleStopRecording = async (stopRecording: any, mediaBlobUrl: any) => {
@@ -184,8 +179,6 @@ const PracticeData: React.FC = () => {
       ...showModalPreview,
       type: "video",
     });
-    const link = await uploadVideo(mediaBlobUrl);
-    setMediaFile(link || "");
     message.success("Video đã được lưu. Bạn có thể xem lại video");
   };
 
@@ -203,7 +196,7 @@ const PracticeData: React.FC = () => {
     <>
       <Tabs defaultActiveKey="1">
         <Tabs.TabPane tab="Luyện tập các ký tự" key="1">
-          <div className="relative flex h-[500px] items-center justify-between overflow-hidden bg-gray-2">
+          <div className="relative flex h-[500px] items-center justify-between overflow-hidden bg-gray-2 ">
             <div className="w-1/2">
               <Webcam
                 className="absolute left-0 top-0 z-999 object-contain"
@@ -224,6 +217,7 @@ const PracticeData: React.FC = () => {
                   <div className="absolute bottom-0 left-0 z-999 flex gap-4 object-contain">
                     <p>Trạng thái quay video: {status}</p>
                     <Button
+                      className="flex  items-center gap-3"
                       onClick={() => handleStartRecording(startRecording)}
                       disabled={status === "recording"}
                       icon={
@@ -238,8 +232,11 @@ const PracticeData: React.FC = () => {
                       }
                     >
                       Bắt đầu quay
-                      {recordingTime !== 0 && (
-                        <p style={{ color: "red" }}>
+                      {recordingTime !== 0 && status === "recording" && (
+                        <p
+                          className="text-sm text-black"
+                          style={{ color: "red" }}
+                        >
                           {formatTime(recordingTime)}
                         </p>
                       )}
@@ -271,6 +268,18 @@ const PracticeData: React.FC = () => {
                     >
                       Xem lại file
                     </Button>
+                    <Button
+                      size="large"
+                      type="primary"
+                      disabled={!mediaBlobUrl}
+                      className="text-center"
+                      onClick={async () => {
+                        const link = await uploadVideo(mediaBlobUrl);
+                        mutationDetectAI.mutate({ videoUrl: link });
+                      }}
+                    >
+                      Kiểm tra
+                    </Button>
                   </div>
                 )}
               />
@@ -279,7 +288,7 @@ const PracticeData: React.FC = () => {
                 ref={canvasRef}
                 width={600}
                 height={450}
-                className="absolute left-0 top-0 z-999 object-cover"
+                className="absolute left-0 top-0 z-999 object-cover pb-3"
               />
               <div
                 style={{
@@ -305,17 +314,7 @@ const PracticeData: React.FC = () => {
               </Spin>
             </div>
           </div>
-          <div className="mt-4 flex w-full justify-center">
-            <Button
-              size="large"
-              type="primary"
-              disabled={!mediaFile}
-              className="text-center"
-              onClick={() => mutationDetectAI.mutate({ videoUrl: mediaFile })}
-            >
-              Kiểm tra
-            </Button>
-          </div>
+
           {!loaded && (
             <div className="loading absolute inset-0 z-999 flex items-center justify-center bg-gray-2">
               <div className="spinner h-32 w-32 animate-spin rounded-full border-8 border-t-8 border-t-blue-500"></div>

@@ -10,8 +10,8 @@ import {
 export const bSign = new GestureDescription("B");
 
 // Thumb
-bSign.addCurl(Finger.Thumb, FingerCurl.NoCurl, 1.0);
-bSign.addDirection(Finger.Thumb, FingerDirection.VerticalUp, 1.0);
+bSign.addCurl(Finger.Thumb, FingerCurl.FullCurl, 1.0);
+bSign.addDirection(Finger.Thumb, FingerDirection.HorizontalRight, 1.0);
 
 // Index
 bSign.addCurl(Finger.Index, FingerCurl.NoCurl, 1.0);

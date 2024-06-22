@@ -159,9 +159,7 @@ const ExamListPage: React.FC = () => {
       render: (text: string, record: any) => (
         <div
           className="hover:cursor-pointer"
-          onClick={() =>
-            record?.finish && router.push(`/exam/${record?.examId}`)
-          }
+          onClick={() => router.push(`/exam/${record?.examId}`)}
         >
           <div className="text-blue-500">{text}</div>
         </div>

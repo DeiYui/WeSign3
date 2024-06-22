@@ -54,7 +54,7 @@ const LearningData: React.FC = () => {
         const handSignsArray = Object.values(Handsigns);
         const GE = new fp.GestureEstimator(handSignsArray);
 
-        const gesture = await GE.estimate(hand[0].landmarks, 7);
+        const gesture = await GE.estimate(hand[0].landmarks, 6.5);
         if (gesture.gestures && gesture.gestures.length > 0) {
           const confidence = gesture.gestures.map((p) => p.score);
           const maxConfidence = confidence.indexOf(
@@ -146,7 +146,7 @@ const LearningData: React.FC = () => {
           }}
           className="text-[50px] text-red"
         >
-          {emoji} - {scoreEmoji ? `${Math.round(scoreEmoji / 10)} ` : null}
+          {emoji} {scoreEmoji ? `- ${Math.round(scoreEmoji / 10)} ` : null}
         </div>
       </header>
       {!loaded && (
