@@ -106,7 +106,7 @@ export const AdminSystem = (admin: any) => {
               key: "/approve-request/data-collect",
               label: "Dữ liệu thu thập",
               path: "/approve-request/data-collect",
-              hidden: false,
+              hidden: !(admin?.role === "ADMIN"),
               icon: <DotIcon color="white" size={20} />,
             },
             {
@@ -117,7 +117,7 @@ export const AdminSystem = (admin: any) => {
               icon: <DotIcon color="white" size={20} />,
             },
           ],
-          hidden: false,
+          hidden: !(admin?.role === "ADMIN"),
         },
       ]
     : [];
