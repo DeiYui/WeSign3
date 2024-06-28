@@ -68,17 +68,16 @@ const DropdownUser = ({ admin }: { admin: User }) => {
           setIsShowModalChangePass(false);
         }, 500);
       } catch (error) {
-        console.log(error);
         message.error("Đã xảy ra lỗi, vui lòng thử lại");
       }
     }
   };
 
   const handleLogout = () => {
+    router.push("/");
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
-    router.push("/");
     dispatch(logout());
   };
 

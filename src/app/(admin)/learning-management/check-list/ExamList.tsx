@@ -123,11 +123,6 @@ const ExamListPage = ({ isPrivate }: any) => {
       title: "Tên bài kiểm tra",
       dataIndex: "name",
       key: "name",
-      render: (text: string, record: Exam) => (
-        <div onClick={() => router.push(`/exam/${record.key}`)}>
-          <a className="text-blue-500">{text}</a>
-        </div>
-      ),
     },
     {
       title: "Số câu hỏi",
@@ -141,15 +136,22 @@ const ExamListPage = ({ isPrivate }: any) => {
       align: "center",
       render: (value: number, record: any) => {
         const items = [
-          {
-            key: "1",
-            label: (
-              <div className="flex items-center gap-x-3 py-[3px]">
-                <EditFilled />
-                Chỉnh sửa
-              </div>
-            ),
-          },
+          // {
+          //   key: "1",
+          //   label: (
+          //     <div
+          //       className="flex items-center gap-x-3 py-[3px]"
+          //       onClick={() =>
+          //         router.push(
+          //           `/learning-management/check-list/create-edit/?id=${value}`,
+          //         )
+          //       }
+          //     >
+          //       <EditFilled />
+          //       Chỉnh sửa
+          //     </div>
+          //   ),
+          // },
           {
             key: "2",
             label: (

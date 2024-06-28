@@ -31,7 +31,6 @@ interface FriendProps {
 
 const SearchInput: React.FC = () => {
   const user: User = useSelector((state: RootState) => state.admin);
-  console.log("user", user);
 
   const [results, setResults] = useState<FriendProps[]>([]);
   const [params, setParams] = useState<{

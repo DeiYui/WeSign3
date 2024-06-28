@@ -22,7 +22,6 @@ const LearningData: React.FC = () => {
     await tf.setBackend("webgl");
     await tf.ready();
     const net = await handpose.load();
-    console.log("Handpose model loaded.");
     setInterval(() => {
       detect(net);
     }, 10);

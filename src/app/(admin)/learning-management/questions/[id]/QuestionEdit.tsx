@@ -46,6 +46,7 @@ const convertDataToFormValues = (data: any) => {
       data.answerResList?.filter((item: any) => item.correct)?.length > 1
         ? "MULTIPLE_ANSWERS"
         : "ONE_ANSWER",
+    file: data?.imageLocation || data?.videoLocation,
     ...data,
   };
   return questions;
@@ -112,9 +113,23 @@ const QuestionEdit: React.FC = () => {
         <Form
           form={form}
           onFinish={(value) => {
-            mutationEdit.mutate({
+            const req = {
               ...value,
-              updateAnswerReqs: value?.answerResList,
+              imageLocation: value.file
+                ? isImage(value.file)
+                  ? value.file
+                  : ""
+                : value.imageLocation,
+              videoLocation: value.file
+                ? !isImage(value.file)
+                  ? value.file
+                  : ""
+                : value.videoLocation,
+            };
+            delete req.file;
+            mutationEdit.mutate({
+              ...req,
+              updateAnswerReqs: req?.answerResList,
             });
           }}
           layout="vertical"
@@ -187,6 +202,7 @@ const QuestionEdit: React.FC = () => {
                 setOpenChooseVideo={setOpenChooseVideo}
                 file={imageLocation || videoLocation}
                 onChange={(value: any) => {
+                  form.setFieldValue("file", "");
                   if (isImage(value)) {
                     form.setFieldValue("imageLocation", value);
                   } else {
@@ -203,10 +219,20 @@ const QuestionEdit: React.FC = () => {
                 </div>
               </QuestionModal>
             )}
-            {typeFile === "NOT_EXISTED" && <MediaUpload />}
           </div>
-          <Form.Item name="imageLocation" hidden={!imageLocation}>
-            {imageLocation && (
+          <Form.Item
+            name="file"
+            className="mb-0 mt-3"
+            hidden={!(typeFile === "NOT_EXISTED")}
+          >
+            {typeFile === "NOT_EXISTED" && <MediaUpload />}
+          </Form.Item>
+          <Form.Item
+            name="imageLocation"
+            hidden={!imageLocation}
+            className="mb-0"
+          >
+            {imageLocation && typeFile === "EXISTED" && (
               <Image
                 preview={false}
                 alt="example"
@@ -219,8 +245,12 @@ const QuestionEdit: React.FC = () => {
               />
             )}
           </Form.Item>
-          <Form.Item name="videoLocation" hidden={!videoLocation}>
-            {videoLocation && (
+          <Form.Item
+            name="videoLocation"
+            hidden={!videoLocation}
+            className="mb-0"
+          >
+            {videoLocation && typeFile === "EXISTED" && (
               <video controls style={{ width: 200, height: 200 }}>
                 <source src={videoLocation} type="video/mp4" />
               </video>

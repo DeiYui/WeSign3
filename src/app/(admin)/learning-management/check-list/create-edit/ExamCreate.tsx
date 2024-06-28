@@ -53,7 +53,7 @@ const CreateAndEditExamPage: React.FC = () => {
   const questionsPerPage = 10;
   const searchParams = useSearchParams();
   const isPrivate = searchParams.get("isPrivate");
-
+  const id = searchParams.get("id");
   // list câu hỏi
   const lstQuestions = Form.useWatch("lstQuestions", form);
 
@@ -84,6 +84,17 @@ const CreateAndEditExamPage: React.FC = () => {
       }));
     },
     enabled: !!isPrivate,
+  });
+
+  // chi tiết bài kiểm tra
+  const { data: detailExam, refetch } = useQuery({
+    queryKey: ["detailExamsForUser", id],
+    queryFn: async () => {
+      const res = await Exam.detailExamsForUser(Number(id));
+      form.setFieldsValue(res?.data);
+      return res?.data;
+    },
+    enabled: !!id,
   });
 
   // Dánh sách lớp
