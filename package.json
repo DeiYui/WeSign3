@@ -49,6 +49,7 @@
     "dotenv": "^16.4.5",
     "emoji-picker-react": "^4.9.2",
     "fingerpose": "^0.1.0",
+    "firebase-tools": "^13.11.4",
     "flatpickr": "^4.6.13",
     "framer-motion": "^11.2.4",
     "husky": "^9.0.11",

@@ -1,160 +1,175 @@
 "use client";
 import Handsigns from "@/utils/handsigns";
-import * as handpose from "@tensorflow-models/handpose";
-import * as tf from "@tensorflow/tfjs";
-import "@tensorflow/tfjs-backend-webgl";
+import { drawConnectors, drawLandmarks, lerp } from "@mediapipe/drawing_utils";
+import { HAND_CONNECTIONS, Hands, Results, VERSION } from "@mediapipe/hands";
 import * as fp from "fingerpose";
-import React, { useEffect, useRef, useState } from "react";
+import { FilesetResolver, GestureRecognizer } from "@mediapipe/tasks-vision";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
-import { drawHand } from "./utilities";
 
 const LearningData: React.FC = () => {
   const [loaded, setLoaded] = useState(false);
-
+  const [webcamReady, setWebcamReady] = useState(false);
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
+  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const [emoji, setEmoji] = useState<string | null>(null);
-  const [scoreEmoji, setScoreEmoji] = useState<number | undefined>(undefined);
 
-  const runHandpose = async () => {
-    // Set the backend to WebGL
-    await tf.setBackend("webgl");
-    await tf.ready();
-    const net = await handpose.load();
-    setInterval(() => {
-      detect(net);
-    }, 10);
-  };
+  useEffect(() => {
+    const hands = new Hands({
+      locateFile: (file: any) =>
+        `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VERSION}/${file}`,
+    });
 
-  const detect = async (net: any) => {
-    setLoaded(true);
+    hands.setOptions({
+      maxNumHands: 2,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
 
-    if (
-      webcamRef.current &&
-      webcamRef.current.video &&
-      webcamRef.current.video.readyState === 4
-    ) {
-      const video = webcamRef.current.video;
-      const videoWidth = video.videoWidth;
-      const videoHeight = video.videoHeight;
+    hands.onResults(onResults);
 
-      webcamRef.current.video.width = videoWidth;
-      webcamRef.current.video.height = videoHeight;
-
-      if (canvasRef.current) {
-        canvasRef.current.width = videoWidth;
-        canvasRef.current.height = videoHeight;
-      }
-
-      const hand = await net.estimateHands(video);
-
-      if (hand.length > 0) {
-        const handSignsArray = Object.values(Handsigns);
-        const GE = new fp.GestureEstimator(handSignsArray);
-
-        const gesture = await GE.estimate(hand[0].landmarks, 6.5);
-        if (gesture.gestures && gesture.gestures.length > 0) {
-          const confidence = gesture.gestures.map((p) => p.score);
-          const maxConfidence = confidence.indexOf(
-            Math.max.apply(undefined, confidence),
-          );
-
-          setEmoji(gesture.gestures[maxConfidence].name);
-          setScoreEmoji(gesture.gestures[maxConfidence].score);
+    const sendToMediaPipe = async () => {
+      if (webcamRef.current && webcamRef.current.video && webcamReady) {
+        if (!webcamRef.current.video.videoWidth) {
+          requestAnimationFrame(sendToMediaPipe);
         } else {
-          setEmoji("");
-          setScoreEmoji(undefined);
+          await hands.send({ image: webcamRef.current.video });
+          requestAnimationFrame(sendToMediaPipe);
+        }
+      }
+    };
+
+    if (webcamReady) {
+      contextRef.current = canvasRef.current?.getContext("2d") || null;
+      sendToMediaPipe();
+    }
+
+    return () => {
+      if (hands) {
+        hands.close();
+      }
+    };
+  }, [webcamReady]);
+
+  const onResults = async (results: Results) => {
+    if (canvasRef.current && contextRef.current) {
+      setLoaded(true);
+
+      contextRef.current.save();
+      contextRef.current.clearRect(
+        0,
+        0,
+        canvasRef.current.width,
+        canvasRef.current.height,
+      );
+      contextRef.current.drawImage(
+        results.image,
+        0,
+        0,
+        canvasRef.current.width,
+        canvasRef.current.height,
+      );
+
+      if (
+        results.multiHandLandmarks?.length &&
+        results.multiHandedness?.length
+      ) {
+        for (
+          let index = 0;
+          index < results.multiHandLandmarks.length;
+          index++
+        ) {
+          const landmarks = results.multiHandLandmarks[index];
+          const handSignsArray = Object.values(Handsigns);
+          const GE = new fp.GestureEstimator(handSignsArray);
+          const handData: any = results.multiHandLandmarks[0].map((item) => [
+            item.x,
+            item.y,
+            item.z,
+          ]);
+          const gesture = await GE.estimate(handData, 8);
+
+          if (gesture.gestures && gesture.gestures.length > 0) {
+            const confidence = gesture.gestures.map((p) => p.score);
+            const maxConfidence = confidence.indexOf(
+              Math.max.apply(undefined, confidence),
+            );
+
+            setEmoji(gesture.gestures[maxConfidence].name);
+          } else {
+            setEmoji("");
+          }
+
+          drawConnectors(contextRef.current, landmarks, HAND_CONNECTIONS, {
+            color: "#00FF00",
+            lineWidth: 5,
+          });
+          drawLandmarks(contextRef.current, landmarks, {
+            color: "#FF0000",
+            fillColor: "#FF0000",
+            lineWidth: 2,
+            radius: (data: any) => {
+              return lerp(data.z || 0, -0.15, 0.1, 10, 1);
+            },
+          });
         }
       } else {
-        setScoreEmoji(undefined);
+        setEmoji("");
       }
 
-      const ctx = canvasRef.current?.getContext("2d");
-      if (ctx) {
-        drawHand(hand, ctx);
-      }
+      contextRef.current.restore();
     }
   };
 
-  useEffect(() => {
-    runHandpose();
-    return () => {
-      if (
-        webcamRef.current &&
-        webcamRef.current.video &&
-        webcamRef.current.video.srcObject
-      ) {
-        const stream = webcamRef.current.video.srcObject as MediaStream;
-        stream.getTracks().forEach((track) => track.stop());
-      }
-    };
+  const handleWebcamReady = useCallback(() => {
+    setWebcamReady(true);
   }, []);
 
   return (
-    <div className="text-center">
-      <header className="flex min-h-screen flex-col items-center justify-center bg-[#282c34] text-[calc(10px_+_2vmin)] text-white">
-        <Webcam
-          ref={webcamRef}
-          style={{
-            position: "absolute",
-            marginLeft: "auto",
-            marginRight: "auto",
-            left: 0,
-            right: 0,
-            textAlign: "center",
-            zIndex: 9,
-            width: 640,
-            height: 480,
-          }}
-        />
+    <>
+      <div className="relative flex h-[500px] items-center justify-between overflow-hidden bg-gray-2 ">
+        <div className="w-full">
+          <Webcam
+            className="absolute left-0 top-0 z-999 object-contain"
+            width={600}
+            height={400}
+            ref={webcamRef}
+            audio={false}
+            onUserMedia={handleWebcamReady}
+          />
 
-        <canvas
-          ref={canvasRef}
-          style={{
-            position: "absolute",
-            marginLeft: "auto",
-            marginRight: "auto",
-            left: 0,
-            right: 0,
-            textAlign: "center",
-            zIndex: 9,
-            width: 640,
-            height: 480,
-          }}
-        />
-
-        <div
-          id="singmoji"
-          style={{
-            zIndex: 9,
-            position: "fixed",
-            top: "50px",
-            right: "30px",
-          }}
-        ></div>
-
-        <img alt="" height="150px" id="emojimage" />
-        <div
-          style={{
-            position: "absolute",
-            marginLeft: "auto",
-            marginRight: "auto",
-            textAlign: "center",
-            zIndex: 9,
-          }}
-          className="text-[50px] text-red"
-        >
-          {emoji} {scoreEmoji ? `- ${Math.round(scoreEmoji / 10)} ` : null}
+          <canvas
+            ref={canvasRef}
+            width={600}
+            height={450}
+            className="absolute left-0 top-0 z-999 object-cover pb-3"
+          />
+          <div
+            style={{
+              top: "10%",
+              position: "absolute",
+              left: "25%",
+              marginLeft: "auto",
+              marginRight: "auto",
+              textAlign: "center",
+              zIndex: 999,
+            }}
+            className="text-[50px] text-red"
+          >
+            {emoji}
+          </div>
         </div>
-      </header>
+      </div>
+
       {!loaded && (
         <div className="loading absolute inset-0 z-999 flex items-center justify-center bg-gray-2">
           <div className="spinner h-32 w-32 animate-spin rounded-full border-8 border-t-8 border-t-blue-500"></div>
           <div className="absolute text-xl text-white">Loading</div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

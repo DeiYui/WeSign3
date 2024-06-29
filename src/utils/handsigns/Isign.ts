@@ -1,6 +1,11 @@
-import {Finger, FingerCurl, FingerDirection, GestureDescription} from 'fingerpose';
+import {
+  Finger,
+  FingerCurl,
+  FingerDirection,
+  GestureDescription,
+} from "fingerpose";
 
-export const iSign = new GestureDescription('I');
+export const iSign = new GestureDescription("I");
 // [
 //     [
 //       "Thumb",
@@ -30,22 +35,11 @@ export const iSign = new GestureDescription('I');
 //   ]
 
 //Thumb
-iSign.addCurl(Finger.Thumb, FingerCurl.HalfCurl, 1.0);
-iSign.addDirection(Finger.Index, FingerDirection.DiagonalUpLeft, 0.70);
+iSign.addCurl(Finger.Pinky, FingerCurl.NoCurl, 1.0);
+iSign.addDirection(Finger.Pinky, FingerDirection.VerticalUp, 1.0);
 
-//Index
-iSign.addCurl(Finger.Index, FingerCurl.FullCurl, 1);
-iSign.addDirection(Finger.Index, FingerDirection.VerticalUp, 0.70);
-
-//Middle
-iSign.addCurl(Finger.Middle, FingerCurl.FullCurl, 1);
-iSign.addDirection(Finger.Middle, FingerDirection.VerticalUp, 0.70);
-
-//Ring
-iSign.addCurl(Finger.Ring, FingerCurl.FullCurl, 1);
-iSign.addDirection(Finger.Ring, FingerDirection.VerticalUp, 0.70);
-
-//Pinky
-iSign.addCurl(Finger.Pinky, FingerCurl.NoCurl, 1);
-iSign.addDirection(Finger.Pinky, FingerDirection.VerticalUp, 0.70);
-
+for (let finger of [Finger.Thumb, Finger.Index, Finger.Middle, Finger.Ring]) {
+  iSign.addCurl(finger, FingerCurl.FullCurl, 1.0);
+  iSign.addDirection(finger, FingerDirection.HorizontalLeft, 0.75);
+  iSign.addDirection(finger, FingerDirection.HorizontalRight, 0.75);
+}

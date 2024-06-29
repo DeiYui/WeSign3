@@ -6,8 +6,6 @@ import { eSign } from "./Esign";
 import { fSign } from "./Fsign";
 import { gSign } from "./Gsign";
 import { hSign } from "./Hsign";
-import { iSign } from "./Isign";
-import { jSign } from "./Jsign";
 import { kSign } from "./Ksign";
 import { lSign } from "./Lsign";
 import { mSign } from "./Msign";
@@ -28,6 +26,9 @@ import { byeSign } from "./ByeSign";
 import { helloSign } from "./HelloSign";
 import { iLoveYouSign } from "./ILoveYouSign";
 import { thankYouSign } from "./Thankyou";
+import { iSign } from "./Isign";
+import { jSign } from "./Jsign";
+import { okSign } from "./Oksign";
 
 const Handsigns = {
   aSign,
@@ -56,10 +57,11 @@ const Handsigns = {
   xSign,
   ySign,
   zSign,
-  byeSign,
+  // byeSign,
   helloSign,
   iLoveYouSign,
   thankYouSign,
+  okSign,
 };
 
 export default Handsigns;

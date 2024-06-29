@@ -1,185 +1,119 @@
 "use client";
 import UploadModel from "@/model/UploadModel";
-import Handsigns from "@/utils/handsigns";
 import { WarningFilled } from "@ant-design/icons";
-import { drawConnectors, drawLandmarks, lerp } from "@mediapipe/drawing_utils";
-import { HAND_CONNECTIONS, Hands, Results, VERSION } from "@mediapipe/hands";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Image, Modal, Spin, Tabs, Tooltip, message } from "antd";
-import * as fp from "fingerpose";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { ReactMediaRecorder } from "react-media-recorder-2";
 import Webcam from "react-webcam";
 import { formatTime } from "../collect-data/CollectData";
 import LearningData from "./LearningData";
 
 const PracticeData: React.FC = () => {
-  const [loaded, setLoaded] = useState(false);
   const [webcamReady, setWebcamReady] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [recordingTimerId, setRecordingTimerId] = useState<any>(null);
+
   const [showModalPreview, setShowModalPreview] = useState<{
     open: boolean;
     preview: string | undefined;
     type: string;
   }>({ open: false, preview: "", type: "" });
-  const [mediaFile, setMediaFile] = useState("");
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const [emoji, setEmoji] = useState<string | null>(null);
-
+  const isRecordingRef = useRef(false);
+  const maxRecordingTime = 5;
   // Kết quả sau khi xử lý AI
   const [resultContent, setResultContent] = useState<{
     content: string;
   }>({
     content: "",
   });
-
-  useEffect(() => {
-    const hands = new Hands({
-      locateFile: (file: any) =>
-        `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VERSION}/${file}`,
-    });
-
-    hands.setOptions({
-      maxNumHands: 2,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    });
-
-    hands.onResults(onResults);
-
-    const sendToMediaPipe = async () => {
-      if (webcamRef.current && webcamRef.current.video && webcamReady) {
-        if (!webcamRef.current.video.videoWidth) {
-          requestAnimationFrame(sendToMediaPipe);
-        } else {
-          await hands.send({ image: webcamRef.current.video });
-          requestAnimationFrame(sendToMediaPipe);
-        }
-      }
-    };
-
-    if (webcamReady) {
-      contextRef.current = canvasRef.current?.getContext("2d") || null;
-      sendToMediaPipe();
-    }
-
-    return () => {
-      if (hands) {
-        hands.close();
-      }
-    };
-  }, [webcamReady]);
-
-  const onResults = async (results: Results) => {
-    if (canvasRef.current && contextRef.current) {
-      setLoaded(true);
-
-      contextRef.current.save();
-      contextRef.current.clearRect(
-        0,
-        0,
-        canvasRef.current.width,
-        canvasRef.current.height,
-      );
-      contextRef.current.drawImage(
-        results.image,
-        0,
-        0,
-        canvasRef.current.width,
-        canvasRef.current.height,
-      );
-
-      if (
-        results.multiHandLandmarks?.length &&
-        results.multiHandedness?.length
-      ) {
-        for (
-          let index = 0;
-          index < results.multiHandLandmarks.length;
-          index++
-        ) {
-          const landmarks = results.multiHandLandmarks[index];
-          const handSignsArray = Object.values(Handsigns);
-          const GE = new fp.GestureEstimator(handSignsArray);
-          const handData: any = results.multiHandLandmarks[0].map((item) => [
-            item.x,
-            item.y,
-            item.z,
-          ]);
-          // const gesture = await GE.estimate(handData, 6.5);
-          // console.log("gesture.gestures", gesture.gestures);
-
-          // if (gesture.gestures && gesture.gestures.length > 0) {
-          //   const emojiImage = document.getElementById("emojimage");
-          //   if (emojiImage) {
-          //     emojiImage.classList.add("play");
-          //   }
-          //   const confidence = gesture.gestures.map((p) => p.score);
-          //   const maxConfidence = confidence.indexOf(
-          //     Math.max.apply(undefined, confidence),
-          //   );
-
-          //   setEmoji(gesture.gestures[maxConfidence].name);
-          // } else {
-          //   setEmoji("");
-          // }
-
-          drawConnectors(contextRef.current, landmarks, HAND_CONNECTIONS, {
-            color: "#00FF00",
-            lineWidth: 5,
-          });
-          drawLandmarks(contextRef.current, landmarks, {
-            color: "#FF0000",
-            fillColor: "#FF0000",
-            lineWidth: 2,
-            radius: (data: any) => {
-              return lerp(data.z || 0, -0.15, 0.1, 10, 1);
-            },
-          });
-        }
-      } else {
-        setEmoji("");
-      }
-
-      contextRef.current.restore();
-    }
-  };
+  const startTimeRef = useRef<number | null>(null);
+  const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingStatusRef = useRef<string>("");
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleWebcamReady = useCallback(() => {
     setWebcamReady(true);
   }, []);
 
-  const handleStartRecording = (startRecording: any) => {
-    startRecording();
-    const timerId = setInterval(() => {
-      setRecordingTime((prevTime) => prevTime + 1);
-    }, 1000);
-    setRecordingTimerId(timerId);
-  };
+  const handleStartRecording = useCallback(
+    (startRecording: any, stopRecording: any) => {
+      if (isRecordingRef.current) return;
 
+      isRecordingRef.current = true;
+      setRecordingTime(0);
+      startTimeRef.current = null; // Sẽ được đặt khi status thực sự là "recording"
+      startRecording();
+
+      // Kiểm tra status và bắt đầu đếm thời gian
+      const checkRecordingStatus = () => {
+        if (recordingStatusRef.current === "recording") {
+          if (!startTimeRef.current) {
+            startTimeRef.current = Date.now();
+          }
+
+          intervalRef.current = setInterval(() => {
+            const elapsedTime = Math.floor(
+              (Date.now() - startTimeRef.current!) / 1000,
+            );
+            setRecordingTime(elapsedTime);
+
+            if (elapsedTime >= maxRecordingTime) {
+              handleStopRecording(stopRecording);
+            }
+          }, 1000);
+
+          // Đặt timeout để dừng ghi sau maxRecordingTime
+          recordingTimeoutRef.current = setTimeout(() => {
+            handleStopRecording(stopRecording);
+          }, maxRecordingTime * 1000);
+        } else {
+          // Nếu chưa ở trạng thái recording, kiểm tra lại sau 100ms
+          setTimeout(checkRecordingStatus, 100);
+        }
+      };
+
+      checkRecordingStatus();
+    },
+    [maxRecordingTime],
+  );
+
+  const handleStopRecording = useCallback(
+    (stopRecording: any) => {
+      if (!isRecordingRef.current) return;
+
+      isRecordingRef.current = false;
+      stopRecording();
+
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current);
+        recordingTimeoutRef.current = null;
+      }
+
+      startTimeRef.current = null;
+      setRecordingTime(0);
+      setShowModalPreview({
+        ...showModalPreview,
+        type: "video",
+      });
+      message.success("Video đã được lưu. Bạn có thể xem lại video");
+    },
+    [showModalPreview],
+  );
   const uploadVideo = async (mediaBlobUrl: any) => {
     const formData = new FormData();
-    const response = await fetch(mediaBlobUrl as any);
+    const response = await fetch(mediaBlobUrl);
     const blob: any = await response.blob();
     const metadata = { type: blob.type, lastModified: blob.lastModified };
     const file = new File([blob], `volunteer_${Date.now()}.mp4`, metadata);
     formData.append("file", file);
     return await UploadModel.uploadFile(formData);
-  };
-
-  const handleStopRecording = async (stopRecording: any, mediaBlobUrl: any) => {
-    stopRecording();
-    clearInterval(recordingTimerId);
-    setRecordingTime(0);
-    setShowModalPreview({
-      ...showModalPreview,
-      type: "video",
-    });
-    message.success("Video đã được lưu. Bạn có thể xem lại video");
   };
 
   // Kiểm tra AI
@@ -188,15 +122,14 @@ const PracticeData: React.FC = () => {
     onSuccess: (res) => {
       message.success("Xử lý dữ liệu thành công");
       setResultContent({ content: res.data?.content });
-      setMediaFile("");
     },
   });
 
   return (
     <>
       <Tabs defaultActiveKey="1">
-        <Tabs.TabPane tab="Luyện tập các ký tự" key="1">
-          <div className="relative flex h-[500px] items-center justify-between overflow-hidden bg-gray-2 ">
+        <Tabs.TabPane tab="Luyện tập từ vựng" key="1">
+          <div className="relative flex h-[500px] items-center justify-between overflow-hidden bg-gray-2">
             <div className="w-1/2">
               <Webcam
                 className="absolute left-0 top-0 z-999 object-contain"
@@ -213,75 +146,78 @@ const PracticeData: React.FC = () => {
                   startRecording,
                   stopRecording,
                   mediaBlobUrl,
-                }) => (
-                  <div className="absolute bottom-0 left-0 z-999 flex gap-4 object-contain">
-                    <p>Trạng thái quay video: {status}</p>
-                    <Button
-                      className="flex  items-center gap-3"
-                      onClick={() => handleStartRecording(startRecording)}
-                      disabled={status === "recording"}
-                      icon={
-                        <Tooltip
-                          title="Thời gian tối đa cho mỗi video là 5s."
-                          placement="top"
-                          trigger="hover"
-                          color="#4096ff"
-                        >
-                          <WarningFilled style={{ color: "#4096ff" }} />
-                        </Tooltip>
-                      }
-                    >
-                      Bắt đầu quay
-                      {recordingTime !== 0 && status === "recording" && (
-                        <p
-                          className="text-sm text-black"
-                          style={{ color: "red" }}
-                        >
-                          {formatTime(recordingTime)}
-                        </p>
-                      )}
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        handleStopRecording(stopRecording, mediaBlobUrl);
-                      }}
-                      disabled={status !== "recording"}
-                    >
-                      Dừng quay
-                    </Button>
-                    <Button
-                      disabled={!mediaBlobUrl}
-                      onClick={() => {
-                        if (showModalPreview.type === "image") {
-                          setShowModalPreview({
-                            ...showModalPreview,
-                            open: true,
-                          });
-                        } else {
-                          setShowModalPreview({
-                            ...showModalPreview,
-                            open: true,
-                            preview: mediaBlobUrl,
-                          });
+                }) => {
+                  recordingStatusRef.current = status;
+                  return (
+                    <div className="absolute bottom-0 left-0 z-999 flex gap-4 object-contain">
+                      <p>Trạng thái quay video: {status}</p>
+                      <Button
+                        className="flex items-center gap-3"
+                        onClick={() =>
+                          handleStartRecording(startRecording, stopRecording)
                         }
-                      }}
-                    >
-                      Xem lại file
-                    </Button>
-                    <Button
-                      size="large"
-                      type="primary"
-                      disabled={!mediaBlobUrl}
-                      className="text-center"
-                      onClick={async () => {
-                        const link = await uploadVideo(mediaBlobUrl);
-                        mutationDetectAI.mutate({ videoUrl: link });
-                      }}
-                    >
-                      Kiểm tra
-                    </Button>
-                  </div>
-                )}
+                        disabled={isRecordingRef.current}
+                        icon={
+                          <Tooltip
+                            title={`Thời gian tối đa cho mỗi video là ${maxRecordingTime}s.`}
+                            placement="top"
+                            trigger="hover"
+                            color="#4096ff"
+                          >
+                            <WarningFilled style={{ color: "#4096ff" }} />
+                          </Tooltip>
+                        }
+                      >
+                        Bắt đầu quay
+                        {isRecordingRef.current && (
+                          <p
+                            className="text-sm text-black"
+                            style={{ color: "red" }}
+                          >
+                            {formatTime(Math.max(0, recordingTime))}
+                          </p>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={() => handleStopRecording(stopRecording)}
+                        disabled={!isRecordingRef.current}
+                      >
+                        Dừng quay
+                      </Button>
+                      <Button
+                        disabled={!mediaBlobUrl}
+                        onClick={() => {
+                          if (showModalPreview.type === "image") {
+                            setShowModalPreview({
+                              ...showModalPreview,
+                              open: true,
+                            });
+                          } else {
+                            setShowModalPreview({
+                              ...showModalPreview,
+                              open: true,
+                              preview: mediaBlobUrl,
+                            });
+                          }
+                        }}
+                      >
+                        Xem lại file
+                      </Button>
+                      <Button
+                        size="large"
+                        type="primary"
+                        disabled={!mediaBlobUrl}
+                        className="text-center"
+                        onClick={async () => {
+                          const link = await uploadVideo(mediaBlobUrl);
+                          mutationDetectAI.mutate({ videoUrl: link });
+                        }}
+                      >
+                        Kiểm tra
+                      </Button>
+                    </div>
+                  );
+                }}
               />
 
               <canvas
@@ -290,20 +226,6 @@ const PracticeData: React.FC = () => {
                 height={450}
                 className="absolute left-0 top-0 z-999 object-cover pb-3"
               />
-              <div
-                style={{
-                  top: "10%",
-                  position: "absolute",
-                  left: "25%",
-                  marginLeft: "auto",
-                  marginRight: "auto",
-                  textAlign: "center",
-                  zIndex: 999,
-                }}
-                className="text-[50px] text-red"
-              >
-                {emoji}
-              </div>
             </div>
             <div className="flex w-1/2 justify-center gap-x-5">
               kết quả
@@ -314,13 +236,6 @@ const PracticeData: React.FC = () => {
               </Spin>
             </div>
           </div>
-
-          {!loaded && (
-            <div className="loading absolute inset-0 z-999 flex items-center justify-center bg-gray-2">
-              <div className="spinner h-32 w-32 animate-spin rounded-full border-8 border-t-8 border-t-blue-500"></div>
-              <div className="absolute text-xl text-white">Loading</div>
-            </div>
-          )}
         </Tabs.TabPane>
         <Tabs.TabPane tab="Luyện tập theo bảng chữ cái" key="2">
           <LearningData />
@@ -339,10 +254,10 @@ const PracticeData: React.FC = () => {
         }
         zIndex={10000}
       >
-        {!(showModalPreview.type === "video") ? (
-          <Image preview={false} src={showModalPreview.preview} alt="preview" />
-        ) : (
+        {showModalPreview.type === "video" ? (
           <video controls src={showModalPreview.preview}></video>
+        ) : (
+          <Image preview={false} src={showModalPreview.preview} alt="preview" />
         )}
       </Modal>
     </>
