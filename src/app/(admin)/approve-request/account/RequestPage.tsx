@@ -36,7 +36,7 @@ const RequestPage: React.FC = () => {
       title: "Tên người dùng",
       dataIndex: "name",
       key: "name",
-      width: "20%",
+      width: "30%",
       render: (value: any, record: User) => (
         <div className="flex items-center gap-2">
           <Avatar icon={<UserOutlined />} src={record.avatarLocation} />

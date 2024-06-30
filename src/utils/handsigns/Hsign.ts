@@ -1,26 +1,51 @@
-import {
-  Finger,
-  FingerCurl,
-  FingerDirection,
-  GestureDescription,
-} from "fingerpose";
+import {Finger, FingerCurl, FingerDirection, GestureDescription} from 'fingerpose';
 
-// Tạo mô tả cho cử chỉ chữ "H"
-export const hSign = new GestureDescription("H");
+export const hSign = new GestureDescription('H');
+// [
+//     [
+//       "Thumb",
+//       "No Curl",
+//       "Horizontal Right"
+//     ],
+//     [
+//       "Index",
+//       "No Curl",
+//       "Horizontal Right"
+//     ],
+//     [
+//       "Middle",
+//       "No Curl",
+//       "Horizontal Right"
+//     ],
+//     [
+//       "Ring",
+//       "Full Curl",
+//       "Horizontal Right"
+//     ],
+//     [
+//       "Pinky",
+//       "Full Curl",
+//       "Horizontal Right"
+//     ]
+//   ]
 
-// Ngón trỏ (không cuộn, hướng ngang)
-hSign.addCurl(Finger.Index, FingerCurl.NoCurl, 1.0);
-hSign.addDirection(Finger.Index, FingerDirection.HorizontalLeft, 1.0);
-hSign.addDirection(Finger.Index, FingerDirection.HorizontalRight, 1.0);
+//Thumb
+hSign.addCurl(Finger.Thumb, FingerCurl.NoCurl, 1.0);
+hSign.addDirection(Finger.Index, FingerDirection.HorizontalRight, 0.70);
 
-// Ngón giữa (không cuộn, hướng ngang)
-hSign.addCurl(Finger.Middle, FingerCurl.NoCurl, 1.0);
-hSign.addDirection(Finger.Middle, FingerDirection.HorizontalLeft, 1.0);
-hSign.addDirection(Finger.Middle, FingerDirection.HorizontalRight, 1.0);
+//Index
+hSign.addCurl(Finger.Index, FingerCurl.NoCurl, 1);
+hSign.addDirection(Finger.Index, FingerDirection.HorizontalRight, 0.70);
 
-// Ngón cái, ngón áp út, và ngón út (cuộn hoàn toàn)
-for (let finger of [Finger.Thumb, Finger.Ring, Finger.Pinky]) {
-  hSign.addCurl(finger, FingerCurl.FullCurl, 1.0);
-  hSign.addDirection(finger, FingerDirection.HorizontalLeft, 0.75);
-  hSign.addDirection(finger, FingerDirection.HorizontalRight, 0.75);
-}
+//Middle
+hSign.addCurl(Finger.Middle, FingerCurl.NoCurl, 1);
+hSign.addDirection(Finger.Middle, FingerDirection.HorizontalRight, 0.70);
+
+//Ring
+hSign.addCurl(Finger.Ring, FingerCurl.FullCurl, 1);
+hSign.addDirection(Finger.Ring, FingerDirection.HorizontalRight, 0.70);
+
+//Pinky
+hSign.addCurl(Finger.Pinky, FingerCurl.FullCurl, 1);
+hSign.addDirection(Finger.Pinky, FingerDirection.HorizontalRight, 0.70);
+

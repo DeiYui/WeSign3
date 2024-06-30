@@ -1,176 +1,301 @@
-"use client";
-import Handsigns from "@/utils/handsigns";
-import { drawConnectors, drawLandmarks, lerp } from "@mediapipe/drawing_utils";
-import { HAND_CONNECTIONS, Hands, Results, VERSION } from "@mediapipe/hands";
+/* eslint-disable @next/next/no-img-element */
+import * as handpose from "@tensorflow-models/handpose";
+import * as tf from "@tensorflow/tfjs";
 import * as fp from "fingerpose";
-import { FilesetResolver, GestureRecognizer } from "@mediapipe/tasks-vision";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 
-const LearningData: React.FC = () => {
-  const [loaded, setLoaded] = useState(false);
-  const [webcamReady, setWebcamReady] = useState(false);
+import Handsigns from "@/utils/handsigns";
+import "@tensorflow/tfjs-backend-webgl";
+import { Button, Col, Image, Layout, Row, Space, Typography } from "antd";
+import { RiCameraFill, RiCameraOffFill } from "react-icons/ri";
+import { drawHand } from "./drawHand";
+import { Signimage, Signpass } from "../../../public/handimage";
+
+const { Title } = Typography;
+const { Header, Content } = Layout;
+
+interface Sign {
+  alt: string;
+  src: { src: string };
+}
+
+export default function LearningData() {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const [emoji, setEmoji] = useState<string | null>(null);
+
+  const [loader, setLoader] = useState<boolean>(true);
+  const [camState, setCamState] = useState<"on" | "off">("on");
+  const [sign, setSign] = useState<string | null>(null);
+
+  let signList: Sign[] = [];
+  let currentSign = 0;
+
+  let gamestate: "started" | "played" | "finished" = "started";
+
+  async function runHandpose() {
+    await tf.setBackend("webgl");
+    await tf.ready();
+
+    const net = await handpose.load();
+    _signList();
+
+    setInterval(() => {
+      detect(net);
+    }, 150);
+  }
+
+  function _signList() {
+    signList = generateSigns();
+  }
+
+  function shuffle<T>(a: T[]): T[] {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function generateSigns(): Sign[] {
+    const password = shuffle(Signpass);
+    return password;
+  }
+
+  async function detect(net: handpose.HandPose) {
+    if (webcamRef.current && webcamRef.current.video?.readyState === 4) {
+      const video = webcamRef.current.video as HTMLVideoElement;
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+
+      webcamRef.current.video.width = videoWidth;
+      webcamRef.current.video.height = videoHeight;
+
+      canvasRef.current!.width = videoWidth;
+      canvasRef.current!.height = videoHeight;
+
+      const hand: any = await net.estimateHands(video);
+
+      if (hand.length > 0) {
+        setLoader(false);
+
+        const GE = new fp.GestureEstimator([
+          Handsigns.aSign,
+          Handsigns.bSign,
+          Handsigns.cSign,
+          Handsigns.dSign,
+          Handsigns.eSign,
+          Handsigns.fSign,
+          Handsigns.gSign,
+          Handsigns.hSign,
+          Handsigns.iSign,
+          Handsigns.jSign,
+          Handsigns.kSign,
+          Handsigns.lSign,
+          Handsigns.mSign,
+          Handsigns.nSign,
+          Handsigns.oSign,
+          Handsigns.pSign,
+          Handsigns.qSign,
+          Handsigns.rSign,
+          Handsigns.sSign,
+          Handsigns.tSign,
+          Handsigns.uSign,
+          Handsigns.vSign,
+          Handsigns.wSign,
+          Handsigns.xSign,
+          Handsigns.ySign,
+          Handsigns.zSign,
+        ]);
+
+        const estimatedGestures = await GE.estimate(hand[0].landmarks, 6.5);
+
+        if (gamestate === "started") {
+        }
+
+        if (
+          estimatedGestures.gestures !== undefined &&
+          estimatedGestures.gestures.length > 0
+        ) {
+          const confidence = estimatedGestures.gestures.map((p) => p.score);
+          const maxConfidence = confidence.indexOf(
+            Math.max.apply(undefined, confidence),
+          );
+
+          if (gamestate !== "played") {
+            _signList();
+            gamestate = "played";
+            document.getElementById("emojimage")!.classList.add("play");
+          } else if (gamestate === "played") {
+            const el: any = document.querySelector("#app-title");
+            el!.innerText = "";
+
+            if (currentSign === signList.length) {
+              _signList();
+              currentSign = 0;
+              return;
+            }
+
+            if (signList[currentSign].src.src) {
+              document
+                .getElementById("emojimage")!
+                .setAttribute("src", signList[currentSign].src.src);
+              if (
+                signList[currentSign].alt ===
+                estimatedGestures.gestures[maxConfidence].name
+              ) {
+                currentSign++;
+              }
+
+              setSign(estimatedGestures.gestures[maxConfidence].name);
+            }
+          } else if (gamestate === "finished") {
+            return;
+          } else {
+            return;
+          }
+        } else {
+          setSign("")
+        }
+      }
+
+      const ctx = canvasRef.current!.getContext("2d")!;
+      drawHand(hand, ctx);
+    }
+  }
 
   useEffect(() => {
-    const hands = new Hands({
-      locateFile: (file: any) =>
-        `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VERSION}/${file}`,
-    });
-
-    hands.setOptions({
-      maxNumHands: 2,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    });
-
-    hands.onResults(onResults);
-
-    const sendToMediaPipe = async () => {
-      if (webcamRef.current && webcamRef.current.video && webcamReady) {
-        if (!webcamRef.current.video.videoWidth) {
-          requestAnimationFrame(sendToMediaPipe);
-        } else {
-          await hands.send({ image: webcamRef.current.video });
-          requestAnimationFrame(sendToMediaPipe);
-        }
-      }
-    };
-
-    if (webcamReady) {
-      contextRef.current = canvasRef.current?.getContext("2d") || null;
-      sendToMediaPipe();
-    }
-
-    return () => {
-      if (hands) {
-        hands.close();
-      }
-    };
-  }, [webcamReady]);
-
-  const onResults = async (results: Results) => {
-    if (canvasRef.current && contextRef.current) {
-      setLoaded(true);
-
-      contextRef.current.save();
-      contextRef.current.clearRect(
-        0,
-        0,
-        canvasRef.current.width,
-        canvasRef.current.height,
-      );
-      contextRef.current.drawImage(
-        results.image,
-        0,
-        0,
-        canvasRef.current.width,
-        canvasRef.current.height,
-      );
-
-      if (
-        results.multiHandLandmarks?.length &&
-        results.multiHandedness?.length
-      ) {
-        for (
-          let index = 0;
-          index < results.multiHandLandmarks.length;
-          index++
-        ) {
-          const landmarks = results.multiHandLandmarks[index];
-          const handSignsArray = Object.values(Handsigns);
-          const GE = new fp.GestureEstimator(handSignsArray);
-          const handData: any = results.multiHandLandmarks[0].map((item) => [
-            item.x,
-            item.y,
-            item.z,
-          ]);
-          const gesture = await GE.estimate(handData, 8);
-
-          if (gesture.gestures && gesture.gestures.length > 0) {
-            const confidence = gesture.gestures.map((p) => p.score);
-            const maxConfidence = confidence.indexOf(
-              Math.max.apply(undefined, confidence),
-            );
-
-            setEmoji(gesture.gestures[maxConfidence].name);
-          } else {
-            setEmoji("");
-          }
-
-          drawConnectors(contextRef.current, landmarks, HAND_CONNECTIONS, {
-            color: "#00FF00",
-            lineWidth: 5,
-          });
-          drawLandmarks(contextRef.current, landmarks, {
-            color: "#FF0000",
-            fillColor: "#FF0000",
-            lineWidth: 2,
-            radius: (data: any) => {
-              return lerp(data.z || 0, -0.15, 0.1, 10, 1);
-            },
-          });
-        }
-      } else {
-        setEmoji("");
-      }
-
-      contextRef.current.restore();
-    }
-  };
-
-  const handleWebcamReady = useCallback(() => {
-    setWebcamReady(true);
+    runHandpose();
   }, []);
 
+  function turnOffCamera() {
+    if (camState === "on") {
+      setCamState("off");
+    } else {
+      setCamState("on");
+    }
+  }
+
   return (
-    <>
-      <div className="relative flex h-[500px] items-center justify-between overflow-hidden bg-gray-2 ">
-        <div className="w-full">
-          <Webcam
-            className="absolute left-0 top-0 z-999 object-contain"
-            width={600}
-            height={400}
-            ref={webcamRef}
-            audio={false}
-            onUserMedia={handleWebcamReady}
-          />
+    <Layout style={{ backgroundColor: "#5784BA", height: "100vh" }}>
+      <Header style={{ backgroundColor: "#5784BA" }}>
+        <Title
+          level={3}
+          style={{ color: "white", textAlign: "center" }}
+          className="tutor-text"
+        ></Title>
+      </Header>
+      <Content
+        style={{
+          padding: "0 50px",
+        }}
+      >
+        <Row justify="center" align="middle" style={{ width: "100%" }}>
+          <Col span={24}>
+            <Title
+              level={1}
+              style={{ color: "white", textAlign: "center" }}
+              id="app-title"
+            ></Title>
+          </Col>
+          <Col span={24} style={{ textAlign: "center" }}>
+            <div id="webcam-container" className="relative">
+              {camState === "on" ? (
+                <>
+                  <Webcam
+                    id="webcam"
+                    width={700}
+                    height={600}
+                    ref={webcamRef}
+                    style={{
+                      filter: "FlipH",
+                    }}
+                    className="absolute left-0 top-0 z-999 scale-x-[-1] object-contain"
+                  />
+                  <canvas
+                    id="gesture-canvas"
+                    ref={canvasRef}
+                    width={700}
+                    height={600}
+                    style={{
+                      filter: "FlipH",
+                    }}
+                    className="absolute left-0 top-0 z-999 scale-x-[-1] object-cover pb-3"
+                  />
+                </>
+              ) : (
+                <div
+                  id="webcam"
+                  style={{ backgroundColor: "black", height: "100%" }}
+                ></div>
+              )}
 
-          <canvas
-            ref={canvasRef}
-            width={600}
-            height={450}
-            className="absolute left-0 top-0 z-999 object-cover pb-3"
-          />
-          <div
-            style={{
-              top: "10%",
-              position: "absolute",
-              left: "25%",
-              marginLeft: "auto",
-              marginRight: "auto",
-              textAlign: "center",
-              zIndex: 999,
-            }}
-            className="text-[50px] text-red"
+              {sign && (
+                <div
+                  style={{
+                    position: "absolute",
+                    marginLeft: "auto",
+                    marginRight: "auto",
+                    right: 200,
+                    top: 200,
+                  }}
+                >
+                  <div
+                    style={{
+                      color: "white",
+                      fontSize: "32px",
+                      marginBottom: 8,
+                    }}
+                  >
+                    Kết quả
+                  </div>
+
+                  <Image alt="" preview={false} src={Signimage[sign]?.src} />
+                </div>
+              )}
+            </div>
+
+            <img
+              style={{
+                position: "absolute",
+                marginLeft: "auto",
+                marginRight: "auto",
+                right: 200,
+                top: 0,
+                height: 150,
+                objectFit: "cover",
+                marginTop: 20,
+              }}
+              alt=""
+              id="emojimage"
+            />
+          </Col>
+        </Row>
+      </Content>
+      <Row justify="center" style={{ padding: "20px 0" }}>
+        <Space>
+          <Button
+            icon={
+              camState === "on" ? (
+                <RiCameraFill size={20} />
+              ) : (
+                <RiCameraOffFill size={20} />
+              )
+            }
+            onClick={turnOffCamera}
+            type="primary"
           >
-            {emoji}
-          </div>
-        </div>
-      </div>
+            Camera
+          </Button>
+        </Space>
+      </Row>
 
-      {!loaded && (
+      {loader && (
         <div className="loading absolute inset-0 z-999 flex items-center justify-center bg-gray-2">
           <div className="spinner h-32 w-32 animate-spin rounded-full border-8 border-t-8 border-t-blue-500"></div>
           <div className="absolute text-xl text-white">Loading</div>
         </div>
       )}
-    </>
+    </Layout>
   );
-};
-
-export default LearningData;
+}
