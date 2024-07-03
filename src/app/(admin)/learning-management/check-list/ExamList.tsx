@@ -51,11 +51,11 @@ const ExamListPage = ({ isPrivate }: any) => {
   const [filterParams, setFilterParams] = useState<{
     classRoomId: number;
     nameSearch: string;
-    isPrivate: any;
+    isPrivate: string;
   }>({
     classRoomId: 0,
     nameSearch: "",
-    isPrivate: isPrivate,
+    isPrivate: `${isPrivate}`,
   });
 
   // API lấy danh sách  bài kiểm tra

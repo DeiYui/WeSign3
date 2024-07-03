@@ -621,12 +621,14 @@ const VocabularyList = ({ isPrivate }: any) => {
             message.success("Thêm từ vào chủ đề thành công");
             setModalAddVocabularyTopic({ open: false, topicId: 0 });
             setSelectedRowId([]);
+            refetch();
           } else {
             message.success("Thêm từ vào chủ đề thất bại");
             setModalAddVocabularyTopic({
               ...modalAddVocabularyTopic,
               open: false,
             });
+            refetch();
           }
         }}
         cancelText="Huỷ"

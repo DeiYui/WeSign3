@@ -73,7 +73,7 @@ const TopicList = (props: any) => {
     queryFn: async () => {
       const res = await Learning.getAllTopics({
         ...filterParams,
-        isPrivate: isPrivate,
+        isPrivate: `${isPrivate}`,
       });
       setLstTopics(res.data);
       return res.data as Topic[];

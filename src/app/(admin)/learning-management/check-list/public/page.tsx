@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 const ManagementExamPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <ExamListPage isPrivate="false" />
+      <ExamListPage isPrivate={false} />
     </DefaultLayout>
   );
 };
