@@ -22,7 +22,7 @@ import {
 } from "antd";
 import { useForm, useWatch } from "antd/es/form/Form";
 import { useParams, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import QuestionModal from "../../check-list/create-edit/ModalSelectFile";
 
 interface Answer {
@@ -184,6 +184,7 @@ const QuestionEdit: React.FC = () => {
                 form.setFieldsValue({
                   imageLocation: "",
                   videoLocation: "",
+                  file: "",
                 });
               }}
             >
@@ -204,9 +205,15 @@ const QuestionEdit: React.FC = () => {
                 onChange={(value: any) => {
                   form.setFieldValue("file", "");
                   if (isImage(value)) {
-                    form.setFieldValue("imageLocation", value);
+                    form.setFieldsValue({
+                      imageLocation: value,
+                      videoLocation: "",
+                    });
                   } else {
-                    form.setFieldValue("videoLocation", value);
+                    form.setFieldsValue({
+                      videoLocation: value,
+                      imageLocation: "",
+                    });
                   }
                 }}
               >
@@ -234,6 +241,7 @@ const QuestionEdit: React.FC = () => {
           >
             {imageLocation && typeFile === "EXISTED" && (
               <Image
+                key={imageLocation}
                 preview={false}
                 alt="example"
                 style={{
@@ -251,7 +259,11 @@ const QuestionEdit: React.FC = () => {
             className="mb-0"
           >
             {videoLocation && typeFile === "EXISTED" && (
-              <video controls style={{ width: 200, height: 200 }}>
+              <video
+                key={videoLocation}
+                controls
+                style={{ width: 200, height: 200 }}
+              >
                 <source src={videoLocation} type="video/mp4" />
               </video>
             )}

@@ -1,4 +1,5 @@
 import BasicDrawer from "@/components/UI/draw/BasicDraw";
+import { isImage } from "@/components/common/constants";
 import Learning from "@/model/Learning";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -72,6 +73,7 @@ const QuestionModal: React.FC<QuestionModalProps> = ({
   // Khi component nhận props file mới, cập nhật giá trị cho selectedFile
   useEffect(() => {
     setSelectedFile(file);
+    setSelectedFileType(isImage(file) ? "image" : "video");
   }, [file]);
 
   // Thêm hàm xử lý khi người dùng chọn loại file từ Select
@@ -322,6 +324,7 @@ const QuestionModal: React.FC<QuestionModalProps> = ({
               <Select
                 className="w-1/2"
                 placeholder="Chọn ảnh / video"
+                value={selectedFileType}
                 onChange={handleSelectFileType}
                 defaultValue="image"
               >
