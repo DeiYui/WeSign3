@@ -255,14 +255,18 @@ const VocabularyCreateUpdate: React.FC = () => {
             },
           ],
           topicId: value.topicId,
-          private: isPrivate,
+          private: isPrivate === "false" ? false : true,
         }),
       );
       const response = await Learning.addLstVocabulary(body);
       if (response.code === 200) {
         message.success("Thêm danh sách từ vựng thành công");
         setFileList([]);
-        router.push("/learning-management/vocabulary");
+        router.push(
+          isPrivate === "true"
+            ? "/learning-management/vocabulary/private"
+            : "/learning-management/vocabulary/public",
+        );
       } else {
         message.error("Thêm thất bại");
         setFileList([]);
@@ -279,9 +283,10 @@ const VocabularyCreateUpdate: React.FC = () => {
         itemBreadcrumb={[
           { pathName: "/", name: "Trang chủ" },
           {
-            pathName: isPrivate
-              ? "/learning-management/vocabulary/private"
-              : "/learning-management/vocabulary/public",
+            pathName:
+              isPrivate === "true"
+                ? "/learning-management/vocabulary/private"
+                : "/learning-management/vocabulary/public",
             name: "Danh sách từ vựng",
           },
           { pathName: "#", name: "Thêm mới từ vựng" },

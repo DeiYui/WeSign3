@@ -554,7 +554,7 @@ const VocabularyList = ({ isPrivate }: any) => {
                 <Button icon={<UploadOutlined />}>Tải file video</Button>
               </Upload> */}
             </div>
-            <div className="mb-3 flex items-center justify-center gap-4">
+            {/* <div className="mb-3 flex items-center justify-center gap-4">
               {preview.fileImage ? (
                 <Image
                   className=""
@@ -568,7 +568,7 @@ const VocabularyList = ({ isPrivate }: any) => {
                   <source src={preview.fileVideo} />
                 </video>
               ) : null}
-            </div>
+            </div> */}
           </Form>
         </div>
       </BasicDrawer>
