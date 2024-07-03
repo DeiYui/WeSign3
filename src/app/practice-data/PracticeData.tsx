@@ -22,6 +22,7 @@ import axios from "axios";
 import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
 import Learning from "@/model/Learning";
 import Vocabulary from "../study/vocabulary/Vocabulary";
+import { filterOption } from "@/components/Dashboard/DashboardApp";
 
 const PracticeData: React.FC = () => {
   const [webcamReady, setWebcamReady] = useState(false);
@@ -138,7 +139,7 @@ const PracticeData: React.FC = () => {
   });
 
   // API lấy danh sách từ theo topics
-  const { data: allVocabulary } = useQuery({
+  const { data: allVocabulary, isFetching: isFetchingVocabulary } = useQuery({
     queryKey: ["getVocabularyTopic", filterParams.topic],
     queryFn: async () => {
       const res = await Learning.getVocabularyTopic(filterParams.topic);
@@ -269,6 +270,7 @@ const PracticeData: React.FC = () => {
                 <Select
                   className="w-full"
                   allowClear
+                  showSearch
                   placeholder="Chọn chủ đề"
                   options={allTopics}
                   onChange={(value, option: any) =>
@@ -278,10 +280,12 @@ const PracticeData: React.FC = () => {
                       vocabulary: null,
                     })
                   }
+                  filterOption={filterOption}
                 />
                 <Select
                   className="w-full"
                   allowClear
+                  showSearch
                   placeholder="Chọn từ vựng"
                   options={allVocabulary}
                   value={filterParams.vocabulary}
@@ -328,6 +332,8 @@ const PracticeData: React.FC = () => {
                       });
                     }
                   }}
+                  filterOption={filterOption}
+                  loading={isFetchingVocabulary}
                 />
               </div>
               {/* Button lựa chọn hiển kiểu dữ liệu mẫu */}

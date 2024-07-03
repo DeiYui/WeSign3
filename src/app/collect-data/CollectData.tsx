@@ -30,6 +30,7 @@ import { isImage } from "@/components/common/constants";
 import UploadModel from "@/model/UploadModel";
 import { useRef, useState } from "react";
 import styled from "styled-components";
+import { filterOption } from "@/components/Dashboard/DashboardApp";
 
 interface FilterParams {
   page: number;
@@ -197,7 +198,7 @@ export default function CollectData() {
   });
 
   // API lấy danh sách từ theo topics
-  const { data: allVocabulary } = useQuery({
+  const { data: allVocabulary, isFetching: isFetchingVocabulary } = useQuery({
     queryKey: ["getVocabularyTopic", filterParams.topic],
     queryFn: async () => {
       const res = await Learning.getVocabularyTopic(filterParams.topic);
@@ -589,6 +590,7 @@ export default function CollectData() {
                 <Select
                   className="w-full"
                   allowClear
+                  showSearch
                   placeholder="Chọn chủ đề"
                   options={allTopics}
                   onChange={(value, option: any) =>
@@ -598,8 +600,10 @@ export default function CollectData() {
                       vocabulary: null,
                     })
                   }
+                  filterOption={filterOption}
                 />
                 <Select
+                  showSearch
                   className="w-full"
                   allowClear
                   placeholder="Chọn từ vựng"
@@ -648,6 +652,8 @@ export default function CollectData() {
                       });
                     }
                   }}
+                  filterOption={filterOption}
+                  loading={isFetchingVocabulary}
                 />
               </div>
               {/* Button lựa chọn hiển kiểu dữ liệu mẫu */}
@@ -715,11 +721,7 @@ export default function CollectData() {
                       <p>Trạng thái quay video: {status}</p>
                       <Button
                         onClick={() => handleStartRecording(startRecording)}
-                        disabled={
-                          status === "recording" ||
-                          !modalVideo.previewImg ||
-                          !modalVideo.previewVideo
-                        }
+                        disabled={status === "recording"}
                         icon={
                           <Tooltip
                             title="Thời gian tối đa cho mỗi video là 5s."

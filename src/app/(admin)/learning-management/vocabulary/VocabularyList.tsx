@@ -581,6 +581,7 @@ const VocabularyList = ({ isPrivate }: any) => {
         width={1000}
         closeIcon={null}
         centered
+        zIndex={1000}
       >
         <div className="flex w-full items-center justify-center">
           {modalPreview.file && (
