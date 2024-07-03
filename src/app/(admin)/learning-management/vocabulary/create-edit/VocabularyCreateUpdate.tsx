@@ -255,6 +255,7 @@ const VocabularyCreateUpdate: React.FC = () => {
             },
           ],
           topicId: value.topicId,
+          vocabularyType: value.vocabularyType,
           private: isPrivate === "false" ? false : true,
         }),
       );
@@ -444,6 +445,36 @@ const VocabularyCreateUpdate: React.FC = () => {
                   options={allTopics}
                 />
               </Form.Item>
+              <Form.Item
+                name="vocabularyType"
+                label="Loại từ vựng"
+                required
+                rules={[
+                  validateRequireInput("Loại từ vựng không được bỏ trống"),
+                ]}
+                className="mb-2"
+              >
+                <Select
+                  size="large"
+                  className="w-full"
+                  allowClear
+                  placeholder="Chọn loại từ vựng"
+                  options={[
+                    {
+                      label: "Từ",
+                      value: "WORD",
+                    },
+                    {
+                      label: "Câu",
+                      value: "SENTENCE",
+                    },
+                    {
+                      label: "Đoạn",
+                      value: "PARAGRAPH",
+                    },
+                  ]}
+                />
+              </Form.Item>
               <div className="max-h-[600px] overflow-y-scroll">
                 <CustomUpload
                   listType="text"
@@ -468,7 +499,11 @@ const VocabularyCreateUpdate: React.FC = () => {
               </div>
               <div className="flex w-full items-center justify-center gap-4">
                 <Button onClick={() => router.back()}>Huỷ</Button>
-                <Button type="primary" htmlType="submit">
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  disabled={isLoadingFile}
+                >
                   Tạo
                 </Button>
               </div>

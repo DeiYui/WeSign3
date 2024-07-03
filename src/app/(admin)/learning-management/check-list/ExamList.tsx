@@ -3,17 +3,11 @@ import { colors } from "@/assets/colors";
 import { usePage } from "@/hooks/usePage";
 import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
-import {
-  DeleteFilled,
-  DeleteOutlined,
-  EditFilled,
-  MenuFoldOutlined,
-  MoreOutlined,
-} from "@ant-design/icons";
+import { DeleteOutlined, MoreOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Dropdown, Input, Select, Table, message } from "antd";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 
 interface Exam {
@@ -57,7 +51,7 @@ const ExamListPage = ({ isPrivate }: any) => {
   const [filterParams, setFilterParams] = useState<{
     classRoomId: number;
     nameSearch: string;
-    isPrivate: boolean;
+    isPrivate: any;
   }>({
     classRoomId: 0,
     nameSearch: "",

@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 const ManagementTopicsPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <TopicList isPrivate={false} />
+      <TopicList isPrivate="false" />
     </DefaultLayout>
   );
 };

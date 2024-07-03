@@ -35,7 +35,7 @@ interface FilterParams {
   page: number;
   size: number;
   topic: string;
-  vocabulary: string;
+  vocabulary: string | null;
   ascending?: boolean;
   status: number;
   createdFrom: string;
@@ -592,7 +592,11 @@ export default function CollectData() {
                   placeholder="Chọn chủ đề"
                   options={allTopics}
                   onChange={(value, option: any) =>
-                    setFilterParams({ ...filterParams, topic: value })
+                    setFilterParams({
+                      ...filterParams,
+                      topic: value,
+                      vocabulary: null,
+                    })
                   }
                 />
                 <Select
@@ -600,6 +604,7 @@ export default function CollectData() {
                   allowClear
                   placeholder="Chọn từ vựng"
                   options={allVocabulary}
+                  value={filterParams.vocabulary}
                   onChange={(value, option: any) => {
                     if (value) {
                       option?.vocabularyImageResList.sort(
