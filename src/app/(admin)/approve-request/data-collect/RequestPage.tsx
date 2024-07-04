@@ -255,7 +255,7 @@ const RequestPage: React.FC = () => {
   return (
     <Spin spinning={isFetchingPending}>
       <div className="flex flex-col items-center">
-        <div className="mt-6 w-full max-w-5xl">
+        <div className="mt-6 w-full max-w-full">
           <Tabs defaultActiveKey="pending">
             <Tabs.TabPane tab="Danh sách cần phê duyệt" key="pending">
               <div className="flex items-center justify-between rounded-lg bg-white p-4 shadow-md">

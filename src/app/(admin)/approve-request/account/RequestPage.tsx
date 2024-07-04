@@ -84,7 +84,7 @@ const RequestPage: React.FC = () => {
   return (
     <Spin spinning={isFetching}>
       <div className="flex flex-col items-center">
-        <div className="mt-6 w-full max-w-5xl">
+        <div className="mt-6 w-full max-w-full">
           <Table
             columns={columns as any}
             dataSource={content}

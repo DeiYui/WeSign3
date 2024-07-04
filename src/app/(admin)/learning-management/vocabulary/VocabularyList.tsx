@@ -312,10 +312,9 @@ const VocabularyList = ({ isPrivate }: any) => {
             onClick={() => {
               setOpenEdit(true);
               setPreview({
-                fileImage: record?.vocabularyImageResList[0].imageLocation,
-                fileVideo: record?.vocabularyVideoResList[0].videoLocation,
+                fileImage: record?.vocabularyImageResList[0]?.imageLocation,
+                fileVideo: record?.vocabularyVideoResList[0]?.videoLocation,
               });
-
               form.setFieldsValue(record);
             }}
           />
