@@ -91,6 +91,70 @@ const SocketVideoCallContext = createContext<SocketContextProps | undefined>(
   undefined,
 );
 
+const peerConnectionConfig = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun.l.google.com:5349" },
+    { urls: "stun:stun1.l.google.com:3478" },
+    { urls: "stun:stun1.l.google.com:5349" },
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:5349" },
+    { urls: "stun:stun3.l.google.com:3478" },
+    { urls: "stun:stun3.l.google.com:5349" },
+    { urls: "stun:stun4.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:5349" },
+    { urls: "stun:stun01.sipphone.com" },
+    { urls: "stun:stun.ekiga.net" },
+    { urls: "stun:stun.fwdnet.net" },
+    { urls: "stun:stun.ideasip.com" },
+    { urls: "stun:stun.iptel.org" },
+    { urls: "stun:stun.rixtelecom.se" },
+    { urls: "stun:stun.schlund.de" },
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:19302" },
+    { urls: "stun:stunserver.org" },
+    { urls: "stun:stun.softjoys.com" },
+    { urls: "stun:stun.voiparound.com" },
+    { urls: "stun:stun.voipbuster.com" },
+    { urls: "stun:stun.voipstunt.com" },
+    { urls: "stun:stun.voxgratia.org" },
+    { urls: "stun:stun.xten.com" },
+    {
+      urls: "turn:numb.viagenie.ca",
+      credential: "muazkh",
+      username: "webrtc@live.com",
+    },
+    {
+      urls: "turn:192.158.29.39:3478?transport=udp",
+      credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
+      username: "28224511:1379330808",
+    },
+    {
+      urls: "turn:192.158.29.39:3478?transport=tcp",
+      credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
+      username: "28224511:1379330808",
+    },
+
+    { urls: "stun:numb.viagenie.ca" },
+    { urls: "stun:iphone-stun.strato-iphone.de:3478" },
+    { urls: "stun:relay.webwormhole.io:3478" },
+    { urls: "stun:stun-eu.3cx.com:3478" },
+    { urls: "stun:stun-us.3cx.com:3478" },
+    { urls: "stun:stun.1-voip.com:3478" },
+    { urls: "stun:stun.12connect.com:3478" },
+    { urls: "stun:stun.12voip.com:3478" },
+    { urls: "stun:stun.1cbit.ru:3478" },
+    { urls: "stun:stun.1und1.de:3478" },
+    { urls: "stun:stun.3cx.com:3478" },
+    { urls: "stun:stun.3deluxe.de:3478" },
+    { urls: "stun:stun.3wayint.com:3478" },
+    { urls: "stun:stun.5sn.com:3478" },
+  ],
+};
+
 const SocketProvider = ({ children }: SocketProviderProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const user: User = useSelector((state: RootState) => state.admin);
@@ -124,7 +188,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
 
   // Khởi tạo
   const initializePeerConnection = async (data: any) => {
-    const peerConnection = new RTCPeerConnection();
+    const peerConnection = new RTCPeerConnection(peerConnectionConfig);
     peerConnectionRef.current = peerConnection;
     const localStream = await navigator.mediaDevices.getUserMedia({
       video: true,
@@ -296,7 +360,8 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
           dispatch({ type: "SET_USERS", payload: data.to });
           dispatch({ type: "SET_PEER_CONNECTION", payload: peerConnection });
         } else {
-          alert("User is not online");
+          alert("Người dùng không online");
+          return;
         }
       },
     );
