@@ -66,6 +66,7 @@ const QuestionEdit: React.FC = () => {
   const videoLocation = useWatch("videoLocation", form);
   const typeFile = useWatch("fileType", form);
   const typeAnswer = useWatch("questionType", form);
+  const lstAnswer = useWatch("answerResList", form);
 
   useQuery({
     queryKey: ["getDetailQuestion", id],
@@ -103,6 +104,13 @@ const QuestionEdit: React.FC = () => {
     onSuccess: () => {
       message.success("Sửa câu hỏi thành công");
       router.push("/learning-management/questions");
+    },
+  });
+
+  const mutationDeleteAnswer = useMutation({
+    mutationFn: Questions.deleteAnswer,
+    onSuccess: () => {
+      message.success("Xoá đáp án thành công");
     },
   });
 
@@ -317,8 +325,14 @@ const QuestionEdit: React.FC = () => {
 
                           <MinusCircleOutlined
                             style={{ fontSize: 20 }}
+                            disabled={fields?.length === 1}
                             className="dynamic-delete-button"
-                            onClick={() => remove(field.name)}
+                            onClick={() => {
+                              remove(field.name);
+                              mutationDeleteAnswer.mutate(
+                                lstAnswer[field.name].answerId,
+                              );
+                            }}
                           />
                         </div>
                       ))}
@@ -366,7 +380,12 @@ const QuestionEdit: React.FC = () => {
                         <MinusCircleOutlined
                           style={{ fontSize: 20 }}
                           className="dynamic-delete-button"
-                          onClick={() => remove(field.name)}
+                          onClick={() => {
+                            remove(field.name);
+                            mutationDeleteAnswer.mutate(
+                              lstAnswer[field.name].answerId,
+                            );
+                          }}
                         />
                       </div>
                     ))}

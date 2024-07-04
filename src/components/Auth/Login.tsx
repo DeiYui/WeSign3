@@ -1,22 +1,21 @@
 // components/Auth/Login.tsx
 "use client";
-
-import { LockOutlined, MailOutlined } from "@ant-design/icons";
-import { Button, Form, Input, message } from "antd";
-import Link from "next/link";
-import React from "react";
-import { useMutation } from "@tanstack/react-query";
-import Auth from "@/model/Auth";
-import { useDispatch } from "react-redux";
-import { login } from "@/store/slices/adminSlice";
-import { useRouter } from "next/navigation";
-import User from "@/model/User";
 import Loader from "@/components/UI/Loader";
+import Auth from "@/model/Auth";
+import User from "@/model/User";
+import { login } from "@/store/slices/adminSlice";
 import {
   validateEmail,
   validateRequireInput,
 } from "@/utils/validation/validtor";
+import { LockOutlined, MailOutlined } from "@ant-design/icons";
+import { useMutation } from "@tanstack/react-query";
+import { Button, Form, Input, message } from "antd";
 import { useForm } from "antd/es/form/Form";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React from "react";
+import { useDispatch } from "react-redux";
 
 const Login: React.FC = () => {
   const [form] = useForm();
@@ -28,7 +27,7 @@ const Login: React.FC = () => {
     onSuccess: async (res) => {
       localStorage.setItem("access_token", res.access_token);
       localStorage.setItem("refresh_token", res.refresh_token);
-      const response = await User.getProfile();
+      const response: any = await User.getProfile();
       dispatch(login(response.data));
       localStorage.setItem("user", response.data);
       message.success("Đăng nhập thành công");

@@ -6,6 +6,15 @@ interface SocketResponse {
   createdAt: Date | string;
 }
 
+interface SocketResponseSocket {
+  to: User | undefined;
+  from: User | undefined;
+  content: string;
+  messageType: string;
+  mediaLocation: string;
+  createdAt: Date | string;
+}
+
 interface Payload {
   contactId: string;
   content: string;
@@ -13,9 +22,23 @@ interface Payload {
   mediaLocation?: string;
 }
 
+interface PayloadSocKet {
+  to: User;
+  from: User;
+  content: string;
+  messageType: string;
+  mediaLocation?: string;
+  conversationId?: string | number;
+}
+
 interface TypingPayload {
   contactId: number;
   avatarLocation: string;
+}
+
+interface TypingPayloadSocket {
+  to: User;
+  from: User;
 }
 
 interface Call {
@@ -33,8 +56,8 @@ interface SocketContextProps {
   myVideo: any;
   userVideo: any;
   stream: MediaStream | undefined;
-  name: string;
-  setName: (name: string) => void;
+  name: any;
+  setName: any;
   callEnded: boolean;
   callUser: () => void;
   leaveCall: () => void;

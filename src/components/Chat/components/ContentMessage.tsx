@@ -59,17 +59,13 @@ export default function ContentMessage({
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-        inline: "nearest",
-      });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [isTyping, contactId]);
+  }, [messages, isTyping]);
 
   const renderMess = messages.map((mes, index) => (
     <div
@@ -162,7 +158,7 @@ export default function ContentMessage({
 
   return (
     <Spin spinning={isFetching}>
-      <div className="content-message-container" ref={messagesEndRef}>
+      <div className="content-message-container">
         <div className="">
           <div className="flex flex-col gap-4">
             {messages ? renderMess : <> </>}
@@ -193,6 +189,8 @@ export default function ContentMessage({
           )}
           <div ref={messagesEndRef} />
         </div>
+
+        <div className="h-0" ref={messagesEndRef} />
 
         {itemPreview && openPreview && (
           <Modal

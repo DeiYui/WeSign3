@@ -11,7 +11,7 @@ import { useState } from "react";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import ClientLoader from "./ClientLoader";
-import { SocketProvider } from "@/hooks/useContext";
+import { SocketProvider } from "@/hooks/SocketContext";
 
 injectStore(store);
 

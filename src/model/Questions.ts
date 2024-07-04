@@ -60,6 +60,12 @@ class Questions extends Base {
     const res = await this.apiGet(`/questions/question-of-exam/${id}`);
     return res.data;
   };
+
+  // Xoá đáp án
+  deleteAnswer = async (id?: any) => {
+    const res = await this.apiDelete(`/answers/${id}`);
+    return res.data;
+  };
 }
 
 export default new Questions("learning-service");

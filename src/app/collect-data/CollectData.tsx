@@ -719,9 +719,12 @@ export default function CollectData() {
                   }) => (
                     <div>
                       <p>Trạng thái quay video: {status}</p>
+
                       <Button
                         onClick={() => handleStartRecording(startRecording)}
-                        disabled={status === "recording"}
+                        disabled={
+                          status === "recording" || !filterParams.vocabulary
+                        }
                         icon={
                           <Tooltip
                             title="Thời gian tối đa cho mỗi video là 5s."

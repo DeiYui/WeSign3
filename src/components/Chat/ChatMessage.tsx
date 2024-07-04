@@ -1,17 +1,17 @@
 "use client";
 import { colors } from "@/assets/colors";
 import { CallIcon, MessageIcon } from "@/assets/icons";
-import { SocketContext } from "@/hooks/useContext";
+import { SocketVideoCallContext } from "@/hooks/SocketContext";
 import Conversations from "@/model/Conversations";
 import User from "@/model/User";
 import { RootState } from "@/store";
 import { chatAndCall } from "@/store/slices/chatSlice";
-import { CloseOutlined, DoubleLeftOutlined } from "@ant-design/icons";
+import { CloseOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Spin, Typography } from "antd";
+import { Typography } from "antd";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ChatInput from "./components/ChatInput";
 import ContactButton from "./components/ContactButton";
@@ -22,7 +22,7 @@ const item = {
   show: { opacity: 1, scale: 1 },
 };
 
-const ChatWidget = () => {
+const ChatMessage = () => {
   const dispatch = useDispatch();
   const user: User = useSelector((state: RootState) => state.admin);
   // trạng thái mơ chat
@@ -30,24 +30,30 @@ const ChatWidget = () => {
   // danh sách tin nhắn
   const [messageList, setMessageList] = useState<any[]>([]);
 
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+
   // files
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
 
   //socket
   const {
-    isLoading,
+    dispatchSocket,
     socketResponse,
+    isTyping,
     sendData,
     sendTypingEvent,
     sendStopTypingEvent,
-    isTyping,
-    setIsTyping,
-    // Call
-    setName,
+    startCall,
     selectedContact,
     setSelectedContact,
-    socket,
-  }: any = useContext(SocketContext);
+  }: any = useContext(SocketVideoCallContext);
+
+  useEffect(() => {
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop =
+        messageContainerRef.current.scrollHeight;
+    }
+  }, [messageList]);
 
   useEffect(() => {
     if (selectedContact.contactId && !chatOpen) {
@@ -118,25 +124,31 @@ const ChatWidget = () => {
   useEffect(() => {
     if (socketResponse) {
       if (isTyping) {
-        setIsTyping(false);
+        dispatchSocket({ type: "SET_IS_TYPING", payload: false });
       }
       addMessageToList(socketResponse);
     }
   }, [socketResponse]);
 
-  const addMessageToList = (val: { content: string }) => {
+  const addMessageToList = (val: any) => {
     if (!val.content) return;
     setMessageList((oldMess: any) => [...oldMess, val]);
   };
 
   const sendMessage = (message: string) => {
     if (message !== "") {
-      sendData({
-        contactId: user?.userId,
+      const res = {
+        to: user,
+        from: userInfo,
         content: message,
         messageType: "TEXT",
         mediaLocation: selectedFiles?.length ? selectedFiles[0] : null,
-      });
+        conversationId: selectedContact.conversationId,
+        createdAt: new Date(),
+      };
+      sendData(res);
+
+      addMessageToList({ ...res, contactId: res.to.userId });
       setSelectedFiles([]);
     }
   };
@@ -149,21 +161,22 @@ const ChatWidget = () => {
     if (value.trim() !== "") {
       // Nếu có giá trị nhập liệu thì gửi sự kiện "typing" tới server
       sendTypingEvent({
-        contactId: selectedContact.contactId,
+        to: user,
+        from: userInfo,
         avatarLocation: user?.avatarLocation,
       });
     } else {
-      sendStopTypingEvent();
-      setIsTyping(false);
+      sendStopTypingEvent({
+        to: user,
+        from: userInfo,
+        avatarLocation: user?.avatarLocation,
+      });
     }
   };
 
   // Start call
-  const startCall = () => {
-    socket?.emit("start_call", {
-      user: user,
-      remoteUser: userInfo,
-    });
+  const handleStartCall = () => {
+    startCall({ user: user, remoteUser: userInfo });
   };
 
   return (
@@ -188,11 +201,7 @@ const ChatWidget = () => {
                   <div
                     className="hover:cursor-pointer"
                     onClick={() => {
-                      setName({
-                        myUser: user,
-                        remoteUser: userInfo,
-                      });
-                      startCall();
+                      handleStartCall();
                     }}
                   >
                     <CallIcon size={24} color="white" />
@@ -243,23 +252,24 @@ const ChatWidget = () => {
             {/* Message */}
             {messageList?.length && selectedContact.contactId ? (
               <div
-                className="custom-scrollbar  w-full  overscroll-contain px-2 pt-4 "
+                ref={messageContainerRef}
+                className="custom-scrollbar w-full overscroll-contain px-2 pt-4"
                 style={{
                   height: "calc(100vh - 100px)",
-                  paddingBottom: selectedFiles?.length > 0 ? "120px" : "34px",
                   overflowY: "auto",
+                  paddingBottom: selectedFiles?.length > 0 ? "120px" : "34px",
                 }}
               >
-                <Spin spinning={isLoading}>
-                  <ContentMessage
-                    messages={messageList}
-                    user={user}
-                    userInfo={userInfo}
-                    isFetching={isFetchingMessage}
-                    isTyping={isTyping}
-                    contactId={selectedContact.contactId}
-                  />
-                </Spin>
+                {/* <Spin spinning={isLoading}> */}
+                <ContentMessage
+                  messages={messageList}
+                  user={user}
+                  userInfo={userInfo}
+                  isFetching={isFetchingMessage}
+                  isTyping={isTyping}
+                  contactId={selectedContact.contactId}
+                />
+                {/* </Spin> */}
               </div>
             ) : (
               <div className="flex flex-1 flex-col items-center justify-center">
@@ -289,7 +299,11 @@ const ChatWidget = () => {
                 setSelectedFiles={setSelectedFiles}
                 onKeyDown={handleKeyPress}
                 onBlur={() => {
-                  sendStopTypingEvent();
+                  sendStopTypingEvent({
+                    to: user,
+                    from: userInfo,
+                    avatarLocation: user?.avatarLocation,
+                  });
                 }}
                 onChange={handleInputChange}
                 isFetching={isFetchingMessage}
@@ -302,4 +316,4 @@ const ChatWidget = () => {
   );
 };
 
-export default ChatWidget;
+export default ChatMessage;

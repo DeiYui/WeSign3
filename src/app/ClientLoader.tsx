@@ -1,10 +1,10 @@
 // components/ClientLoader.tsx
-import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import Loader from "@/components/UI/Loader";
-import { useDispatch } from "react-redux";
-import { resetChat } from "@/store/slices/chatSlice";
 import { logout } from "@/store/slices/adminSlice";
+import { resetChat } from "@/store/slices/chatSlice";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 
 const ClientLoader = ({ children }: any) => {
   const router = useRouter();

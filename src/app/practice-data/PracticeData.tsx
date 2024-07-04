@@ -249,11 +249,15 @@ const PracticeData: React.FC = () => {
     mutationFn: UploadModel.checkAI,
     onSuccess: (res) => {
       message.success("Xử lý dữ liệu thành công");
-      setResultContent({
-        content: res.data?.content,
-        fileLocation: res?.data.fileLocation,
-      });
-      setShowModalResult(true);
+      if (res?.data?.content) {
+        setResultContent({
+          content: res.data?.content,
+          fileLocation: res?.data.fileLocation,
+        });
+        setShowModalResult(true);
+      } else {
+        message.error("Không có từ nào đúng với nội dung cung cấp");
+      }
     },
   });
 

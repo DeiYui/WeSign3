@@ -4,10 +4,10 @@ import Sidebar from "@/components/Layouts/Sidebar";
 import { RootState } from "@/store";
 import { updateSetting } from "@/store/slices/SettingSlice";
 import { DoubleLeftOutlined, DoubleRightOutlined } from "@ant-design/icons";
+import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import ChatWidget from "../Chat/ChatWidget";
-import { usePathname } from "next/navigation";
+import ChatMessage from "../Chat/ChatMessage";
 
 export default function DefaultLayout({
   children,
@@ -15,7 +15,6 @@ export default function DefaultLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.admin);
 
@@ -64,14 +63,12 @@ export default function DefaultLayout({
 
           {/* <!-- ===== Main Content Start ===== --> */}
           <main>
-            <div className="mx-auto mr-14 max-w-screen-2xl p-4 ">
-              {children}
-            </div>
+            <div className="mx-auto mr-14 max-w-full p-4 ">{children}</div>
           </main>
         </div>
 
         {/* Chat */}
-        {user && !pathname.includes("/chat") && <ChatWidget />}
+        {user && !pathname.includes("/chat") && <ChatMessage />}
       </div>
     </>
   );

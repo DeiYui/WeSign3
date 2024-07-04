@@ -10,7 +10,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import User from "@/model/User";
 import Conversations from "@/model/Conversations";
-import { SocketContext } from "@/hooks/useContext";
+import { SocketVideoCallContext } from "@/hooks/SocketContext";
 
 interface ProfileModalProps {
   visible: boolean;
@@ -27,8 +27,9 @@ const DetailFriend: React.FC<ProfileModalProps> = ({
 }) => {
   const queryClient = useQueryClient();
 
-  const { selectedContact, setSelectedContact }: any =
-    useContext(SocketContext);
+  const { selectedContact, setSelectedContact }: any = useContext(
+    SocketVideoCallContext,
+  );
 
   // Thông tin user
   const { data: userInfo, isFetching } = useQuery({
