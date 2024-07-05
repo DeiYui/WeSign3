@@ -131,8 +131,6 @@ const CreateAndEditExamPage: React.FC = () => {
     enabled: openChooseQuestions.open,
   });
 
-  console.log("detailExam", detailExam);
-
   // Lấy câu hỏi theo bài kiểm tra
   const { isFetching: isFetchingQExams } = useQuery({
     queryKey: ["getLstQuestionExam"],
@@ -208,7 +206,6 @@ const CreateAndEditExamPage: React.FC = () => {
               questionIds: value.questionIds,
               private: isPrivate,
             };
-            debugger;
             if (id) {
               editExamMutation.mutate(reqEdit);
             } else {

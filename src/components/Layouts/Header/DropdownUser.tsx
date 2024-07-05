@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Avatar, Button, Form, Image, Input, Modal, message } from "antd";
 import {
@@ -12,6 +12,7 @@ import { useDispatch } from "react-redux";
 import { logout } from "@/store/slices/adminSlice";
 import { useRouter } from "next/navigation";
 import User from "@/model/User";
+import { SocketVideoCallContext } from "@/hooks/SocketContext";
 
 const DropdownUser = ({ admin }: { admin: User }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -22,6 +23,8 @@ const DropdownUser = ({ admin }: { admin: User }) => {
   const isMounted = useRef(false);
 
   const [isShowModalChangePass, setIsShowModalChangePass] = useState(false);
+
+  const { socket }: any = useContext(SocketVideoCallContext);
 
   useEffect(() => {
     if (!isMounted.current) {
@@ -78,7 +81,9 @@ const DropdownUser = ({ admin }: { admin: User }) => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
+    sessionStorage.removeItem("pendingOffer");
     dispatch(logout());
+    socket.emit("disconnected");
   };
 
   return (

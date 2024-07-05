@@ -94,64 +94,15 @@ const SocketVideoCallContext = createContext<SocketContextProps | undefined>(
 const peerConnectionConfig = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun.l.google.com:5349" },
-    { urls: "stun:stun1.l.google.com:3478" },
-    { urls: "stun:stun1.l.google.com:5349" },
-    { urls: "stun:stun2.l.google.com:19302" },
-    { urls: "stun:stun2.l.google.com:5349" },
-    { urls: "stun:stun3.l.google.com:3478" },
-    { urls: "stun:stun3.l.google.com:5349" },
-    { urls: "stun:stun4.l.google.com:19302" },
-    { urls: "stun:stun4.l.google.com:5349" },
-    { urls: "stun:stun01.sipphone.com" },
-    { urls: "stun:stun.ekiga.net" },
-    { urls: "stun:stun.fwdnet.net" },
-    { urls: "stun:stun.ideasip.com" },
-    { urls: "stun:stun.iptel.org" },
-    { urls: "stun:stun.rixtelecom.se" },
-    { urls: "stun:stun.schlund.de" },
-    { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
     { urls: "stun:stun2.l.google.com:19302" },
     { urls: "stun:stun3.l.google.com:19302" },
     { urls: "stun:stun4.l.google.com:19302" },
-    { urls: "stun:stunserver.org" },
-    { urls: "stun:stun.softjoys.com" },
-    { urls: "stun:stun.voiparound.com" },
-    { urls: "stun:stun.voipbuster.com" },
-    { urls: "stun:stun.voipstunt.com" },
-    { urls: "stun:stun.voxgratia.org" },
-    { urls: "stun:stun.xten.com" },
     {
-      urls: "turn:numb.viagenie.ca",
-      credential: "muazkh",
-      username: "webrtc@live.com",
+      urls: "turn:relay1.expressturn.com:3478",
+      username: "ef4L3BRHOH5L72TY10",
+      credential: "Oi8KR9Ly1fZrY2Lm",
     },
-    {
-      urls: "turn:192.158.29.39:3478?transport=udp",
-      credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
-      username: "28224511:1379330808",
-    },
-    {
-      urls: "turn:192.158.29.39:3478?transport=tcp",
-      credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
-      username: "28224511:1379330808",
-    },
-
-    { urls: "stun:numb.viagenie.ca" },
-    { urls: "stun:iphone-stun.strato-iphone.de:3478" },
-    { urls: "stun:relay.webwormhole.io:3478" },
-    { urls: "stun:stun-eu.3cx.com:3478" },
-    { urls: "stun:stun-us.3cx.com:3478" },
-    { urls: "stun:stun.1-voip.com:3478" },
-    { urls: "stun:stun.12connect.com:3478" },
-    { urls: "stun:stun.12voip.com:3478" },
-    { urls: "stun:stun.1cbit.ru:3478" },
-    { urls: "stun:stun.1und1.de:3478" },
-    { urls: "stun:stun.3cx.com:3478" },
-    { urls: "stun:stun.3deluxe.de:3478" },
-    { urls: "stun:stun.3wayint.com:3478" },
-    { urls: "stun:stun.5sn.com:3478" },
   ],
 };
 
@@ -186,9 +137,28 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [callAccepted, setCallAccepted] = useState(false);
 
+  const [iceServers, setIceServers] = useState([]);
+  const token = localStorage.getItem("access_token");
+
+  useEffect(() => {
+    const fetchTurnCredentials = async () => {
+      try {
+        const response = await fetch(
+          "https://wesign.metered.live/api/v1/turn/credentials?apiKey=08644a3885ebd012a2c390eb8e3cfa8e6e4d",
+        );
+        const data = await response.json();
+        setIceServers(data);
+      } catch (error) {
+        console.error("Error fetching TURN credentials:", error);
+      }
+    };
+
+    fetchTurnCredentials();
+  }, []);
+
   // Khởi tạo
   const initializePeerConnection = async (data: any) => {
-    const peerConnection = new RTCPeerConnection(peerConnectionConfig);
+    const peerConnection = new RTCPeerConnection({ iceServers: iceServers });
     peerConnectionRef.current = peerConnection;
     const localStream = await navigator.mediaDevices.getUserMedia({
       video: true,
@@ -198,7 +168,6 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
         autoGainControl: true,
       },
     });
-
     dispatch({ type: "SET_LOCAL_STREAM", payload: localStream });
 
     localStream
@@ -295,10 +264,11 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
     }
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
-      // peerConnectionRef.current = null;
+      peerConnectionRef.current = null;
     }
     if (remoteStreamRef.current) {
       remoteStreamRef.current.getTracks().forEach((track) => track.stop());
+      remoteStreamRef.current = null;
     }
     if (state.localStream) {
       state.localStream.getTracks().forEach((track) => track.stop());
@@ -315,109 +285,125 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
   };
 
   useEffect(() => {
-    const socket = io("https://chat-call-app-api.onrender.com", {
-      transports: ["websocket"],
-    });
+    if (token && iceServers?.length) {
+      const socket = io("https://chat-call-app-api.onrender.com", {
+        transports: ["websocket"],
+      });
 
-    dispatch({ type: "SET_SOCKET", payload: socket });
+      dispatch({ type: "SET_SOCKET", payload: socket });
 
-    socket.emit("store_user", { user: user });
-    // CHAT
-    socket.on("get_message", (res) => {
-      setSocketResponse({ ...res, createdAt: new Date() });
-      dispatch({ type: "SET_IS_TYPING", payload: false });
-    });
+      // socket.on("connect", () => {
+      //   dispatch({ type: "SET_SOCKET", payload: socket });
+      //   socket.emit("store_user", { user: user });
+      // });
+      socket.emit("store_user", { user: user });
 
-    socket.on("typing", (data) => {
-      if (data.isTyping) {
-        dispatch({ type: "SET_IS_TYPING", payload: data.isTyping });
-      }
-    });
+      // CHAT
+      socket.on("get_message", (res) => {
+        setSocketResponse({ ...res, createdAt: new Date() });
+        dispatch({ type: "SET_IS_TYPING", payload: false });
+      });
 
-    socket.on("stop_typing", (data) => {
-      if (data.isTyping) {
-        dispatch({ type: "SET_IS_TYPING", payload: data.isTyping });
-      }
-    });
+      socket.on("typing", (data) => {
+        if (data.isTyping) {
+          dispatch({ type: "SET_IS_TYPING", payload: data.isTyping });
+        }
+      });
 
-    // CALL
-    socket.on(
-      "call_response",
-      async (data: { type: string; data: string; to: User; from: User }) => {
-        if (data.data === "user is ready for call") {
-          const peerConnection = await initializePeerConnection({
-            to: data.to,
-            from: data.from,
-          });
-          const offer = await peerConnection.createOffer();
-          await peerConnection.setLocalDescription(offer);
+      socket.on("stop_typing", (data) => {
+        if (data.isTyping) {
+          dispatch({ type: "SET_IS_TYPING", payload: data.isTyping });
+        }
+      });
 
-          socket.emit("create_offer", {
-            to: data.to,
-            from: data.from,
-            data: { sdp: offer },
+      // CALL
+      socket.on(
+        "call_response",
+        async (data: { type: string; data: string; to: User; from: User }) => {
+          if (data.data === "user is ready for call") {
+            const peerConnection = await initializePeerConnection({
+              to: data.to,
+              from: data.from,
+            });
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+
+            socket.emit("create_offer", {
+              to: data.to,
+              from: data.from,
+              data: { sdp: offer },
+            });
+            dispatch({ type: "SET_USERS", payload: data.to });
+            dispatch({ type: "SET_PEER_CONNECTION", payload: peerConnection });
+          } else {
+            alert("Người dùng không online");
+            return;
+          }
+        },
+      );
+
+      socket.on(
+        "offer_received",
+        async (data: {
+          from: User;
+          to: User;
+          data: RTCSessionDescriptionInit;
+        }) => {
+          dispatch({
+            type: "SET_INCOMING_CALL",
+            payload: { from: data.from, isRinging: true },
           });
           dispatch({ type: "SET_USERS", payload: data.to });
-          dispatch({ type: "SET_PEER_CONNECTION", payload: peerConnection });
-        } else {
-          alert("Người dùng không online");
-          return;
-        }
-      },
-    );
+          // Lưu offer để sử dụng sau này nếu người dùng chấp nhận cuộc gọi
+          sessionStorage.setItem("pendingOffer", JSON.stringify(data));
+        },
+      );
 
-    socket.on(
-      "offer_received",
-      async (data: {
-        from: User;
-        to: User;
-        data: RTCSessionDescriptionInit;
-      }) => {
-        dispatch({
-          type: "SET_INCOMING_CALL",
-          payload: { from: data.from, isRinging: true },
-        });
-        dispatch({ type: "SET_USERS", payload: data.to });
-        // Lưu offer để sử dụng sau này nếu người dùng chấp nhận cuộc gọi
-        sessionStorage.setItem("pendingOffer", JSON.stringify(data));
-      },
-    );
+      socket.on(
+        "answer_received",
+        async (data: {
+          to: User;
+          from: User;
+          data: RTCSessionDescriptionInit;
+        }) => {
+          if (peerConnectionRef.current) {
+            await peerConnectionRef.current.setRemoteDescription(data.data);
+            setCallAccepted(true);
+          }
+        },
+      );
 
-    socket.on(
-      "answer_received",
-      async (data: {
-        to: User;
-        from: User;
-        data: RTCSessionDescriptionInit;
-      }) => {
-        if (peerConnectionRef.current) {
-          await peerConnectionRef.current.setRemoteDescription(data.data);
-          setCallAccepted(true);
-        }
-      },
-    );
+      socket.on(
+        "ice_candidate",
+        async (data: { data: RTCIceCandidateInit }) => {
+          try {
+            if (peerConnectionRef.current) {
+              await peerConnectionRef.current.addIceCandidate(data.data);
+            }
+          } catch (e) {
+            console.error("Error adding received ICE candidate", e);
+          }
+        },
+      );
 
-    socket.on("ice_candidate", async (data: { data: RTCIceCandidateInit }) => {
-      try {
-        if (peerConnectionRef.current) {
-          await peerConnectionRef.current.addIceCandidate(data.data);
-        }
-      } catch (e) {
-        console.error("Error adding received ICE candidate", e);
-      }
-    });
+      socket.on("call_ended", (data) => {
+        // Xử lý kết thúc cuộc gọi ở đây
+        // Ví dụ: đóng kết nối peer, dừng streams, cập nhật UI
+        cleanupStreamsAndConnection();
+      });
 
-    socket.on("call_ended", (data) => {
-      // Xử lý kết thúc cuộc gọi ở đây
-      // Ví dụ: đóng kết nối peer, dừng streams, cập nhật UI
-      cleanupStreamsAndConnection();
-    });
+      socket.on("disconnect", () => {
+        console.log("Disconnected from server");
+        cleanupStreamsAndConnection();
+      });
 
-    return () => {
-      socket.disconnect();
-      // cleanupStreamsAndConnection();
-    };
-  }, []);
+      return () => {
+        socket.disconnect();
+
+        // cleanupStreamsAndConnection();
+      };
+    }
+  }, [token, iceServers]);
 
   const startCall = (data: any) => {
     if (state.socket) {
