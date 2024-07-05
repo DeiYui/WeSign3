@@ -413,7 +413,7 @@ const VocabularyList = ({ isPrivate }: any) => {
             className="body-14-medium flex cursor-pointer select-none items-center gap-x-2 p-1 text-primary-600"
           >
             <DeleteOutlined color={colors.primary600} />
-            Xoá từ vựng
+            Xoá từ khỏi chủ đề hiện tại
           </div>
           <div
             onClick={() =>

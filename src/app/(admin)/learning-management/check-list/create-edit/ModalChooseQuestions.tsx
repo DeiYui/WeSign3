@@ -223,31 +223,29 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
             onChange={(e) => setSearchValue(e.target.value)}
           />
 
-          {selectedRowId?.length > 0 && (
-            <div className="my-2 flex items-center gap-x-3 rounded-lg bg-neutral-100 px-4 py-1">
-              <div
-                aria-hidden="true"
-                className="headline-16-bold flex cursor-pointer select-none items-center gap-x-2 p-1 text-primary-600"
-                onClick={() => {
-                  form.setFieldsValue({
-                    questionIds: selectedRowId,
-                    lstQuestions: selectRecords,
-                  });
-                  message.success("Thêm câu hỏi thành công");
-                  onClose();
-                  setSelectedRowId([]);
-                  setSelectRecords([]);
-                }}
-              >
-                <PlusCircleFilled
-                  className="hover:text-primary-800"
-                  style={{ fontSize: 24 }}
-                  color={colors.primary300}
-                />
-                Thêm
-              </div>
+          <div className="my-2 flex items-center gap-x-3 rounded-lg bg-neutral-100 px-4 py-1">
+            <div
+              aria-hidden="true"
+              className="headline-16-bold flex cursor-pointer select-none items-center gap-x-2 p-1 text-primary-600"
+              onClick={() => {
+                form.setFieldsValue({
+                  questionIds: selectedRowId,
+                  lstQuestions: selectRecords,
+                });
+                message.success("Thêm câu hỏi thành công");
+                onClose();
+                setSelectedRowId([]);
+                setSelectRecords([]);
+              }}
+            >
+              <PlusCircleFilled
+                className="hover:text-primary-800"
+                style={{ fontSize: 24 }}
+                color={colors.primary300}
+              />
+              Thêm
             </div>
-          )}
+          </div>
           <div className="my-2">Tổng số câu hỏi: {lstQuestion?.length}</div>
           <CustomTable
             className="mt-4"

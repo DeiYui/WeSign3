@@ -1,33 +1,28 @@
 "use client";
-import { MediaUpload } from "@/components/UI/Upload/UploadFile";
+import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
+import Questions from "@/model/Questions";
 import {
   validateRequire,
   validateRequireInput,
 } from "@/utils/validation/validtor";
-import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import { DeleteFilled } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Button,
-  Checkbox,
   Collapse,
   Form,
   Input,
-  Modal,
   Pagination,
-  Radio,
   Select,
   Spin,
   message,
 } from "antd";
 import { useForm } from "antd/es/form/Form";
 import type { UploadFile } from "antd/es/upload/interface";
-import React, { useEffect, useMemo, useState } from "react";
-import QuestionModal from "./ModalSelectFile";
-import ModalChooseQuestions from "./ModalChooseQuestions";
-import Questions from "@/model/Questions";
-import Exam from "@/model/Exam";
 import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
+import ModalChooseQuestions from "./ModalChooseQuestions";
 
 interface Answer {
   id: number;
@@ -91,7 +86,15 @@ const CreateAndEditExamPage: React.FC = () => {
     queryKey: ["detailExamsForUser", id],
     queryFn: async () => {
       const res = await Exam.detailExamsForUser(Number(id));
-      form.setFieldsValue(res?.data);
+      form.setFieldsValue({
+        ...res?.data,
+        numQuestions: res.data?.numberOfQuestions,
+      });
+      setOpenChooseQuestions({
+        ...openChooseQuestions,
+        classRoomId: res?.data.classRoomId,
+      });
+
       return res?.data;
     },
     enabled: !!id,
@@ -128,6 +131,19 @@ const CreateAndEditExamPage: React.FC = () => {
     enabled: openChooseQuestions.open,
   });
 
+  console.log("detailExam", detailExam);
+
+  // Lấy câu hỏi theo bài kiểm tra
+  const { isFetching: isFetchingQExams } = useQuery({
+    queryKey: ["getLstQuestionExam"],
+    queryFn: async () => {
+      const res = await Questions.getLstQuestionExam(detailExam.examId);
+      form.setFieldValue("lstQuestions", res?.data);
+      return res?.data;
+    },
+    enabled: detailExam && !!detailExam?.examId,
+  });
+
   // Thêm bài kiểm tra
   const addExam = useMutation({
     mutationFn: Exam.addExam,
@@ -146,25 +162,58 @@ const CreateAndEditExamPage: React.FC = () => {
     },
   });
 
+  const editExamMutation = useMutation({
+    mutationFn: Exam.editExams,
+    onSuccess: async () => {
+      // Thông báo thành công
+      message.success("Chỉnh sửa bài kiểm tra thành công");
+
+      router.push(
+        isPrivate === "true"
+          ? "/learning-management/check-list/private"
+          : "/learning-management/check-list/public",
+      );
+    },
+    onError: () => {
+      message.error("Chỉnh sửa bài kiểm tra thất bại");
+    },
+  });
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
   return (
-    <>
+    <Spin
+      spinning={
+        editExamMutation.isPending || addExam.isPending || isFetchingQExams
+      }
+    >
       <div className="container mx-auto p-4">
         <h1 className="mb-4 text-2xl font-bold">Thêm bài kiểm tra</h1>
         <Form
           form={form}
           onFinish={(value) => {
             // convert
-            const req = {
+            const reqAdd = {
               name: value.name,
               questionIds: value.questionIds,
               classRoomId: value.classRoomId,
               private: isPrivate,
             };
-            addExam.mutate(req);
+
+            const reqEdit = {
+              examId: value.examId,
+              name: value.name,
+              questionIds: value.questionIds,
+              private: isPrivate,
+            };
+            debugger;
+            if (id) {
+              editExamMutation.mutate(reqEdit);
+            } else {
+              addExam.mutate(reqAdd);
+            }
           }}
           layout="vertical"
         >
@@ -187,6 +236,7 @@ const CreateAndEditExamPage: React.FC = () => {
               }}
             />
           </Form.Item>
+          <Form.Item name="examId" hidden />
           <Form.Item
             label="Tên bài kiểm tra"
             name="name"
@@ -249,9 +299,23 @@ const CreateAndEditExamPage: React.FC = () => {
                 <>
                   <div
                     key={e}
-                    className="body-14-regular rounded-lg p-2 hover:cursor-default hover:bg-primary-200"
+                    className="body-14-regular group flex items-center justify-between rounded-lg p-2 pr-4 hover:cursor-default hover:bg-primary-200"
                   >
                     {e.content}
+                    <div
+                      className="opacity-0 hover:cursor-pointer group-hover:opacity-100"
+                      onClick={() => {
+                        form.setFieldValue(
+                          "lstQuestions",
+                          lstQuestions?.filter(
+                            (question: { questionId: any }) =>
+                              question?.questionId !== e?.questionId,
+                          ),
+                        );
+                      }}
+                    >
+                      <DeleteFilled />
+                    </div>
                   </div>
                 </>
               ))}
@@ -286,7 +350,7 @@ const CreateAndEditExamPage: React.FC = () => {
           />
         ) : null}
       </div>
-    </>
+    </Spin>
   );
 };
 

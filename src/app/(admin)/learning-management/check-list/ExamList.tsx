@@ -3,7 +3,7 @@ import { colors } from "@/assets/colors";
 import { usePage } from "@/hooks/usePage";
 import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
-import { DeleteOutlined, MoreOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditFilled, MoreOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Dropdown, Input, Select, Table, message } from "antd";
 import { useRouter } from "next/navigation";
@@ -130,22 +130,22 @@ const ExamListPage = ({ isPrivate }: any) => {
       align: "center",
       render: (value: number, record: any) => {
         const items = [
-          // {
-          //   key: "1",
-          //   label: (
-          //     <div
-          //       className="flex items-center gap-x-3 py-[3px]"
-          //       onClick={() =>
-          //         router.push(
-          //           `/learning-management/check-list/create-edit/?id=${value}`,
-          //         )
-          //       }
-          //     >
-          //       <EditFilled />
-          //       Chỉnh sửa
-          //     </div>
-          //   ),
-          // },
+          {
+            key: "1",
+            label: (
+              <div
+                className="flex items-center gap-x-3 py-[3px]"
+                onClick={() =>
+                  router.push(
+                    `/learning-management/check-list/create-edit/?id=${value}`,
+                  )
+                }
+              >
+                <EditFilled />
+                Chỉnh sửa
+              </div>
+            ),
+          },
           {
             key: "2",
             label: (

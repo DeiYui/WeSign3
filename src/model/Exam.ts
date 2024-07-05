@@ -13,6 +13,12 @@ class Exam extends Base {
     return res.data;
   };
 
+  // Chỉnh sửa bài kiểm tra
+  editExams = async (body?: any) => {
+    const res = await this.apiPut(`/exams`, body);
+    return res.data;
+  };
+
   // Thêm bài kiểm tra
   addExam = async (body?: any) => {
     const res = await this.apiPost(`/exams`, body);

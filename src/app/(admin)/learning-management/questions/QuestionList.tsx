@@ -176,25 +176,27 @@ const QuestionList = () => {
         );
         return (
           <>
-            {answersCorrect?.slice(0, 3)?.map((answer, index) => (
-              <Tag key={index} className="bg-green-500">
-                <div className="p-1 text-sm font-bold text-white">
-                  {answer.content}
-                </div>
-              </Tag>
-            ))}
+            {answersCorrect?.length &&
+              answersCorrect?.slice(0, 3)?.map((answer, index) => (
+                <Tag key={index} className="bg-green-500">
+                  <div className="p-1 text-sm font-bold text-white">
+                    {answer.content}
+                  </div>
+                </Tag>
+              ))}
             <Popover
               content={
                 <>
-                  {answersCorrect
-                    ?.slice(3, answersCorrect?.length)
-                    ?.map((answer, index) => (
-                      <Tag key={index} className="bg-green-500">
-                        <div className="p-1 text-sm font-bold text-white">
-                          {answer.content}
-                        </div>
-                      </Tag>
-                    ))}
+                  {answersCorrect?.length &&
+                    answersCorrect
+                      ?.slice(3, answersCorrect?.length)
+                      ?.map((answer, index) => (
+                        <Tag key={index} className="bg-green-500">
+                          <div className="p-1 text-sm font-bold text-white">
+                            {answer.content}
+                          </div>
+                        </Tag>
+                      ))}
                 </>
               }
             >
