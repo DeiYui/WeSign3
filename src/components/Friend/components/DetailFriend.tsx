@@ -78,16 +78,6 @@ const DetailFriend: React.FC<ProfileModalProps> = ({
     },
   });
 
-  const bannerUrls = [
-    "https://source.unsplash.com/random/800x200?landscape",
-    "https://source.unsplash.com/random/800x200?nature",
-    "https://source.unsplash.com/random/800x200?city",
-    "https://source.unsplash.com/random/800x200?technology",
-  ];
-
-  const randomBannerUrl =
-    bannerUrls[Math.floor(Math.random() * bannerUrls.length)];
-
   return (
     <Modal
       open={visible}
@@ -97,11 +87,15 @@ const DetailFriend: React.FC<ProfileModalProps> = ({
       centered
     >
       <Spin spinning={isFetching}>
-        <Image
-          src={randomBannerUrl}
-          alt="Banner"
-          style={{ width: "100%", height: "200px", objectFit: "cover" }}
-        />
+        <div className="w-full">
+          <Image
+            width={450}
+            src="/images/chatBg.png"
+            alt="Banner"
+            style={{ width: "100%", height: "200px", objectFit: "contain" }}
+          />
+        </div>
+
         <div style={{ textAlign: "center", marginTop: "-60px" }}>
           <Avatar
             src={userInfo?.avatarLocation}

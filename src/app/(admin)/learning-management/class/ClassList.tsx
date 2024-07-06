@@ -26,6 +26,8 @@ import { useForm } from "antd/es/form/Form";
 import React, { useCallback, useState } from "react";
 import { CustomTable } from "../check-list/ExamList";
 import { debounce } from "lodash";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 interface Class {
   classRoomId?: number;
@@ -35,6 +37,8 @@ interface Class {
 }
 
 const ClassList: React.FC = () => {
+  const user: User = useSelector((state: RootState) => state.admin);
+
   const [form] = useForm();
   // danh sách lớp
   const [lstClass, setLstClass] = useState([]);
@@ -133,37 +137,39 @@ const ClassList: React.FC = () => {
       ),
       width: 200,
     },
-    {
-      title: "Hành động",
-      key: "classRoomId",
-      dataIndex: "classRoomId",
-      render: (value: any, record: Class) => (
-        <div className="flex space-x-2">
-          <Button
-            icon={<EditOutlined />}
-            onClick={() => {
-              form.setFieldsValue({
-                content: record.content,
-                file: record.imageLocation,
-                classRoomId: record.classRoomId,
-              });
-              setModalCreate({
-                ...modalCreate,
-                open: true,
-                file: record.imageLocation,
-                typeModal: "edit",
-              });
-            }}
-          />
-          <Button
-            icon={<DeleteOutlined />}
-            danger
-            onClick={() => mutationDel.mutate(value)}
-          />
-        </div>
-      ),
-    },
-  ];
+    user?.role === "ADMIN"
+      ? {
+          title: "Hành động",
+          key: "classRoomId",
+          dataIndex: "classRoomId",
+          render: (value: any, record: Class) => (
+            <div className="flex space-x-2">
+              <Button
+                icon={<EditOutlined />}
+                onClick={() => {
+                  form.setFieldsValue({
+                    content: record.content,
+                    file: record.imageLocation,
+                    classRoomId: record.classRoomId,
+                  });
+                  setModalCreate({
+                    ...modalCreate,
+                    open: true,
+                    file: record.imageLocation,
+                    typeModal: "edit",
+                  });
+                }}
+              />
+              <Button
+                icon={<DeleteOutlined />}
+                danger
+                onClick={() => mutationDel.mutate(value)}
+              />
+            </div>
+          ),
+        }
+      : null,
+  ]?.filter((item) => item);
 
   //upload
   // upload
@@ -232,6 +238,7 @@ const ClassList: React.FC = () => {
         />
 
         <Button
+          hidden={!(user?.role === "ADMIN")}
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => {

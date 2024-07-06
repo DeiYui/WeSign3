@@ -39,7 +39,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
     if (showFileDetail) {
       setAutoplay(true);
       setVideoCurrent(
-        allVocabulary[fileIndex]?.vocabularyVideoResList[0].videoLocation,
+        allVocabulary[fileIndex]?.vocabularyVideoResList[0]?.videoLocation,
       );
       setCurrentVideoIndex(0);
     }

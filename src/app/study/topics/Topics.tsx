@@ -1,11 +1,10 @@
 "use client";
 import StudyComponent from "@/components/Study/StudyComponent";
-import ButtonPrimary from "@/components/UI/Button/ButtonPrimary";
 import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
-import { default as Learning, default as Topic } from "@/model/Learning";
+import { default as Learning } from "@/model/Learning";
 import { useQuery } from "@tanstack/react-query";
-import { Avatar, Button, Image, Input, List, Modal, Skeleton } from "antd";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Avatar, Input, List, Modal, Skeleton, Spin } from "antd";
+import { useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 
 export interface SectionHero2Props {
@@ -62,7 +61,7 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
   });
 
   // API lấy danh sách từ theo topics
-  const { data: allVocabulary } = useQuery({
+  const { data: allVocabulary, isFetching: isFetchingVocabulary } = useQuery({
     queryKey: ["getVocabularyTopic", showModal.topicId],
     queryFn: async () => {
       const res = await Learning.getVocabularyTopic(showModal.topicId);
@@ -96,7 +95,7 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
   }, [searchText, allTopicsPublic, allTopicsPrivate]);
 
   return (
-    <>
+    <Spin spinning={isFetchingVocabulary}>
       <ButtonSecondary
         className="mb-4 border border-solid border-neutral-700"
         onClick={() => setShowModal({ ...showModal, open: true })}
@@ -116,7 +115,7 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
       >
         <Input
           size="large"
-          placeholder="Nhập chủ đè muốn tìm kiếm"
+          placeholder="Nhập chủ đề muốn tìm kiếm"
           className="w-2/3"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
@@ -203,7 +202,7 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
           </div>
         </div>
       </Modal>
-    </>
+    </Spin>
   );
 };
 

@@ -228,6 +228,7 @@ export default function CollectData() {
     mutationFn: Learning.editData,
     onSuccess: () => {
       message.success("Cập nhật thành công");
+      refetch();
     },
   });
 
@@ -314,6 +315,14 @@ export default function CollectData() {
         ),
     },
     {
+      title: "Điểm",
+      dataIndex: "score",
+      width: "10%",
+      render: (value: any) => (
+        <div className="">{value ? value : "Chưa có"}</div>
+      ),
+    },
+    {
       title: "Đánh giá",
       dataIndex: "feedBack",
       render: (value: string) => (
@@ -331,6 +340,7 @@ export default function CollectData() {
           <CustomDiv style={{ maxWidth: "260px" }}>{value}</CustomDiv>
         </Popover>
       ),
+      width: "40%",
     },
     {
       title: "Xem lại",
@@ -371,6 +381,7 @@ export default function CollectData() {
                 previewImg: record.dataLocation,
                 previewVideo: record.dataLocation,
                 typeModal: "edit",
+                vocabularyContent: record.vocabularyContent,
               });
               setFilterParams({
                 ...filterParams,
@@ -582,125 +593,167 @@ export default function CollectData() {
       >
         <Spin spinning={isLoading}>
           <div className="flex items-start gap-3">
-            <div className="w-1/2">
-              <div className="mb-2 text-center text-xl font-semibold">
-                Dữ liệu mẫu
+            {modalVideo.typeModal === "edit" ? (
+              <div className="w-1/2">
+                <div className="">
+                  Dữ liệu đã quay trước đó cho từ{" "}
+                  <span className="text-xl font-bold">
+                    {modalVideo.vocabularyContent}
+                  </span>
+                </div>
+                {/* Dữ liệu mẫu */}
+                <div className="justify-s= mt-3 flex items-start ">
+                  {modalVideo.type === "image" && modalVideo.previewImg && (
+                    <Image
+                      src={modalVideo.previewImg}
+                      alt="Uploaded"
+                      style={{ width: 400, height: 400 }}
+                      className="flex items-start justify-start"
+                    />
+                  )}
+                  {modalVideo.type === "video" && modalVideo.previewVideo && (
+                    <video
+                      ref={videoRef}
+                      controls
+                      style={{ width: 800 }}
+                      className="flex items-start justify-start"
+                    >
+                      <source src={modalVideo.previewVideo} type="video/mp4" />
+                    </video>
+                  )}
+                </div>
               </div>
-              <div className="flex gap-4">
-                <Select
-                  className="w-full"
-                  allowClear
-                  showSearch
-                  placeholder="Chọn chủ đề"
-                  options={allTopics}
-                  onChange={(value, option: any) =>
-                    setFilterParams({
-                      ...filterParams,
-                      topic: value,
-                      vocabulary: null,
-                    })
-                  }
-                  filterOption={filterOption}
-                />
-                <Select
-                  showSearch
-                  className="w-full"
-                  allowClear
-                  placeholder="Chọn từ vựng"
-                  options={allVocabulary}
-                  value={filterParams.vocabulary}
-                  onChange={(value, option: any) => {
-                    if (value) {
-                      option?.vocabularyImageResList.sort(
-                        (a: { primary: any }, b: { primary: any }) => {
-                          // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
-                          return a.primary === b.primary
-                            ? 0
-                            : a.primary
-                              ? -1
-                              : 1;
-                        },
-                      );
-                      option?.vocabularyVideoResList.sort(
-                        (a: { primary: any }, b: { primary: any }) => {
-                          // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
-                          return a.primary === b.primary
-                            ? 0
-                            : a.primary
-                              ? -1
-                              : 1;
-                        },
-                      );
-                      setFilterParams({ ...filterParams, vocabulary: value });
-                      setModalVideo((prevModalVideo) => ({
-                        ...prevModalVideo,
-                        previewImg:
-                          option?.vocabularyImageResList[0]?.imageLocation,
-                        previewVideo:
-                          option?.vocabularyVideoResList[0]?.videoLocation,
-                        vocabularyContent: option.label,
-                      }));
-                      if (videoRef.current) {
-                        videoRef.current.load();
-                        videoRef.current.play();
-                      }
-                    } else {
-                      setModalVideo({
-                        ...modalVideo,
-                        previewImg: "",
-                        previewVideo: "",
-                      });
+            ) : (
+              <div className="w-1/2">
+                <div className="mb-2 text-center text-xl font-semibold">
+                  Dữ liệu mẫu
+                </div>
+                <div className="flex gap-4">
+                  <Select
+                    className="w-full"
+                    allowClear
+                    showSearch
+                    placeholder="Chọn chủ đề"
+                    options={allTopics}
+                    onChange={(value, option: any) =>
+                      setFilterParams({
+                        ...filterParams,
+                        topic: value,
+                        vocabulary: null,
+                      })
                     }
-                  }}
-                  filterOption={filterOption}
-                  loading={isFetchingVocabulary}
-                />
-              </div>
-              {/* Button lựa chọn hiển kiểu dữ liệu mẫu */}
-              <div className="mt-4  flex items-center gap-2">
-                <ButtonSecondary
-                  onClick={() =>
-                    setModalVideo({ ...modalVideo, type: "video" })
-                  }
-                  fontSize="text-sm"
-                  sizeClass="px-3 py-2"
-                  className="border border-neutral-400"
-                >
-                  Dữ liệu mẫu theo video
-                </ButtonSecondary>
-                <ButtonSecondary
-                  onClick={() =>
-                    setModalVideo({ ...modalVideo, type: "image" })
-                  }
-                  fontSize="text-sm"
-                  sizeClass="px-3 py-2"
-                  className="border border-neutral-400"
-                >
-                  Dữ liệu mẫu theo ảnh
-                </ButtonSecondary>
-              </div>
-              {/* Dữ liệu mẫu */}
-              <div className="justify-s= mt-3 flex items-start ">
-                {modalVideo.type === "image" && modalVideo.previewImg && (
-                  <Image
-                    src={modalVideo.previewImg}
-                    alt="Uploaded"
-                    style={{ width: 400, height: 400 }}
-                    className="flex items-start justify-start"
+                    filterOption={filterOption}
                   />
-                )}
-                {modalVideo.type === "video" && modalVideo.previewVideo && (
-                  <video
-                    ref={videoRef}
-                    controls
-                    style={{ width: 800 }}
-                    className="flex items-start justify-start"
+
+                  <Select
+                    showSearch
+                    className="w-full"
+                    allowClear
+                    placeholder="Chọn từ vựng"
+                    options={allVocabulary}
+                    value={filterParams.vocabulary}
+                    onChange={(value, option: any) => {
+                      if (value) {
+                        option?.vocabularyImageResList.sort(
+                          (a: { primary: any }, b: { primary: any }) => {
+                            // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
+                            return a.primary === b.primary
+                              ? 0
+                              : a.primary
+                                ? -1
+                                : 1;
+                          },
+                        );
+                        option?.vocabularyVideoResList.sort(
+                          (a: { primary: any }, b: { primary: any }) => {
+                            // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
+                            return a.primary === b.primary
+                              ? 0
+                              : a.primary
+                                ? -1
+                                : 1;
+                          },
+                        );
+                        setFilterParams({ ...filterParams, vocabulary: value });
+                        setModalVideo((prevModalVideo) => ({
+                          ...prevModalVideo,
+                          previewImg:
+                            option?.vocabularyImageResList[0]?.imageLocation,
+                          previewVideo:
+                            option?.vocabularyVideoResList[0]?.videoLocation,
+                          vocabularyContent: option.label,
+                        }));
+                        if (videoRef.current) {
+                          videoRef.current.load();
+                          videoRef.current.play();
+                        }
+                      } else {
+                        setModalVideo({
+                          ...modalVideo,
+                          previewImg: "",
+                          previewVideo: "",
+                        });
+                      }
+                    }}
+                    filterOption={filterOption}
+                    loading={isFetchingVocabulary}
+                  />
+                </div>
+                {/* Button lựa chọn hiển kiểu dữ liệu mẫu */}
+                <div className="mt-4  flex items-center gap-2">
+                  <ButtonSecondary
+                    onClick={() => {
+                      if (modalVideo.previewVideo) {
+                        setModalVideo({ ...modalVideo, type: "video" });
+                      } else {
+                        message.warning("Không có dữ liệu mẫu");
+                      }
+                    }}
+                    fontSize="text-sm"
+                    sizeClass="px-3 py-2"
+                    className="border border-neutral-400"
                   >
-                    <source src={modalVideo.previewVideo} type="video/mp4" />
-                  </video>
-                )}
+                    Dữ liệu mẫu theo video
+                  </ButtonSecondary>
+                  <ButtonSecondary
+                    onClick={() => {
+                      if (modalVideo.previewImg) {
+                        setModalVideo({ ...modalVideo, type: "image" });
+                      } else {
+                        message.warning("Không có dữ liệu mẫu");
+                      }
+                    }}
+                    fontSize="text-sm"
+                    sizeClass="px-3 py-2"
+                    className="border border-neutral-400"
+                  >
+                    Dữ liệu mẫu theo ảnh
+                  </ButtonSecondary>
+                </div>
+                {/* Dữ liệu mẫu */}
+                <div className="justify-s= mt-3 flex items-start ">
+                  {modalVideo.type === "image" && modalVideo.previewImg && (
+                    <Image
+                      src={modalVideo.previewImg}
+                      alt="Uploaded"
+                      style={{ width: 400, height: 400 }}
+                      className="flex items-start justify-start"
+                    />
+                  )}
+                  {modalVideo.type === "video" && modalVideo.previewVideo && (
+                    <video
+                      ref={videoRef}
+                      controls
+                      style={{ width: 800 }}
+                      className="flex items-start justify-start"
+                    >
+                      <source src={modalVideo.previewVideo} type="video/mp4" />
+                    </video>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
             <div className="w-1/2">
               <Webcam
                 mirrored={true}

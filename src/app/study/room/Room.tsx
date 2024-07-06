@@ -1,21 +1,19 @@
 "use client";
 import StudyComponent from "@/components/Study/StudyComponent";
-import ButtonPrimary from "@/components/UI/Button/ButtonPrimary";
 import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
-import { default as Learning, default as Topic } from "@/model/Learning";
+import { default as Learning } from "@/model/Learning";
 import { useQuery } from "@tanstack/react-query";
 import {
   Avatar,
-  Button,
-  Image,
   Input,
   List,
   Modal,
   Select,
   Skeleton,
+  Spin,
   message,
 } from "antd";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 
 export interface SectionHero2Props {
@@ -38,10 +36,12 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
     open: boolean;
     topicId: number;
     classRoomId: number;
+    classRoomName?: string;
   }>({
     open: false,
     topicId: 0,
     classRoomId: 0,
+    classRoomName: "",
   });
 
   const [searchText, setSearchText] = useState<string>("");
@@ -56,7 +56,10 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
         classRoomId: showModal.classRoomId,
       });
       if (!res.data?.length) {
-        message.error(`Không có chủ đề theo lớp ${showModal.classRoomId} `);
+        const className = allCLass?.find(
+          (item: { value: any }) => item.value === showModal.classRoomId,
+        )?.label;
+        message.error(`Không có chủ đề theo lớp ${className} `);
         return;
       }
       return res.data;
@@ -79,7 +82,7 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
   });
 
   // API lấy danh sách từ theo topics
-  const { data: allVocabulary } = useQuery({
+  const { data: allVocabulary, isFetching: isFetchingVocabulary } = useQuery({
     queryKey: ["getVocabularyTopic", showModal.topicId],
     queryFn: async () => {
       const res = await Learning.getVocabularyTopic(showModal.topicId);
@@ -104,16 +107,18 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
   }, [searchText, allTopics]);
 
   return (
-    <>
+    <Spin spinning={isFetchingVocabulary}>
       <div className="flex flex-col gap-4">
         <Select
           className="w-2/3"
           placeholder="Lựa chọn lớp học"
           size="large"
-          // options={allCLass}
           loading={isFetchingClass}
           onSelect={(value) => {
-            setShowModal({ ...showModal, classRoomId: value });
+            setShowModal({
+              ...showModal,
+              classRoomId: value,
+            });
           }}
           optionLabelProp="label"
         >
@@ -200,7 +205,7 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
           locale={{ emptyText: "Không có kết quả tìm kiếm" }}
         />
       </Modal>
-    </>
+    </Spin>
   );
 };
 

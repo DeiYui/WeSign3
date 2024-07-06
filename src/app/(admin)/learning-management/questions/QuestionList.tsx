@@ -388,10 +388,11 @@ const QuestionList = () => {
         width={1000}
         centered
       >
-        <div className="flex w-full items-center justify-between gap-3 p-4">
+        <div className="flex w-full items-center justify-between gap-3 p-2">
           {preview.file && !preview.fileVideo ? (
             <div className="flex w-full justify-center">
               <Image
+                key={preview.file}
                 preview={false}
                 className=""
                 src={preview.file}
@@ -404,10 +405,11 @@ const QuestionList = () => {
               {preview.fileVideo && !preview.file ? (
                 <div className="flex w-full items-center justify-center">
                   <video
+                    key={preview.fileVideo}
                     controls
                     style={{
-                      width: preview.file ? 400 : 600,
-                      height: preview.file ? 300 : 400,
+                      width: 800,
+                      height: 600,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",

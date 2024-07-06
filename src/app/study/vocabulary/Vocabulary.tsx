@@ -4,7 +4,7 @@ import StudyComponent from "@/components/Study/StudyComponent";
 import InputPrimary from "@/components/UI/Input/InputPrimary";
 import Learning from "@/model/Learning";
 import { useQuery } from "@tanstack/react-query";
-import { Select, message } from "antd";
+import { Select, Spin, message } from "antd";
 import Image, { StaticImageData } from "next/image";
 import { FC, useState } from "react";
 
@@ -22,7 +22,7 @@ const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
   }>({});
 
   // API lấy danh sách từ khi tìm kiếm
-  const { data: allVocabulary } = useQuery({
+  const { data: allVocabulary, isFetching } = useQuery({
     queryKey: ["searchVocabulary", filterParams],
     queryFn: async () => {
       const res = await Learning.getAllVocabulary(filterParams);
@@ -35,7 +35,7 @@ const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
   });
 
   return (
-    <>
+    <Spin spinning={isFetching}>
       <div className="flex w-full gap-4">
         <InputPrimary
           allowClear
@@ -84,7 +84,7 @@ const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
       </div>
 
       <StudyComponent allVocabulary={allVocabulary} />
-    </>
+    </Spin>
   );
 };
 

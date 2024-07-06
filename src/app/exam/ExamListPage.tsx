@@ -32,9 +32,11 @@ const ExamListPage: React.FC = () => {
   const [filterParams, setFilterParams] = useState<{
     classRoomId: number;
     nameSearch: string;
+    isPrivate?: string;
   }>({
     classRoomId: 0,
     nameSearch: "",
+    isPrivate: "false",
   });
 
   // API lấy danh sách  bài kiểm tra
@@ -245,6 +247,27 @@ const ExamListPage: React.FC = () => {
             setFilterParams({ ...filterParams, classRoomId: value })
           }
         />
+        {(user?.role === "ADMIN" || user?.role === "TEACHER") && (
+          <Select
+            className="w-full"
+            allowClear
+            placeholder="Loại bài kiểm tra"
+            defaultValue={"false"}
+            options={[
+              {
+                label: "Chung",
+                value: "false",
+              },
+              {
+                label: "Riêng",
+                value: "true",
+              },
+            ]}
+            onChange={(value, option: any) =>
+              setFilterParams({ ...filterParams, isPrivate: value })
+            }
+          />
+        )}
       </div>
 
       <CustomTable
