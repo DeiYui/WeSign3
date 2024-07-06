@@ -23,6 +23,7 @@ interface State {
   isReceivingCall?: boolean;
   incoming?: any;
   isTyping?: boolean;
+  isConnected?: boolean;
 }
 
 export interface SocketContextProps extends State {
@@ -48,6 +49,7 @@ const initialState: State = {
   isReceivingCall: false,
   incoming: { from: null, isRinging: false },
   isTyping: false,
+  isConnected: false,
 };
 
 type Action =
@@ -60,7 +62,8 @@ type Action =
       type: "SET_INCOMING_CALL";
       payload: { from: User | null; isRinging: boolean } | null;
     }
-  | { type: "SET_IS_TYPING"; payload: any };
+  | { type: "SET_IS_TYPING"; payload: any }
+  | { type: "SET_IS_CONNECTED"; payload: boolean }; // Add this line
 
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
@@ -78,6 +81,8 @@ const reducer = (state: State, action: Action): State => {
       return { ...state, incoming: action.payload };
     case "SET_IS_TYPING":
       return { ...state, isTyping: action.payload };
+    case "SET_IS_CONNECTED": // Add this case
+      return { ...state, isConnected: action.payload };
     default:
       return state;
   }
@@ -99,13 +104,17 @@ const peerConnectionConfig = {
     { urls: "stun:stun3.l.google.com:19302" },
     { urls: "stun:stun4.l.google.com:19302" },
     {
-      urls: "turn:relay1.expressturn.com:3478",
+      urls: "turn:137.74.35.124:3478",
       username: "ef4L3BRHOH5L72TY10",
       credential: "Oi8KR9Ly1fZrY2Lm",
     },
+    {
+      urls: "turn:numb.viagenie.ca",
+      username: "webrtc@live.com",
+      credential: "muazkh",
+    },
   ],
 };
-
 const SocketProvider = ({ children }: SocketProviderProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const user: User = useSelector((state: RootState) => state.admin);
@@ -137,28 +146,12 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [callAccepted, setCallAccepted] = useState(false);
 
-  const [iceServers, setIceServers] = useState([]);
   const token = localStorage.getItem("access_token");
-
-  useEffect(() => {
-    const fetchTurnCredentials = async () => {
-      try {
-        const response = await fetch(
-          "https://wesign.metered.live/api/v1/turn/credentials?apiKey=08644a3885ebd012a2c390eb8e3cfa8e6e4d",
-        );
-        const data = await response.json();
-        setIceServers(data);
-      } catch (error) {
-        console.error("Error fetching TURN credentials:", error);
-      }
-    };
-
-    fetchTurnCredentials();
-  }, []);
 
   // Khởi tạo
   const initializePeerConnection = async (data: any) => {
-    const peerConnection = new RTCPeerConnection({ iceServers: iceServers });
+    debugger;
+    const peerConnection = new RTCPeerConnection(peerConnectionConfig);
     peerConnectionRef.current = peerConnection;
     const localStream = await navigator.mediaDevices.getUserMedia({
       video: true,
@@ -183,6 +176,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
 
     peerConnection.onicecandidate = ({ candidate }) => {
       if (candidate && state.socket) {
+        console.log("check", candidate);
         state.socket.emit("ice_candidate", {
           user: data.from,
           data: candidate,
@@ -281,21 +275,20 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
     dispatch({ type: "SET_PEER_CONNECTION", payload: null });
     dispatch({ type: "SET_USERS", payload: null });
     setIsModalOpen(false);
-    window.location.reload();
   };
 
   useEffect(() => {
-    if (token && iceServers?.length) {
-      const socket = io("https://chat-call-app-api.onrender.com", {
+    if (token) {
+      const socket = io("https://chat-call-app.onrender.com", {
         transports: ["websocket"],
       });
 
       dispatch({ type: "SET_SOCKET", payload: socket });
 
-      // socket.on("connect", () => {
-      //   dispatch({ type: "SET_SOCKET", payload: socket });
-      //   socket.emit("store_user", { user: user });
-      // });
+      socket.on("connect", () => {
+        dispatch({ type: "SET_SOCKET", payload: socket });
+        dispatch({ type: "SET_IS_CONNECTED", payload: true }); // Add this line
+      });
       socket.emit("store_user", { user: user });
 
       // CHAT
@@ -390,11 +383,13 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
         // Xử lý kết thúc cuộc gọi ở đây
         // Ví dụ: đóng kết nối peer, dừng streams, cập nhật UI
         cleanupStreamsAndConnection();
+        // window.location.reload();
       });
 
       socket.on("disconnect", () => {
         console.log("Disconnected from server");
         cleanupStreamsAndConnection();
+        dispatch({ type: "SET_IS_CONNECTED", payload: false }); // Add this line
       });
 
       return () => {
@@ -403,7 +398,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
         // cleanupStreamsAndConnection();
       };
     }
-  }, [token, iceServers]);
+  }, [token]);
 
   const startCall = (data: any) => {
     if (state.socket) {

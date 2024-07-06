@@ -37,6 +37,7 @@ const ChatMessage = () => {
 
   //socket
   const {
+    isConnected,
     dispatchSocket,
     socketResponse,
     isTyping,
@@ -306,7 +307,7 @@ const ChatMessage = () => {
                   });
                 }}
                 onChange={handleInputChange}
-                isFetching={isFetchingMessage}
+                isFetching={isFetchingMessage && isConnected}
               />
             </div>
           ) : null}
