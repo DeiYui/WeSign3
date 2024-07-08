@@ -343,7 +343,7 @@ const RequestPage: React.FC = () => {
                 </div>
               )}
             </Tabs.TabPane>
-            <Tabs.TabPane tab="Danh sách đã phê duyệt" key="approved">
+            {/* <Tabs.TabPane tab="Danh sách đã phê duyệt" key="approved">
               <div className="flex items-center justify-between rounded-lg bg-white p-4 shadow-md">
                 <h2 className="text-lg font-semibold">
                   Danh sách đã phê duyệt
@@ -355,7 +355,7 @@ const RequestPage: React.FC = () => {
                 dataSource={allTableData}
                 scroll={{ x: 1200 }}
               />
-            </Tabs.TabPane>
+            </Tabs.TabPane> */}
           </Tabs>
         </div>
 

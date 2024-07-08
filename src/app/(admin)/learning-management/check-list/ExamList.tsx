@@ -187,7 +187,8 @@ const ExamListPage = ({ isPrivate }: any) => {
           }
         />
       </div>
-      <div className="mb-3 flex justify-end">
+      <div className="mb-3 flex justify-end gap-3">
+        {/* <Button type="primary">Thêm user vào bài kiểm tra</Button> */}
         <Button
           type="primary"
           onClick={() =>

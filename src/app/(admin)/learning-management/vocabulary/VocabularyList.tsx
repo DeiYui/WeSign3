@@ -653,8 +653,8 @@ const VocabularyList = ({ isPrivate }: any) => {
       <ConfirmModal
         visible={modalConfirm.open}
         iconType="DELETE"
-        title="Xóa từ vựng"
-        content="Hành động này sẽ xóa từ vựng  vĩnh viễn"
+        title="Xóa từ khỏi chủ đề"
+        content="Hành động này sẽ xóa từ vựng vĩnh viễn khỏi chủ đề hiện tại"
         confirmButtonText="Xác nhận"
         onClick={() => {
           mutationDel.mutate({ vocabularyIds: [...modalConfirm.rowId] });

@@ -98,20 +98,48 @@ const SocketVideoCallContext = createContext<SocketContextProps | undefined>(
 
 const peerConnectionConfig = {
   iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-    { urls: "stun:stun2.l.google.com:19302" },
-    { urls: "stun:stun3.l.google.com:19302" },
-    { urls: "stun:stun4.l.google.com:19302" },
+    // { urls: "stun:stun.l.google.com:19302" },
+    // { urls: "stun:stun1.l.google.com:19302" },
+    // { urls: "stun:stun2.l.google.com:19302" },
+    // { urls: "stun:stun3.l.google.com:19302" },
+    // { urls: "stun:stun4.l.google.com:19302" },
     {
-      urls: "turn:137.74.35.124:3478",
-      username: "ef4L3BRHOH5L72TY10",
-      credential: "Oi8KR9Ly1fZrY2Lm",
+      urls: "stun:stun.relay.metered.ca:80",
     },
     {
-      urls: "turn:numb.viagenie.ca",
-      username: "webrtc@live.com",
-      credential: "muazkh",
+      urls: "turn:global.relay.metered.ca:80",
+      username: "bbe64fa0e728e07809ec5c72",
+      credential: "MhGzTpLiLgQbRrCS",
+    },
+    {
+      urls: "turn:global.relay.metered.ca:80?transport=tcp",
+      username: "bbe64fa0e728e07809ec5c72",
+      credential: "MhGzTpLiLgQbRrCS",
+    },
+    {
+      urls: "turn:global.relay.metered.ca:443",
+      username: "bbe64fa0e728e07809ec5c72",
+      credential: "MhGzTpLiLgQbRrCS",
+    },
+    {
+      urls: "turns:global.relay.metered.ca:443?transport=tcp",
+      username: "bbe64fa0e728e07809ec5c72",
+      credential: "MhGzTpLiLgQbRrCS",
+    },
+    // {
+    //   urls: "turn:137.74.35.124:3478",
+    //   username: "ef4L3BRHOH5L72TY10",
+    //   credential: "Oi8KR9Ly1fZrY2Lm",
+    // },
+    // {
+    //   urls: "turn:numb.viagenie.ca",
+    //   username: "webrtc@live.com",
+    //   credential: "muazkh",
+    // },
+    {
+      urls: "turn:relay1.expressturn.com:3478",
+      username: "ef4L3BRHOH5L72TY10",
+      credential: "Oi8KR9Ly1fZrY2Lm",
     },
   ],
 };
@@ -150,7 +178,6 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
 
   // Khởi tạo
   const initializePeerConnection = async (data: any) => {
-    debugger;
     const peerConnection = new RTCPeerConnection(peerConnectionConfig);
     peerConnectionRef.current = peerConnection;
     const localStream = await navigator.mediaDevices.getUserMedia({
@@ -173,10 +200,10 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
       remoteStreamRef.current = remoteStream;
       dispatch({ type: "SET_REMOTE_STREAM", payload: remoteStream });
     }
+    peerConnection.createDataChannel("");
 
     peerConnection.onicecandidate = ({ candidate }) => {
       if (candidate && state.socket) {
-        console.log("check", candidate);
         state.socket.emit("ice_candidate", {
           user: data.from,
           data: candidate,

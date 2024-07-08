@@ -32,7 +32,7 @@ export default function LayoutAuth({ children }: any) {
           </Link>
 
           <p className="space-x-1 text-xl uppercase mobile:w-full  mobile:text-sm">
-            EveryOne, EveryWhere,EveryTime
+            Học ngôn ngữ ký hiệu mọi lúc, mọi nơi
           </p>
 
           <span className="mt-15 flex items-center justify-center mobile:hidden">
