@@ -46,7 +46,6 @@ export const useSocket = (conversationId: number, contactId: number) => {
 
   const sendStopTypingEvent = useCallback(() => {
     if (socket) {
-      console.log("Sending stop_typing event");
       setIsTyping(false);
       socket.emit("stop_typing", conversationId);
     } else {
