@@ -424,7 +424,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
         // Xử lý kết thúc cuộc gọi ở đây
         // Ví dụ: đóng kết nối peer, dừng streams, cập nhật UI
         cleanupStreamsAndConnection();
-        // window.location.reload();
+        window.location.reload();
       });
 
       socket.on("disconnect", () => {

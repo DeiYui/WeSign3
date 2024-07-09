@@ -1,4 +1,7 @@
 "use client";
+import { filterOption } from "@/components/Dashboard/DashboardApp";
+import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
+import Learning from "@/model/Learning";
 import UploadModel from "@/model/UploadModel";
 import { WarningFilled } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -12,22 +15,17 @@ import {
   Tooltip,
   message,
 } from "antd";
+import axios from "axios";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ReactMediaRecorder } from "react-media-recorder-2";
 import Webcam from "react-webcam";
 import * as XLSX from "xlsx";
 import { formatTime } from "../collect-data/CollectData";
 import LearningData from "./LearningData";
-import axios from "axios";
-import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
-import Learning from "@/model/Learning";
-import Vocabulary from "../study/vocabulary/Vocabulary";
-import { filterOption } from "@/components/Dashboard/DashboardApp";
 
 const PracticeData: React.FC = () => {
   const [webcamReady, setWebcamReady] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-
   const [showModalPreview, setShowModalPreview] = useState<{
     open: boolean;
     preview: string | undefined;
@@ -35,7 +33,6 @@ const PracticeData: React.FC = () => {
   }>({ open: false, preview: "", type: "" });
   const [showModalResult, setShowModalResult] = useState<boolean>(false);
   const webcamRef = useRef<Webcam>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const isRecordingRef = useRef(false);
   const maxRecordingTime = 5;
   // Kết quả sau khi xử lý AI
@@ -168,7 +165,6 @@ const PracticeData: React.FC = () => {
   const handleStartRecording = useCallback(
     (startRecording: any, stopRecording: any, mediaBlobUrl: any) => {
       if (isRecordingRef.current) return;
-
       isRecordingRef.current = true;
       setRecordingTime(0);
       startTimeRef.current = null; // Sẽ được đặt khi status thực sự là "recording"
@@ -208,7 +204,7 @@ const PracticeData: React.FC = () => {
   );
 
   const handleStopRecording = useCallback(
-    async (stopRecording: any, mediaBlobUrl: any) => {
+    async (stopRecording: () => void, mediaBlobUrl: any) => {
       if (!isRecordingRef.current) return;
 
       isRecordingRef.current = false;
@@ -231,12 +227,11 @@ const PracticeData: React.FC = () => {
         open: false,
         type: "video",
       });
-      const link = await uploadVideo(mediaBlobUrl);
-      setFilterParams({ ...filterParams, file: link });
-      mutationDetectAI.mutate({ videoUrl: link });
     },
+
     [showModalPreview],
   );
+
   const uploadVideo = async (mediaBlobUrl: any) => {
     const formData = new FormData();
     const response = await fetch(mediaBlobUrl);
@@ -401,6 +396,7 @@ const PracticeData: React.FC = () => {
               </div>
             </div>
             <div className="w-1/2">
+              {!webcamReady && <Spin />}
               <Webcam
                 className="scale-x-[-1] object-contain"
                 width={600}
@@ -427,14 +423,17 @@ const PracticeData: React.FC = () => {
                         <p>Trạng thái quay video: {status}</p>
                         <Button
                           className="flex items-center gap-3"
-                          onClick={() =>
+                          onClick={() => {
                             handleStartRecording(
                               startRecording,
                               stopRecording,
                               mediaBlobUrl,
-                            )
+                            );
+                          }}
+                          disabled={
+                            isRecordingRef.current ||
+                            filterParams.vocabulary === ""
                           }
-                          disabled={isRecordingRef.current}
                           icon={
                             <Tooltip
                               title={`Thời gian tối đa cho mỗi video là ${maxRecordingTime}s.`}
@@ -484,7 +483,7 @@ const PracticeData: React.FC = () => {
                           Xem lại file
                         </Button>
                       </div>
-                      {/* <div className="mt-3 flex w-full justify-center">
+                      <div className="mt-3 flex w-full justify-center">
                         <Button
                           size="large"
                           type="primary"
@@ -498,7 +497,7 @@ const PracticeData: React.FC = () => {
                         >
                           Kiểm tra
                         </Button>
-                      </div> */}
+                      </div>
                     </div>
                   );
                 }}

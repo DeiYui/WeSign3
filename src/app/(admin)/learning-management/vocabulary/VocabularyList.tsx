@@ -585,7 +585,11 @@ const VocabularyList = ({ isPrivate }: any) => {
         <div className="flex w-full items-center justify-center">
           {modalPreview.file && (
             <div className="w-full">
-              <video controls style={{ width: "100%", height: "auto" }}>
+              <video
+                key={modalPreview.file}
+                controls
+                style={{ width: "100%", height: "auto" }}
+              >
                 <source src={modalPreview.file} />
               </video>
             </div>
@@ -598,7 +602,9 @@ const VocabularyList = ({ isPrivate }: any) => {
         showModalLstMedia={detailVocabulary.open}
         record={detailVocabulary.record}
         refetch={refetch}
-        onClose={() => setDetailVocabulary({ open: false, record: "" })}
+        onClose={() => {
+          setDetailVocabulary({ open: false, record: "" });
+        }}
       />
 
       {/* Modal thêm từ vào chủ đề */}
