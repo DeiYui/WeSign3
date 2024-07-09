@@ -8,7 +8,7 @@ import { RootState } from "@/store";
 import { chatAndCall } from "@/store/slices/chatSlice";
 import { CloseOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Typography } from "antd";
+import { Spin, Typography } from "antd";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -261,16 +261,16 @@ const ChatMessage = () => {
                   paddingBottom: selectedFiles?.length > 0 ? "120px" : "34px",
                 }}
               >
-                {/* <Spin spinning={isLoading}> */}
-                <ContentMessage
-                  messages={messageList}
-                  user={user}
-                  userInfo={userInfo}
-                  isFetching={isFetchingMessage}
-                  isTyping={isTyping}
-                  contactId={selectedContact.contactId}
-                />
-                {/* </Spin> */}
+                <Spin spinning={isFetchingMessage && isConnected}>
+                  <ContentMessage
+                    messages={messageList}
+                    user={user}
+                    userInfo={userInfo}
+                    isFetching={isFetchingMessage}
+                    isTyping={isTyping}
+                    contactId={selectedContact.contactId}
+                  />
+                </Spin>
               </div>
             ) : (
               <div className="flex flex-1 flex-col items-center justify-center">

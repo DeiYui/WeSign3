@@ -98,44 +98,11 @@ const SocketVideoCallContext = createContext<SocketContextProps | undefined>(
 
 const peerConnectionConfig = {
   iceServers: [
-    // { urls: "stun:stun.l.google.com:19302" },
-    // { urls: "stun:stun1.l.google.com:19302" },
-    // { urls: "stun:stun2.l.google.com:19302" },
-    // { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
     { urls: "stun:stun4.l.google.com:19302" },
-    // {
-    //   urls: "stun:stun.relay.metered.ca:80",
-    // },
-    // {
-    //   urls: "turn:global.relay.metered.ca:80",
-    //   username: "bbe64fa0e728e07809ec5c72",
-    //   credential: "MhGzTpLiLgQbRrCS",
-    // },
-    // {
-    //   urls: "turn:global.relay.metered.ca:80?transport=tcp",
-    //   username: "bbe64fa0e728e07809ec5c72",
-    //   credential: "MhGzTpLiLgQbRrCS",
-    // },
-    // {
-    //   urls: "turn:global.relay.metered.ca:443",
-    //   username: "bbe64fa0e728e07809ec5c72",
-    //   credential: "MhGzTpLiLgQbRrCS",
-    // },
-    // {
-    //   urls: "turns:global.relay.metered.ca:443?transport=tcp",
-    //   username: "bbe64fa0e728e07809ec5c72",
-    //   credential: "MhGzTpLiLgQbRrCS",
-    // },
-    // {
-    //   urls: "turn:137.74.35.124:3478",
-    //   username: "ef4L3BRHOH5L72TY10",
-    //   credential: "Oi8KR9Ly1fZrY2Lm",
-    // },
-    // {
-    //   urls: "turn:numb.viagenie.ca",
-    //   username: "webrtc@live.com",
-    //   credential: "muazkh",
-    // },
     {
       urls: "turn:relay1.expressturn.com:3478",
       username: "ef4L3BRHOH5L72TY10",
@@ -143,6 +110,54 @@ const peerConnectionConfig = {
     },
   ],
 };
+
+// const peerConnectionConfig = {
+//   iceServers: [
+//     // { urls: "stun:stun.l.google.com:19302" },
+//     // { urls: "stun:stun1.l.google.com:19302" },
+//     // { urls: "stun:stun2.l.google.com:19302" },
+//     // { urls: "stun:stun3.l.google.com:19302" },
+//     { urls: "stun:stun4.l.google.com:19302" },
+//     // {
+//     //   urls: "stun:stun.relay.metered.ca:80",
+//     // },
+//     // {
+//     //   urls: "turn:global.relay.metered.ca:80",
+//     //   username: "bbe64fa0e728e07809ec5c72",
+//     //   credential: "MhGzTpLiLgQbRrCS",
+//     // },
+//     // {
+//     //   urls: "turn:global.relay.metered.ca:80?transport=tcp",
+//     //   username: "bbe64fa0e728e07809ec5c72",
+//     //   credential: "MhGzTpLiLgQbRrCS",
+//     // },
+//     // {
+//     //   urls: "turn:global.relay.metered.ca:443",
+//     //   username: "bbe64fa0e728e07809ec5c72",
+//     //   credential: "MhGzTpLiLgQbRrCS",
+//     // },
+//     // {
+//     //   urls: "turns:global.relay.metered.ca:443?transport=tcp",
+//     //   username: "bbe64fa0e728e07809ec5c72",
+//     //   credential: "MhGzTpLiLgQbRrCS",
+//     // },
+//     // {
+//     //   urls: "turn:137.74.35.124:3478",
+//     //   username: "ef4L3BRHOH5L72TY10",
+//     //   credential: "Oi8KR9Ly1fZrY2Lm",
+//     // },
+//     // {
+//     //   urls: "turn:numb.viagenie.ca",
+//     //   username: "webrtc@live.com",
+//     //   credential: "muazkh",
+//     // },
+//     {
+//       urls: "turn:relay1.expressturn.com:3478",
+//       username: "ef4L3BRHOH5L72TY10",
+//       credential: "Oi8KR9Ly1fZrY2Lm",
+//     },
+//   ],
+// };
 const SocketProvider = ({ children }: SocketProviderProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const user: User = useSelector((state: RootState) => state.admin);
@@ -332,9 +347,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
       });
 
       socket.on("stop_typing", (data) => {
-        if (data.isTyping) {
-          dispatch({ type: "SET_IS_TYPING", payload: data.isTyping });
-        }
+        dispatch({ type: "SET_IS_TYPING", payload: data.isTyping });
       });
 
       // CALL

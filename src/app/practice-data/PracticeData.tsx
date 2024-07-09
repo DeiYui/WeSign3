@@ -55,6 +55,7 @@ const PracticeData: React.FC = () => {
   const [filterParams, setFilterParams] = useState<any>({
     topic: "",
     vocabulary: "",
+    file: "",
   });
 
   const [modalVideo, setModalVideo] = useState<{
@@ -165,7 +166,7 @@ const PracticeData: React.FC = () => {
   });
 
   const handleStartRecording = useCallback(
-    (startRecording: any, stopRecording: any) => {
+    (startRecording: any, stopRecording: any, mediaBlobUrl: any) => {
       if (isRecordingRef.current) return;
 
       isRecordingRef.current = true;
@@ -187,13 +188,13 @@ const PracticeData: React.FC = () => {
             setRecordingTime(elapsedTime);
 
             if (elapsedTime >= maxRecordingTime) {
-              handleStopRecording(stopRecording);
+              handleStopRecording(stopRecording, mediaBlobUrl);
             }
           }, 1000);
 
           // Đặt timeout để dừng ghi sau maxRecordingTime
           recordingTimeoutRef.current = setTimeout(() => {
-            handleStopRecording(stopRecording);
+            handleStopRecording(stopRecording, mediaBlobUrl);
           }, maxRecordingTime * 1000);
         } else {
           // Nếu chưa ở trạng thái recording, kiểm tra lại sau 100ms
@@ -207,7 +208,7 @@ const PracticeData: React.FC = () => {
   );
 
   const handleStopRecording = useCallback(
-    (stopRecording: any) => {
+    async (stopRecording: any, mediaBlobUrl: any) => {
       if (!isRecordingRef.current) return;
 
       isRecordingRef.current = false;
@@ -230,7 +231,9 @@ const PracticeData: React.FC = () => {
         open: false,
         type: "video",
       });
-      message.success("Video đã được lưu. Bạn có thể xem lại video");
+      const link = await uploadVideo(mediaBlobUrl);
+      setFilterParams({ ...filterParams, file: link });
+      mutationDetectAI.mutate({ videoUrl: link });
     },
     [showModalPreview],
   );
@@ -247,8 +250,20 @@ const PracticeData: React.FC = () => {
   // Kiểm tra AI
   const mutationDetectAI = useMutation({
     mutationFn: UploadModel.checkAI,
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       message.success("Xử lý dữ liệu thành công");
+      // Nếu mà AI nhận diện đúng đẩy từ đó đi thành dữ liệu tnv
+      if (
+        res?.data?.content.tolowercase() ===
+        filterParams.vocabulary.tolowercase()
+      ) {
+        const body = {
+          dataLocation: filterParams.file,
+          vocabularyId: filterParams.vocabulary,
+        };
+        await Learning.sendData(body);
+      }
+
       if (res?.data?.content) {
         setResultContent({
           content: res.data?.content,
@@ -413,7 +428,11 @@ const PracticeData: React.FC = () => {
                         <Button
                           className="flex items-center gap-3"
                           onClick={() =>
-                            handleStartRecording(startRecording, stopRecording)
+                            handleStartRecording(
+                              startRecording,
+                              stopRecording,
+                              mediaBlobUrl,
+                            )
                           }
                           disabled={isRecordingRef.current}
                           icon={
@@ -438,7 +457,9 @@ const PracticeData: React.FC = () => {
                           )}
                         </Button>
                         <Button
-                          onClick={() => handleStopRecording(stopRecording)}
+                          onClick={() =>
+                            handleStopRecording(stopRecording, mediaBlobUrl)
+                          }
                           disabled={!isRecordingRef.current}
                         >
                           Dừng quay
@@ -463,7 +484,7 @@ const PracticeData: React.FC = () => {
                           Xem lại file
                         </Button>
                       </div>
-                      <div className="mt-3 flex w-full justify-center">
+                      {/* <div className="mt-3 flex w-full justify-center">
                         <Button
                           size="large"
                           type="primary"
@@ -477,7 +498,7 @@ const PracticeData: React.FC = () => {
                         >
                           Kiểm tra
                         </Button>
-                      </div>
+                      </div> */}
                     </div>
                   );
                 }}

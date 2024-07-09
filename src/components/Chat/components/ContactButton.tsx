@@ -1,9 +1,11 @@
-import { Button, Avatar } from "antd";
+import { Button, Avatar, message } from "antd";
 import Tooltip from "antd/lib/tooltip";
 import { TooltipPlacement } from "antd/lib/tooltip";
 import clsx from "clsx";
 import React from "react";
 import { UserOutlined } from "@ant-design/icons";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Conversations from "@/model/Conversations";
 
 interface ContactButtonProps {
   contact: Contact;
@@ -16,12 +18,22 @@ const ContactButton: React.FC<ContactButtonProps> = ({
   selectedContactId,
   onClick,
 }) => {
+  const queryClient = useQueryClient();
   const handleButtonClick = () => {
     onClick({
       contactId: contact.contactId,
       contactName: contact.contactName,
     });
   };
+
+  // Xoá liên hệ trong chat
+  const mutateDeleteConversation = useMutation({
+    mutationFn: Conversations.deleteConversations,
+    onSuccess: () => {
+      message.success("Xoá hội thoại thành công");
+      queryClient.invalidateQueries({ queryKey: ["getLstConversations"] });
+    },
+  });
 
   return (
     <Tooltip title={contact.contactName} placement="left">

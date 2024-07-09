@@ -17,6 +17,12 @@ class Conversations extends Base {
     const res = await this.apiGet(`/conversations/${contactId}`);
     return res.data;
   };
+
+  // Xoá hội thoại
+  deleteConversations = async (id: number) => {
+    const res = await this.apiDelete(`/conversations/${id}`);
+    return res.data;
+  };
 }
 
 export default new Conversations("service-chat");
