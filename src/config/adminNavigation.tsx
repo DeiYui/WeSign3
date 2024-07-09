@@ -42,7 +42,7 @@ export const AdminSystem = (admin: any) => {
             },
             {
               key: "/learning-management/vocabulary",
-              label: "Từ vựng",
+              label: "Từ điển",
               path: "/learning-management/vocabulary",
               hidden: false,
               icon: <DotIcon color="white" size={20} />,

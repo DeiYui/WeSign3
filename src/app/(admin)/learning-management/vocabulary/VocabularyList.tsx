@@ -364,7 +364,7 @@ const VocabularyList = ({ isPrivate }: any) => {
 
   return (
     <div className="w-full p-4">
-      <h1 className="mb-4 text-2xl font-bold">Danh sách từ vựng</h1>
+      <h1 className="mb-4 text-2xl font-bold">Danh sách từ điển</h1>
       <div className="mb-4 flex  items-center justify-between">
         {/* Filter */}
         <div className="flex w-2/3 gap-4">

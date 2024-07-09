@@ -24,3 +24,6 @@ export * from "./RequestIcon";
 export * from "./DotIcon";
 export * from "./CaretRightIcon";
 export * from "./PracticeIcon";
+export * from "./SentenceIcon";
+export * from "./ParagraphIcon";
+export * from "./ChatDeleteIcon";

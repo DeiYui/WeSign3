@@ -4,8 +4,7 @@ import StudyComponent from "@/components/Study/StudyComponent";
 import InputPrimary from "@/components/UI/Input/InputPrimary";
 import Learning from "@/model/Learning";
 import { useQuery } from "@tanstack/react-query";
-import { Select, Spin, message } from "antd";
-import Image, { StaticImageData } from "next/image";
+import { Spin, message } from "antd";
 import { FC, useState } from "react";
 
 export interface SectionHero2Props {
@@ -27,12 +26,9 @@ const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
     queryFn: async () => {
       const res = await Learning.getAllVocabulary({
         ...filterParams,
-        vocabularyType: "WORD",
+        vocabularyType: "PARAGRAPH",
       });
-      if (!res?.data?.length) {
-        message.warning("Không có kết quả tìm kiếm");
-        return;
-      }
+
       return (res?.data as Vocabulary[]) || [];
     },
   });

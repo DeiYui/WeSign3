@@ -1,14 +1,14 @@
 "use client";
 import { colors } from "@/assets/colors";
-import { CallIcon, MessageIcon } from "@/assets/icons";
+import { CallIcon, ChatDeleteIcon, MessageIcon } from "@/assets/icons";
 import { SocketVideoCallContext } from "@/hooks/SocketContext";
 import Conversations from "@/model/Conversations";
 import User from "@/model/User";
 import { RootState } from "@/store";
 import { chatAndCall } from "@/store/slices/chatSlice";
 import { CloseOutlined } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
-import { Spin, Typography } from "antd";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { message, Spin, Tooltip, Typography } from "antd";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -63,7 +63,7 @@ const ChatMessage = () => {
   }, [selectedContact]);
 
   // API lấy danh sách hội thoại
-  const { data: lstConversations } = useQuery({
+  const { data: lstConversations, refetch } = useQuery({
     queryKey: ["getLstConversations"],
     queryFn: async () => {
       const res = await Conversations.getConversations();
@@ -180,6 +180,15 @@ const ChatMessage = () => {
     startCall({ user: user, remoteUser: userInfo });
   };
 
+  // Xoá liên hệ trong chat
+  const mutateDeleteConversation = useMutation({
+    mutationFn: Conversations.deleteConversations,
+    onSuccess: () => {
+      message.success("Xoá hội thoại thành công");
+      refetch();
+    },
+  });
+
   return (
     <>
       <div
@@ -198,6 +207,19 @@ const ChatMessage = () => {
             </div>
             {chatOpen && (
               <div className="flex gap-2">
+                {/* <Tooltip title="Xoá hội thoại">
+                  <div
+                    className="hover:cursor-pointer"
+                    onClick={() => {
+                      mutateDeleteConversation.mutate(
+                        selectedContact.contactId,
+                      );
+                    }}
+                  >
+                    <ChatDeleteIcon size={24} color="white" />
+                  </div>
+                </Tooltip> */}
+
                 {selectedContact.contactId ? (
                   <div
                     className="hover:cursor-pointer"
