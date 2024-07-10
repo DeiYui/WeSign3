@@ -193,7 +193,6 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
 
   // Khởi tạo
   const initializePeerConnection = async (data: any) => {
-    debugger;
     const peerConnection = new RTCPeerConnection(peerConnectionConfig);
     peerConnectionRef.current = peerConnection;
     const localStream = await navigator.mediaDevices.getUserMedia({

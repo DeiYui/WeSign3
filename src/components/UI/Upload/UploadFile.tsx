@@ -10,12 +10,18 @@ interface MediaUploadProps {
   value?: any[];
   onChange?: (value: any) => void;
   limit?: number;
+  uploadWidth?: number;
+  uploadHeight?: number;
 }
 
-const uploadButton = (
+const uploadButton = (uploadWidth?: number, uploadHeight?: number) => (
   <button
-    className="flex w-[100px] flex-col items-center justify-center gap-y-2 border-none bg-neutral-400 px-4 py-6"
+    className="flex flex-col items-center justify-center gap-y-2 border-none bg-neutral-400 px-4 py-6"
     type="button"
+    style={{
+      width: uploadWidth || 100,
+      height: uploadHeight || 100,
+    }}
   >
     <PlusOutlined size={24} />
     <div className="caption-12-medium text-neutral1100">Tải lên</div>
@@ -24,7 +30,12 @@ const uploadButton = (
 
 const ITEM_DISPLAY = 1;
 
-export const MediaUpload: FC<MediaUploadProps> = ({ value, onChange }) => {
+export const MediaUpload: FC<MediaUploadProps> = ({
+  value,
+  onChange,
+  uploadWidth = 100,
+  uploadHeight = 100,
+}) => {
   const [mediaList, setMediaList] = useState<any[]>([]);
 
   const mediaType = useMemo(() => {
@@ -108,12 +119,21 @@ export const MediaUpload: FC<MediaUploadProps> = ({ value, onChange }) => {
                 <Image
                   alt=""
                   className="rounded-lg object-contain"
-                  style={{ width: 200, height: 200 }}
+                  style={{
+                    width: uploadWidth || 200,
+                    height: uploadHeight || 200,
+                  }}
                   src={e}
                 />
               )}
               {!isImage(e) && (
-                <video controls={false} style={{ width: 200, height: 200 }}>
+                <video
+                  controls={false}
+                  style={{
+                    width: uploadWidth || 200,
+                    height: uploadHeight || 200,
+                  }}
+                >
                   <source src={e} type="video/mp4" />
                 </video>
               )}
@@ -137,13 +157,15 @@ export const MediaUpload: FC<MediaUploadProps> = ({ value, onChange }) => {
             </div>
           ))
         ) : (
-          <CustomUpload
-            listType={mediaType ? "picture-card" : undefined}
-            showUploadList={false}
-            customRequest={handleUpload as any}
-            onRemove={handleRemove}
-          >
-            {uploadButton}
+          <CustomUpload uploadWidth={uploadWidth} uploadHeight={uploadHeight}>
+            <Upload
+              listType={mediaType ? "picture-card" : undefined}
+              showUploadList={false}
+              customRequest={handleUpload as any}
+              onRemove={handleRemove}
+            >
+              {uploadButton(uploadWidth, uploadHeight)}
+            </Upload>
           </CustomUpload>
         )}
 
@@ -190,10 +212,13 @@ export const MediaUpload: FC<MediaUploadProps> = ({ value, onChange }) => {
     </>
   );
 };
-const CustomUpload = styled(Upload)`
+const CustomUpload = styled.div<{
+  uploadWidth: number;
+  uploadHeight: number;
+}>`
   .ant-upload.ant-upload-select {
-    width: 80px !important;
-    height: 80px !important;
+    width: ${(props) => props.uploadWidth}px !important;
+    height: ${(props) => props.uploadHeight}px !important;
     .ant-upload {
       display: flex !important;
     }

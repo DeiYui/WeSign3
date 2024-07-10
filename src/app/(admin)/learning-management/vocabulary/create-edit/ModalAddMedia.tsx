@@ -6,6 +6,7 @@ import { UploadOutlined } from "@ant-design/icons";
 import { Button, Collapse, Image, Modal, Upload, message } from "antd";
 import React, { useState } from "react";
 import styled from "styled-components";
+import { TYPE_VOCABULARY } from "../VocabularyList";
 
 const CustomCollapse = styled(Collapse)`
   &&& {
@@ -171,12 +172,13 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
         width={450}
         onClose={onClose}
         open={isShowModalAddMedia}
-        title={`Bổ sung hình ảnh/video cho từ ${recordMedia?.content}`}
+        title={`Bổ sung hình ảnh/video cho ${recordMedia.vocabularyType && TYPE_VOCABULARY[recordMedia?.vocabularyType].toLowerCase()} ${recordMedia?.content}`}
         footer={[
           <Button key="back" onClick={onClose}>
             Hủy bỏ
           </Button>,
           <Button
+            className="ml-4"
             key="submit"
             type="primary"
             disabled={!fileList.length}

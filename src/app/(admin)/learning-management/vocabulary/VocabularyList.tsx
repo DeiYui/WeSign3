@@ -37,7 +37,14 @@ import { isImageLocation } from "./create-edit/VocabularyCreateUpdate";
 interface FilterParams {
   topicId: number;
   contentSearch: string;
+  vocabularyType?: string;
 }
+
+export const TYPE_VOCABULARY: { [key: string]: string } = {
+  WORD: "Từ",
+  SENTENCE: "Câu",
+  PARAGRAPH: "Đoạn văn",
+};
 
 const VocabularyList = ({ isPrivate }: any) => {
   //Hooks
@@ -48,6 +55,7 @@ const VocabularyList = ({ isPrivate }: any) => {
   const [filterParams, setFilterParams] = useState<FilterParams>({
     topicId: 0,
     contentSearch: "",
+    vocabularyType: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -61,13 +69,17 @@ const VocabularyList = ({ isPrivate }: any) => {
 
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
+  const vocabularyTypeEdit = Form.useWatch("vocabularyType", form);
+
   // modal xác nhận xoá
   const [modalConfirm, setModalConfirm] = useState<{
     open: boolean;
     rowId: string | string[];
+    typeVocabulary?: string;
   }>({
     open: false,
     rowId: "",
+    typeVocabulary: "",
   });
 
   // Modal thêm mới
@@ -243,6 +255,16 @@ const VocabularyList = ({ isPrivate }: any) => {
       width: 100,
     },
     {
+      title: "Loại từ vựng",
+      dataIndex: "vocabularyType",
+      key: "vocabularyType",
+      render: (content: string) => (
+        <span style={{ fontWeight: 500 }}>{TYPE_VOCABULARY[content]}</span>
+      ),
+      ellipsis: true,
+      width: 100,
+    },
+    {
       title: "Ảnh minh hoạ",
       dataIndex: "imageLocation",
       key: "imageLocation",
@@ -321,7 +343,13 @@ const VocabularyList = ({ isPrivate }: any) => {
           <Button
             icon={<DeleteOutlined />}
             danger
-            onClick={() => setModalConfirm({ open: true, rowId: [value] })}
+            onClick={() =>
+              setModalConfirm({
+                open: true,
+                rowId: [value],
+                typeVocabulary: record.vocabularyType,
+              })
+            }
           />
         </div>
       ),
@@ -376,6 +404,29 @@ const VocabularyList = ({ isPrivate }: any) => {
             options={allTopics}
             onChange={(value, option: any) =>
               setFilterParams({ ...filterParams, topicId: value })
+            }
+          />
+          <Select
+            allowClear
+            style={{ width: 400, height: 40, borderRadius: 20 }}
+            placeholder="Loại từ vựng"
+            size="large"
+            options={[
+              {
+                label: "Từ",
+                value: "WORD",
+              },
+              {
+                label: "Câu",
+                value: "SENTENCE",
+              },
+              {
+                label: "Đoạn",
+                value: "PARAGRAPH",
+              },
+            ]}
+            onChange={(value) =>
+              setFilterParams({ ...filterParams, vocabularyType: value })
             }
           />
           <Input
@@ -446,7 +497,7 @@ const VocabularyList = ({ isPrivate }: any) => {
       {/* Edit */}
       <BasicDrawer
         width={680}
-        title="Chỉnh sửa từ vựng"
+        title={`Chỉnh sửa ${vocabularyTypeEdit && TYPE_VOCABULARY[vocabularyTypeEdit].toLowerCase()}`}
         onClose={() => setOpenEdit(false)}
         open={openEdit}
         destroyOnClose
@@ -542,32 +593,7 @@ const VocabularyList = ({ isPrivate }: any) => {
               <TextArea maxLength={200} showCount placeholder="Nhập mô tả" />
             </Form.Item>
             <Form.Item name="vocabularyType" hidden />
-            <div className="flex flex-col gap-4">
-              {/* <Form.Item name="vocabularyImageReqs" noStyle />
-              <Form.Item name="vocabularyVideoReqs" noStyle /> */}
-
-              {/* <Upload {...props} showUploadList={false} accept="image/*">
-                <Button icon={<UploadOutlined />}>Tải file ảnh</Button>
-              </Upload>
-              <Upload {...props} showUploadList={false} accept="video/*">
-                <Button icon={<UploadOutlined />}>Tải file video</Button>
-              </Upload> */}
-            </div>
-            {/* <div className="mb-3 flex items-center justify-center gap-4">
-              {preview.fileImage ? (
-                <Image
-                  className=""
-                  src={preview.fileImage}
-                  alt="Ảnh chủ đề"
-                  style={{ width: 300 }}
-                />
-              ) : null}
-              {preview.fileVideo ? (
-                <video controls style={{ width: 400, height: "auto" }}>
-                  <source src={preview.fileVideo} />
-                </video>
-              ) : null}
-            </div> */}
+            <div className="flex flex-col gap-4"></div>
           </Form>
         </div>
       </BasicDrawer>
@@ -659,8 +685,8 @@ const VocabularyList = ({ isPrivate }: any) => {
       <ConfirmModal
         visible={modalConfirm.open}
         iconType="DELETE"
-        title="Xóa từ khỏi chủ đề"
-        content="Hành động này sẽ xóa từ vựng vĩnh viễn khỏi chủ đề hiện tại"
+        title={`Xóa ${modalConfirm.typeVocabulary && TYPE_VOCABULARY[modalConfirm.typeVocabulary].toLowerCase()} khỏi chủ đề`}
+        content={`Hành động này sẽ xóa ${modalConfirm.typeVocabulary && TYPE_VOCABULARY[modalConfirm.typeVocabulary].toLowerCase()} vĩnh viễn khỏi chủ đề hiện tại`}
         confirmButtonText="Xác nhận"
         onClick={() => {
           mutationDel.mutate({ vocabularyIds: [...modalConfirm.rowId] });

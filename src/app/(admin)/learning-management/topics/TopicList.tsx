@@ -401,7 +401,7 @@ const TopicList = (props: any) => {
               }
             >
               <Select
-                disabled={isPrivate && modalCreate.typeModal === "edit"}
+                disabled={modalCreate.typeModal === "edit"}
                 options={optionClass}
                 placeholder="Lựa chọn lớp học"
               />
@@ -422,12 +422,22 @@ const TopicList = (props: any) => {
             </Form.Item>
             <div className="flex w-full items-center justify-center">
               {modalCreate.file ? (
-                <Image
-                  className=""
-                  src={modalCreate.file}
-                  alt="Ảnh chủ đề"
-                  style={{ width: 300 }}
-                />
+                <div className="flex flex-col gap-2">
+                  <Image
+                    className=""
+                    src={modalCreate.file}
+                    alt="Ảnh chủ đề"
+                    style={{ width: 300 }}
+                  />
+                  <Button
+                    onClick={() => {
+                      setModalCreate({ ...modalCreate, file: "" });
+                      form.setFieldValue("file", "");
+                    }}
+                  >
+                    Xoá ảnh
+                  </Button>
+                </div>
               ) : null}
             </div>
           </Form>

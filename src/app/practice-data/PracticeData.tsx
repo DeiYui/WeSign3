@@ -301,6 +301,7 @@ const PracticeData: React.FC = () => {
                   allowClear
                   showSearch
                   placeholder="Chọn từ vựng"
+                  disabled={!filterParams.topic}
                   options={allVocabulary}
                   value={filterParams.vocabulary}
                   onChange={(value, option: any) => {
@@ -374,7 +375,7 @@ const PracticeData: React.FC = () => {
                 </ButtonSecondary>
               </div>
               {/* Dữ liệu mẫu */}
-              <div className="justify-s= mt-3 flex items-start ">
+              <div className="mt-3 flex items-start justify-start ">
                 {modalVideo.type === "image" && modalVideo.previewImg && (
                   <Image
                     src={modalVideo.previewImg}
@@ -387,7 +388,7 @@ const PracticeData: React.FC = () => {
                   <video
                     ref={videoRef}
                     controls
-                    style={{ width: 800 }}
+                    style={{ width: 800, maxHeight: 400 }}
                     className="flex items-start justify-start"
                   >
                     <source src={modalVideo.previewVideo} type="video/mp4" />
@@ -396,7 +397,12 @@ const PracticeData: React.FC = () => {
               </div>
             </div>
             <div className="w-1/2">
-              {!webcamReady && <Spin />}
+              {!webcamReady && (
+                <div className="flex justify-center">
+                  <Spin />
+                </div>
+              )}
+              <div className="h-[80px]"></div>
               <Webcam
                 className="scale-x-[-1] object-contain"
                 width={600}

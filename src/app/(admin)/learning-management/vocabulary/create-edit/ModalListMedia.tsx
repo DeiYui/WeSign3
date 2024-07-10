@@ -22,6 +22,7 @@ import {
 } from "antd";
 import React, { useEffect, useReducer, useState } from "react";
 import ModalAddMedia from "./ModalAddMedia";
+import { TYPE_VOCABULARY } from "../VocabularyList";
 
 interface ModalListMediaProps {
   showModalLstMedia: boolean;
@@ -359,7 +360,9 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
       <Modal
         title={
           <div>
-            Danh sách hình ảnh / video minh hoạ của từ{" "}
+            Danh sách hình ảnh / video minh hoạ của{" "}
+            {record.vocabularyType &&
+              TYPE_VOCABULARY[record?.vocabularyType].toLowerCase()}{" "}
             <span className="text-xl text-red">{record.content}</span>
           </div>
         }
@@ -377,7 +380,9 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
               setModalAddMedia({ ...modalAddMedia, open: true });
             }}
           >
-            Thêm video/ hình ảnh cho từ
+            Thêm video/ hình ảnh cho{" "}
+            {record.vocabularyType &&
+              TYPE_VOCABULARY[record?.vocabularyType].toLowerCase()}
           </Button>
         </div>
         <div className="flex justify-between gap-4">
@@ -428,7 +433,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
           dispatch({ type: "SET_IS_SHOW_MODAL_UPDATE_MEDIA", payload: false })
         }
         onOk={() => {
-          if (state.recordUpdated?.imageLocation) {
+          if (state?.imageLocations && state.recordUpdated.vocabularyImageId) {
             mutationUpdateImage.mutate({
               ...state.recordUpdated,
               primary: state.primaryMedia,
@@ -457,7 +462,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
                   }}
                 />
               </div>
-              {state.recordUpdated?.imageLocation ? (
+              {state.recordUpdated?.vocabularyImageId ? (
                 <div className="w-full">
                   <p
                     className="ant-upload-text"
@@ -491,15 +496,31 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
                       Chọn File
                     </Button>
                   </Upload>
-
-                  <div className="relative mt-3 flex flex-col items-center justify-center">
-                    <Image
-                      src={state.fileUrlImage}
-                      alt="Uploaded Image"
-                      className="flex items-center justify-center"
-                      style={{ width: 300 }}
-                    />
-                  </div>
+                  {state.fileUrlImage && (
+                    <div className="relative mt-3 flex flex-col items-center justify-center">
+                      <Image
+                        src={state.fileUrlImage}
+                        alt="Uploaded Image"
+                        className="flex items-center justify-center"
+                        style={{ width: 300 }}
+                      />
+                      <Button
+                        className="mt-2"
+                        onClick={() => {
+                          dispatch({
+                            type: "SET_FILE_URL_IMAGE",
+                            payload: "",
+                          });
+                          dispatch({
+                            type: "SET_IMAGE_LOCATIONS",
+                            payload: undefined,
+                          });
+                        }}
+                      >
+                        Xoá ảnh
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="w-full">
@@ -535,9 +556,26 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
                     </Button>
                   </Upload>
                   {state.fileUrlVideo ? (
-                    <div className="relative mt-3 flex flex-col items-center justify-center">
-                      <video src={state.fileUrlVideo} controls />
-                    </div>
+                    <>
+                      <div className="relative mt-3 flex flex-col items-center justify-center">
+                        <video src={state.fileUrlVideo} controls />
+                      </div>
+                      <Button
+                        className="mt-2"
+                        onClick={() => {
+                          dispatch({
+                            type: "SET_FILE_URL_VIDEO",
+                            payload: "",
+                          });
+                          dispatch({
+                            type: "SET_VIDEO_LOCATIONS",
+                            payload: undefined,
+                          });
+                        }}
+                      >
+                        Xoá video
+                      </Button>
+                    </>
                   ) : (
                     <>Chưa có video minh hoạ</>
                   )}

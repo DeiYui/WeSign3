@@ -408,17 +408,43 @@ const VocabularyCreateUpdate: React.FC = () => {
                 </div>
                 <div className="mb-3 flex items-center justify-center gap-4">
                   {preview.fileImage ? (
-                    <Image
-                      className=""
-                      src={preview.fileImage}
-                      alt="Ảnh chủ đề"
-                      style={{ width: 300 }}
-                    />
+                    <>
+                      <Image
+                        className=""
+                        src={preview.fileImage}
+                        alt="Ảnh chủ đề"
+                        style={{ width: 300 }}
+                      />
+                      <Button
+                        onClick={() => {
+                          setPreview({
+                            ...preview,
+                            fileImage: "",
+                          });
+                          form.setFieldValue("vocabularyImageReqs", undefined);
+                        }}
+                      >
+                        Xoá ảnh
+                      </Button>
+                    </>
                   ) : null}
                   {preview.fileVideo ? (
-                    <video controls style={{ width: 400, height: "auto" }}>
-                      <source src={preview.fileVideo} />
-                    </video>
+                    <>
+                      <video controls style={{ width: 400, height: "auto" }}>
+                        <source src={preview.fileVideo} />
+                      </video>
+                      <Button
+                        onClick={() => {
+                          setPreview({
+                            ...preview,
+                            fileVideo: "",
+                          });
+                          form.setFieldValue("vocabularyVideoReqs", undefined);
+                        }}
+                      >
+                        Xoá video
+                      </Button>
+                    </>
                   ) : null}
                 </div>
                 <div className="flex w-full items-center justify-center gap-4">

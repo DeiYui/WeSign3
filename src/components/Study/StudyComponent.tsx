@@ -241,7 +241,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
             )}
           </>
         }
-        width={1400}
+        width={1500}
         key={allVocabulary[fileIndex]?.content}
         centered
       >
