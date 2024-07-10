@@ -38,6 +38,9 @@ interface ModalChooseQuestionsProps {
   onClose: () => void;
   questions: Question[];
   loading?: boolean;
+  number?: any;
+  setOpenChooseQuestions?: any;
+  openChooseQuestions?: any;
 }
 
 export const renderAnswerValue = (listValue: any) => {
@@ -66,6 +69,9 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
   onClose,
   questions,
   loading,
+  number,
+  openChooseQuestions,
+  setOpenChooseQuestions,
 }) => {
   const form = Form.useFormInstance();
   const [searchValue, setSearchValue] = useState<string>("");
@@ -107,6 +113,16 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
       setSelectedRowId(questionIds);
     }
   }, [questionIds, open]);
+
+  // Chọn ngẫu nhiên các câu hỏi khi mở modal hoặc khi number thay đổi
+  useEffect(() => {
+    if (open && number && lstQuestion?.length && !questionIds.length) {
+      const shuffled = [...lstQuestion].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, number);
+      setSelectedRowId(selected.map((q) => q.questionId));
+      setSelectRecords(selected);
+    }
+  }, [open, number, lstQuestion, questionIds]);
 
   const handleViewImage = (record: any) => {
     setPreview({
@@ -231,7 +247,9 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
                 form.setFieldsValue({
                   questionIds: selectedRowId,
                   lstQuestions: selectRecords,
+                  numQuestions: selectedRowId?.length,
                 });
+
                 message.success("Thêm câu hỏi thành công");
                 onClose();
                 setSelectedRowId([]);
@@ -246,7 +264,11 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
               Thêm
             </div>
           </div>
-          <div className="my-2">Tổng số câu hỏi: {lstQuestion?.length}</div>
+          <div className="flex items-center justify-between">
+            <div className="my-2">Tổng số câu hỏi: {lstQuestion?.length}</div>
+            <div className="text-right">Đang chọn: {selectedRowId.length}</div>
+          </div>
+
           <CustomTable
             className="mt-4"
             rowSelection={rowSelection}
@@ -275,6 +297,7 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
               },
             }}
             locale={{ emptyText: <Empty description="Không có dữ liệu" /> }}
+            scroll={{ y: 400 }}
           />
         </div>
       </Modal>

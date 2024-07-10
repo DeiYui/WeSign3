@@ -53,6 +53,7 @@ const PracticeData: React.FC = () => {
     topic: "",
     vocabulary: "",
     file: "",
+    vocabularyName: "",
   });
 
   const [modalVideo, setModalVideo] = useState<{
@@ -248,10 +249,7 @@ const PracticeData: React.FC = () => {
     onSuccess: async (res) => {
       message.success("Xử lý dữ liệu thành công");
       // Nếu mà AI nhận diện đúng đẩy từ đó đi thành dữ liệu tnv
-      if (
-        res?.data?.content.tolowercase() ===
-        filterParams.vocabulary.tolowercase()
-      ) {
+      if (res?.data?.content === filterParams.vocabularyName) {
         const body = {
           dataLocation: filterParams.file,
           vocabularyId: filterParams.vocabulary,
@@ -326,7 +324,11 @@ const PracticeData: React.FC = () => {
                               : 1;
                         },
                       );
-                      setFilterParams({ ...filterParams, vocabulary: value });
+                      setFilterParams({
+                        ...filterParams,
+                        vocabulary: value,
+                        vocabularyName: option.label,
+                      });
                       setModalVideo((prevModalVideo) => ({
                         ...prevModalVideo,
                         previewImg:

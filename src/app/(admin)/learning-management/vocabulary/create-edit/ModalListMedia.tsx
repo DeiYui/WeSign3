@@ -334,7 +334,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
                   placement="topRight"
                   title={"Bạn có muốn xoá hình ảnh này không?"}
                   onConfirm={() => {
-                    if (record?.imageLocation) {
+                    if (record?.vocabularyImageId) {
                       mutationDelImage.mutate(record?.vocabularyImageId);
                     } else {
                       mutationDelVideo.mutate(record?.vocabularyVideoId);
@@ -433,7 +433,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
           dispatch({ type: "SET_IS_SHOW_MODAL_UPDATE_MEDIA", payload: false })
         }
         onOk={() => {
-          if (state?.imageLocations && state.recordUpdated.vocabularyImageId) {
+          if (state?.imageLocations || state.recordUpdated.vocabularyImageId) {
             mutationUpdateImage.mutate({
               ...state.recordUpdated,
               primary: state.primaryMedia,

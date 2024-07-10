@@ -122,17 +122,17 @@ const CreateAndEditExamPage: React.FC = () => {
   }, [openChooseQuestions]);
 
   // API lấy danh sách câu hỏi
-  const { data: limitQuestion, isFetching } = useQuery({
-    queryKey: ["getLimitQuestionCLassRoom", params],
-    queryFn: async () => {
-      const res = await Questions.getLimitQuestionCLassRoom(params);
-      return res?.data;
-    },
-    enabled: openChooseQuestions.open,
-  });
+  // const { data: limitQuestion, isFetching } = useQuery({
+  //   queryKey: ["getLimitQuestionCLassRoom", params],
+  //   queryFn: async () => {
+  //     const res = await Questions.getLimitQuestionCLassRoom(params);
+  //     return res?.data;
+  //   },
+  //   enabled: openChooseQuestions.open,
+  // });
 
   // Lấy câu hỏi theo bài kiểm tra
-  const { isFetching: isFetchingQExams } = useQuery({
+  const { data: limitQuestion, isFetching: isFetchingQExams } = useQuery({
     queryKey: ["getLstQuestionExam"],
     queryFn: async () => {
       const res = await Questions.getLstQuestionExam(detailExam.examId);
@@ -254,6 +254,7 @@ const CreateAndEditExamPage: React.FC = () => {
             rules={[validateRequire("Số lượng câu hỏi không được bỏ trống")]}
           >
             <Input
+              disabled={!openChooseQuestions.classRoomId}
               placeholder="Nhập số lượng câu hỏi"
               type="number"
               maxLength={100}
@@ -283,7 +284,8 @@ const CreateAndEditExamPage: React.FC = () => {
               onClose={() =>
                 setOpenChooseQuestions({ ...openChooseQuestions, open: false })
               }
-              loading={isFetching}
+              number={openChooseQuestions.size}
+              loading={isFetchingQExams}
             />
           </Form.Item>
 

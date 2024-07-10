@@ -93,14 +93,14 @@ const ExamDetailPage: React.FC = () => {
             acc.answerList = acc.answerList || [];
             acc.answerList[index] = {
               answerId:
-                question.questionType === "ONE_ANSWER"
+                selectedAnswers && question?.questionType === "ONE_ANSWER"
                   ? selectedAnswers[0]
                   : selectedAnswers,
             };
             acc.answer = acc.answer || [];
-            acc.answer[index] = question.answerResList.some(
+            acc.answer[index] = question.answerResList?.some(
               (ans: any) =>
-                selectedAnswers.includes(ans.answerId) && ans.correct,
+                selectedAnswers?.includes(ans.answerId) && ans.correct,
             );
           }
           return acc;
@@ -133,8 +133,8 @@ const ExamDetailPage: React.FC = () => {
         const correctAnswer = values?.answerList[index];
         const selectedAnswers =
           typeof correctAnswer.answerId === "number"
-            ? [correctAnswer.answerId]
-            : correctAnswer.answerId;
+            ? [correctAnswer?.answerId]
+            : correctAnswer?.answerId;
 
         return {
           questionId: question.questionId,

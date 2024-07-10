@@ -90,7 +90,26 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
         message.error(`Không có từng vựng theo chủ đề đã chọn `);
         return;
       }
-      return (res?.data as Vocabulary[]) || [];
+      res?.data?.forEach(
+        (item: {
+          vocabularyImageResList: any[];
+          vocabularyVideoResList: any[];
+        }) => {
+          item.vocabularyImageResList?.sort(
+            (a: { primary: any }, b: { primary: any }) => {
+              // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
+              return a.primary === b.primary ? 0 : a.primary ? -1 : 1;
+            },
+          );
+          item.vocabularyVideoResList?.sort(
+            (a: { primary: any }, b: { primary: any }) => {
+              // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
+              return a.primary === b.primary ? 0 : a.primary ? -1 : 1;
+            },
+          );
+        },
+      );
+      return (res.data as Vocabulary[]) || [];
     },
     enabled: !!showModal.topicId,
   });
