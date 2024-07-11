@@ -7,8 +7,9 @@ import EmojiPicker from "emoji-picker-react";
 import { EmojiIcon, ImageIcon } from "@/assets/icons";
 import UploadModel from "@/model/UploadModel";
 import { isFunction } from "lodash";
+import { isImage } from "@/components/common/constants";
 
-const FilePreview = ({ selectedFiles, setSelectedFiles, isImage }: any) => {
+const FilePreview = ({ selectedFiles, setSelectedFiles }: any) => {
   return (
     <>
       {selectedFiles.length > 0 && (
@@ -92,12 +93,8 @@ const ChatInput = ({
     setSelectedFiles([...selectedFiles, res]);
   };
 
-  const isImage = (file: { type: string }) => {
-    return typeof file === "string" || file.type.startsWith("image/");
-  };
-
   const handleSendMessage = () => {
-    if (message.trim() && !isFetching) {
+    if ((message.trim() || selectedFiles.length) && !isFetching) {
       isFunction(onKeyDown) && onKeyDown(message);
       setMessage("");
       setValueEmoji("");

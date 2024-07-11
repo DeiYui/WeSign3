@@ -132,7 +132,7 @@ const ChatMessage = () => {
   }, [socketResponse]);
 
   const addMessageToList = (val: any) => {
-    if (!val.content) return;
+    if (!val.content && !val.mediaLocation) return;
     setMessageList((oldMess: any) => [...oldMess, val]);
   };
 

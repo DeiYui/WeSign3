@@ -229,7 +229,6 @@ const PracticeData: React.FC = () => {
         open: false,
         type: "video",
       });
-
       setTimeout(() => {
         if (checkButtonRef.current) {
           checkButtonRef.current.click();

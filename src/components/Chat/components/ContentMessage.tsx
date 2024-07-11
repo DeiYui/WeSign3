@@ -76,9 +76,12 @@ export default function ContentMessage({
     >
       {mes.contactId === user?.userId ? (
         <div className="flex flex-col items-end">
-          <div className="w-fit flex-grow rounded-xl bg-[#F0F0F0] px-3 py-2 text-sm">
-            {mes.content}
-          </div>
+          {mes?.content && (
+            <div className="w-fit flex-grow rounded-xl bg-[#F0F0F0] px-3 py-2 text-sm">
+              <p>{mes.content}</p>
+            </div>
+          )}
+
           <div className="">
             {mes.mediaLocation && (
               <div className="pt-1">
