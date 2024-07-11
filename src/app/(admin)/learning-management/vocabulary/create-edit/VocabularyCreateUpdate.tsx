@@ -97,7 +97,7 @@ const VocabularyCreateUpdate: React.FC = () => {
   }, [tabKey]);
 
   // API lấy danh sách  topics
-  const { data: allTopics } = useQuery({
+  const { data: allTopics, isFetching:isFetchingTopic } = useQuery({
     queryKey: ["getAllTopics", isPrivate],
     queryFn: async () => {
       const res = await Learning.getAllTopics({ isPrivate: isPrivate });
@@ -335,6 +335,14 @@ const VocabularyCreateUpdate: React.FC = () => {
                     allowClear
                     placeholder="Chọn chủ đề"
                     options={allTopics}
+                    loading={isFetchingTopic}
+                    notFoundContent={
+                      isFetchingTopic ? (
+                        <Spin size="small" />
+                      ) : (
+                        "Không tìm thấy chủ đề"
+                      )
+                    }
                   />
                 </Form.Item>
                 <Form.Item

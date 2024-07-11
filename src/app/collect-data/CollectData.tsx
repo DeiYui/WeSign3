@@ -717,6 +717,13 @@ export default function CollectData() {
                     }}
                     filterOption={filterOption}
                     loading={isFetchingVocabulary}
+                    notFoundContent={
+                      isFetchingVocabulary ? (
+                        <Spin size="small" />
+                      ) : (
+                        "Không tìm thấy từ vựng"
+                      )
+                    }
                   />
                 </div>
                 {/* Button lựa chọn hiển kiểu dữ liệu mẫu */}
@@ -1003,6 +1010,13 @@ export default function CollectData() {
                       }}
                       filterOption={filterOption}
                       loading={isFetchingVocabulary}
+                      notFoundContent={
+                        isFetchingVocabulary ? (
+                          <Spin size="small" />
+                        ) : (
+                          "Không tìm thấy từ vựng"
+                        )
+                      }
                     />
                   </Form.Item>
                 </div>
