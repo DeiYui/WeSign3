@@ -433,7 +433,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
           dispatch({ type: "SET_IS_SHOW_MODAL_UPDATE_MEDIA", payload: false })
         }
         onOk={() => {
-          if (state?.imageLocations || state.recordUpdated.vocabularyImageId) {
+          if (state.recordUpdated.vocabularyImageId) {
             mutationUpdateImage.mutate({
               ...state.recordUpdated,
               primary: state.primaryMedia,

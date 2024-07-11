@@ -132,6 +132,9 @@ const TopicList = (props: any) => {
       refetch();
       setModalCreate({ ...modalCreate, open: false, file: "" });
     },
+    onError: (err) => {
+      message.success("Đã có lỗi sảy ra. Vui lòng thử lại sau");
+    },
   });
 
   // Xoá chủ đề
@@ -368,6 +371,7 @@ const TopicList = (props: any) => {
 
               if (modalCreate.typeModal === "create") {
                 if (modalCreate.type === "topics") {
+                  payload.private = false;
                   mutationCreateUpdate.mutate(payload);
                 } else {
                   payload.classRoomId = value.classRoomId;

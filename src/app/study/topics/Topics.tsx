@@ -2,10 +2,12 @@
 import StudyComponent from "@/components/Study/StudyComponent";
 import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
 import { default as Learning } from "@/model/Learning";
+import { RootState } from "@/store";
 import { useQuery } from "@tanstack/react-query";
 import { Avatar, Input, List, Modal, Skeleton, Spin } from "antd";
 import { useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 export interface SectionHero2Props {
   className?: string;
@@ -21,6 +23,7 @@ interface Hero2DataType {
 const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
   const searchParams = useSearchParams();
   const topicId = Number(searchParams.get("topicId"));
+  const user: User = useSelector((state: RootState) => state.admin);
 
   const [showModal, setShowModal] = useState<{
     open: boolean;
@@ -57,7 +60,7 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
 
       return res.data as Topic[];
     },
-    enabled: showModal.open,
+    enabled: showModal.open && user.role !== "USER",
   });
 
   // API lấy danh sách từ theo topics
