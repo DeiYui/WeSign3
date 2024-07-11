@@ -47,6 +47,7 @@ const PracticeData: React.FC = () => {
   const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recordingStatusRef = useRef<string>("");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const checkButtonRef = useRef<HTMLButtonElement>(null);
 
   // Dữ liệu mẫu
   const [filterParams, setFilterParams] = useState<any>({
@@ -164,7 +165,7 @@ const PracticeData: React.FC = () => {
   });
 
   const handleStartRecording = useCallback(
-    (startRecording: any, stopRecording: any, mediaBlobUrl: any) => {
+    (startRecording: any, stopRecording: any) => {
       if (isRecordingRef.current) return;
       isRecordingRef.current = true;
       setRecordingTime(0);
@@ -185,13 +186,13 @@ const PracticeData: React.FC = () => {
             setRecordingTime(elapsedTime);
 
             if (elapsedTime >= maxRecordingTime) {
-              handleStopRecording(stopRecording, mediaBlobUrl);
+              handleStopRecording(stopRecording);
             }
           }, 1000);
 
           // Đặt timeout để dừng ghi sau maxRecordingTime
           recordingTimeoutRef.current = setTimeout(() => {
-            handleStopRecording(stopRecording, mediaBlobUrl);
+            handleStopRecording(stopRecording);
           }, maxRecordingTime * 1000);
         } else {
           // Nếu chưa ở trạng thái recording, kiểm tra lại sau 100ms
@@ -205,7 +206,7 @@ const PracticeData: React.FC = () => {
   );
 
   const handleStopRecording = useCallback(
-    async (stopRecording: () => void, mediaBlobUrl: any) => {
+    async (stopRecording: () => void) => {
       if (!isRecordingRef.current) return;
 
       isRecordingRef.current = false;
@@ -228,6 +229,12 @@ const PracticeData: React.FC = () => {
         open: false,
         type: "video",
       });
+
+      setTimeout(() => {
+        if (checkButtonRef.current) {
+          checkButtonRef.current.click();
+        }
+      }, 2000);
     },
 
     [showModalPreview],
@@ -439,11 +446,7 @@ const PracticeData: React.FC = () => {
                         <Button
                           className="flex items-center gap-3"
                           onClick={() => {
-                            handleStartRecording(
-                              startRecording,
-                              stopRecording,
-                              mediaBlobUrl,
-                            );
+                            handleStartRecording(startRecording, stopRecording);
                           }}
                           disabled={
                             isRecordingRef.current ||
@@ -471,9 +474,7 @@ const PracticeData: React.FC = () => {
                           )}
                         </Button>
                         <Button
-                          onClick={() =>
-                            handleStopRecording(stopRecording, mediaBlobUrl)
-                          }
+                          onClick={() => handleStopRecording(stopRecording)}
                           disabled={!isRecordingRef.current}
                         >
                           Dừng quay
@@ -504,6 +505,7 @@ const PracticeData: React.FC = () => {
                           type="primary"
                           disabled={!mediaBlobUrl}
                           loading={mutationDetectAI.isPending}
+                          ref={checkButtonRef}
                           className="text-center"
                           onClick={async () => {
                             const link = await uploadVideo(mediaBlobUrl);

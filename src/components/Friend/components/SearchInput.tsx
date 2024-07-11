@@ -58,7 +58,7 @@ const SearchInput: React.FC = () => {
       const res = await User.searchFriend(params);
       setResults(
         res.data.data?.filter(
-          (item: any) => item.role.toLowerCase() === user.role.toLowerCase(),
+          (item: any) => item.role.toLowerCase() !== "admin",
         ),
       );
       setTotalElements(res.data.totalElements);

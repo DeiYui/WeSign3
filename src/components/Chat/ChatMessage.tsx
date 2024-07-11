@@ -137,7 +137,7 @@ const ChatMessage = () => {
   };
 
   const sendMessage = (message: string) => {
-    if (message !== "") {
+    if (message !== "" || selectedFiles?.length) {
       const res = {
         to: user,
         from: userInfo,

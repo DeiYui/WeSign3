@@ -1,9 +1,9 @@
 "use client";
-import React, { useState } from "react";
-import { Button, List, Avatar, Spin, Tabs, Card, Empty, message } from "antd";
-import { DeleteFilled, UserOutlined, MailOutlined } from "@ant-design/icons";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import User from "@/model/User";
+import { DeleteFilled, MailOutlined, UserOutlined } from "@ant-design/icons";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Avatar, Button, Empty, List, message, Tabs } from "antd";
+import { useState } from "react";
 import { ConfirmModal } from "../UI/Modal/ConfirmModal";
 import DetailFriend from "./components/DetailFriend";
 

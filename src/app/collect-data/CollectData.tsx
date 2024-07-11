@@ -30,7 +30,7 @@ import Webcam from "react-webcam";
 
 import { isImage } from "@/components/common/constants";
 import UploadModel from "@/model/UploadModel";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { filterOption } from "@/components/Dashboard/DashboardApp";
 import { MediaUpload } from "@/components/UI/Upload/UploadFile";
@@ -123,11 +123,8 @@ export const formatTime = (seconds: number) => {
 
 function normalizeString(inputString: any) {
   let lowercasedString = inputString.toLowerCase();
-  let strippedString = lowercasedString
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  let alphanumericString = strippedString.replace(/[^a-z0-9]/g, "");
-  return alphanumericString;
+
+  return lowercasedString;
 }
 
 export default function CollectData() {
@@ -173,6 +170,8 @@ export default function CollectData() {
 
   const videoRef = useRef<any>(null);
   const webcamRef = useRef<any>(null);
+  const startRecordingRef = useRef<any>(null);
+  const stopRecordingRef = useRef<any>(null);
 
   // Quay video
   const [recordingTime, setRecordingTime] = useState(0);
@@ -408,6 +407,7 @@ export default function CollectData() {
 
   // Bắt đầu quay
   const handleStartRecording = (startRecording: any) => {
+    debugger;
     startRecording();
     const timerId = setInterval(() => {
       setRecordingTime((prevTime) => prevTime + 1);
@@ -498,7 +498,7 @@ export default function CollectData() {
         });
       }
 
-      validateAIResponse(response.content);
+      validateAIResponse(response.data?.content);
     } catch (error) {
       console.error("Error processing AI response:", error);
     }
@@ -523,6 +523,25 @@ export default function CollectData() {
     setModalVideo({ ...modalVideo, open: false });
     refetch();
   };
+
+  // Xử lý khi ấn phím tắt
+  useEffect(() => {
+    if (filterParams.vocabulary) {
+      const handleKeyDown = (event: any) => {
+        if (event.key === "b" && startRecordingRef.current) {
+          handleStartRecording(startRecordingRef.current);
+        } else if (event.key === "d" && stopRecordingRef.current) {
+          handleStopRecording(stopRecordingRef.current);
+        }
+      };
+
+      window.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [filterParams.vocabulary]);
 
   return (
     <div className="">
@@ -612,6 +631,9 @@ export default function CollectData() {
         destroyOnClose
       >
         <Spin spinning={isLoading}>
+          <span className="ml-2 text-center text-base text-yellow-600">
+            Lưu ý: Nhấn phím b để (bắt đầu quay), phim d (dừng quay)
+          </span>
           <div className="flex items-start gap-3">
             {modalVideo.typeModal === "edit" ? (
               <div className="w-1/2">
@@ -796,75 +818,80 @@ export default function CollectData() {
                     startRecording,
                     stopRecording,
                     mediaBlobUrl,
-                  }) => (
-                    <div>
-                      <p>Trạng thái quay video: {status}</p>
+                  }) => {
+                    startRecordingRef.current = startRecording;
+                    stopRecordingRef.current = stopRecording;
 
-                      <Button
-                        onClick={() => handleStartRecording(startRecording)}
-                        disabled={
-                          status === "recording" || !filterParams.vocabulary
-                        }
-                        icon={
-                          <Tooltip
-                            title="Thời gian tối đa cho mỗi video là 5s."
-                            placement="top"
-                            trigger="hover"
-                            color="#4096ff"
-                          >
-                            <WarningFilled style={{ color: "#4096ff" }} />
-                          </Tooltip>
-                        }
-                      >
-                        Bắt đầu quay{" "}
-                        {recordingTime !== 0 && (
-                          <p style={{ color: "red" }}>
-                            {formatTime(recordingTime)}
-                          </p>
-                        )}
-                      </Button>
-                      <Button
-                        onClick={() => handleStopRecording(stopRecording)}
-                        disabled={status !== "recording"}
-                      >
-                        Dừng quay
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setShowModalPreview({
-                            ...showModalPreview,
-                            preview: webcamRef.current.getScreenshot(),
-                            type: "image",
-                          });
-                          message.success("Chụp ảnh thành công");
-                        }}
-                      >
-                        Chụp ảnh
-                      </Button>
-                      <Button onClick={() => handleDownload(mediaBlobUrl)}>
-                        Tải lên
-                      </Button>
-                      <Button
-                        disabled={!mediaBlobUrl && !showModalPreview.preview}
-                        onClick={() => {
-                          if (showModalPreview.type === "image") {
-                            setShowModalPreview({
-                              ...showModalPreview,
-                              open: true,
-                            });
-                          } else {
-                            setShowModalPreview({
-                              ...showModalPreview,
-                              open: true,
-                              preview: mediaBlobUrl,
-                            });
+                    return (
+                      <div>
+                        <p>Trạng thái quay video: {status}</p>
+
+                        <Button
+                          onClick={() => handleStartRecording(startRecording)}
+                          disabled={
+                            status === "recording" || !filterParams.vocabulary
                           }
-                        }}
-                      >
-                        Xem lại file
-                      </Button>
-                    </div>
-                  )}
+                          icon={
+                            <Tooltip
+                              title="Thời gian tối đa cho mỗi video là 5s."
+                              placement="top"
+                              trigger="hover"
+                              color="#4096ff"
+                            >
+                              <WarningFilled style={{ color: "#4096ff" }} />
+                            </Tooltip>
+                          }
+                        >
+                          Bắt đầu quay{" "}
+                          {recordingTime !== 0 && (
+                            <p style={{ color: "red" }}>
+                              {formatTime(recordingTime)}
+                            </p>
+                          )}
+                        </Button>
+                        <Button
+                          onClick={() => handleStopRecording(stopRecording)}
+                          disabled={status !== "recording"}
+                        >
+                          Dừng quay
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setShowModalPreview({
+                              ...showModalPreview,
+                              preview: webcamRef.current.getScreenshot(),
+                              type: "image",
+                            });
+                            message.success("Chụp ảnh thành công");
+                          }}
+                        >
+                          Chụp ảnh
+                        </Button>
+                        <Button onClick={() => handleDownload(mediaBlobUrl)}>
+                          Tải lên
+                        </Button>
+                        <Button
+                          disabled={!mediaBlobUrl && !showModalPreview.preview}
+                          onClick={() => {
+                            if (showModalPreview.type === "image") {
+                              setShowModalPreview({
+                                ...showModalPreview,
+                                open: true,
+                              });
+                            } else {
+                              setShowModalPreview({
+                                ...showModalPreview,
+                                open: true,
+                                preview: mediaBlobUrl,
+                              });
+                            }
+                          }}
+                        >
+                          Xem lại file
+                        </Button>
+                      </div>
+                    );
+                  }}
                 />
               </div>
             </div>
@@ -911,11 +938,14 @@ export default function CollectData() {
               };
               const res = await Learning.sendData(body);
               if (res.code === 200) {
-                message.success("Upload dữ liệu thành công");
+                const data = { videoUrl: value.dataLocation };
+                const response = await UploadModel.checkAI(data);
+                validateAIResponse(response.data?.content);
               } else {
                 message.success("Upload dữ liệu thất bại");
               }
               form.resetFields();
+              refetch();
               setModalUpload(false);
             }}
           >

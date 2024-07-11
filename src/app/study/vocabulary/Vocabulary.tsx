@@ -4,8 +4,7 @@ import StudyComponent from "@/components/Study/StudyComponent";
 import InputPrimary from "@/components/UI/Input/InputPrimary";
 import Learning from "@/model/Learning";
 import { useQuery } from "@tanstack/react-query";
-import { Select, Spin, message } from "antd";
-import Image, { StaticImageData } from "next/image";
+import { Spin, message } from "antd";
 import { FC, useState } from "react";
 
 export interface SectionHero2Props {
