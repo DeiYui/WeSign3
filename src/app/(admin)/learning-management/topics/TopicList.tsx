@@ -403,11 +403,7 @@ const TopicList = (props: any) => {
                 ]
               }
             >
-              <Select
-                disabled={modalCreate.typeModal === "edit"}
-                options={optionClass}
-                placeholder="Lựa chọn lớp học"
-              />
+              <Select options={optionClass} placeholder="Lựa chọn lớp học" />
             </Form.Item>
             <Form.Item
               name="content"

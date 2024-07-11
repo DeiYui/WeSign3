@@ -7,7 +7,7 @@ import User from "@/model/User";
 import { RootState } from "@/store";
 import { chatAndCall } from "@/store/slices/chatSlice";
 import { CloseOutlined } from "@ant-design/icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { message, Spin, Tooltip, Typography } from "antd";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -23,6 +23,7 @@ const item = {
 };
 
 const ChatMessage = () => {
+  const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const user: User = useSelector((state: RootState) => state.admin);
   // trạng thái mơ chat
@@ -205,20 +206,20 @@ const ChatMessage = () => {
               <MessageIcon size={36} color={colors.primary600} />
               {(chatOpen && selectedContact.contactName) || "MY CHAT"}
             </div>
-            {chatOpen && (
+            {chatOpen && selectedContact.contactId && (
               <div className="flex gap-2">
-                {/* <Tooltip title="Xoá hội thoại">
+                <Tooltip title="Xoá hội thoại">
                   <div
                     className="hover:cursor-pointer"
                     onClick={() => {
                       mutateDeleteConversation.mutate(
-                        selectedContact.contactId,
+                        selectedContact.conversationId,
                       );
                     }}
                   >
                     <ChatDeleteIcon size={24} color="white" />
                   </div>
-                </Tooltip> */}
+                </Tooltip>
 
                 {selectedContact.contactId ? (
                   <div

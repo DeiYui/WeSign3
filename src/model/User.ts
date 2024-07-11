@@ -58,7 +58,9 @@ class User extends Base {
 
   // Thêm bạn bè
   addFriend = async (userId: number) => {
-    const res = await this.apiPost(`/friend-ship/add-friend/${userId}`, {});
+    const res = await this.apiPost(`/friend-ship/add-friend/${userId}`, {
+      userId,
+    });
     return res.data;
   };
 

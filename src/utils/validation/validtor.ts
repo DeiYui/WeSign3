@@ -85,3 +85,17 @@ export function validatePassword(message: any) {
     },
   };
 }
+
+export function validateInputValueRange(min: any, max: any, message?: any) {
+  return {
+    validator: (_: any, value: any) => {
+      const regexNumber = /^[0-9]+(\.?[0-9]+)?$/g
+      const isNumber = regexNumber.test(value)
+      if (!isNumber) return Promise.resolve()
+      if ((!!value || value === 0) && min <= Number(value) && Number(value) <= max) {
+        return Promise.resolve()
+      }
+      return Promise.reject(message || `Giá trị phải trong khoảng từ ${min} đến ${max}`)
+    },
+  }
+}

@@ -20,7 +20,7 @@ class Conversations extends Base {
 
   // Xoá hội thoại
   deleteConversations = async (id: number) => {
-    const res = await this.apiDelete(`/conversations/${id}`);
+    const res = await this.apiDelete(`/group-member/${id}`);
     return res.data;
   };
 }

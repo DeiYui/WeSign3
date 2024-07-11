@@ -3,15 +3,19 @@ import { SearchIcon } from "@/assets/icons";
 import StudyComponent from "@/components/Study/StudyComponent";
 import InputPrimary from "@/components/UI/Input/InputPrimary";
 import Learning from "@/model/Learning";
+import { RootState } from "@/store";
 import { useQuery } from "@tanstack/react-query";
 import { Spin, message } from "antd";
 import { FC, useState } from "react";
+import { useSelector } from "react-redux";
 
 export interface SectionHero2Props {
   className?: string;
 }
 
 const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
+  const user: User = useSelector((state: RootState) => state.admin);
+
   //value search
   const [filterParams, setFilerParams] = useState<{
     topicId?: number;
@@ -27,6 +31,7 @@ const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
       const res = await Learning.getAllVocabulary({
         ...filterParams,
         vocabularyType: "WORD",
+        isPrivate: user.role === "USER" && "false",
       });
       if (!res?.data?.length) {
         message.warning("Không có kết quả tìm kiếm");

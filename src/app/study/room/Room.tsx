@@ -2,6 +2,7 @@
 import StudyComponent from "@/components/Study/StudyComponent";
 import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
 import { default as Learning } from "@/model/Learning";
+import { RootState } from "@/store";
 import { useQuery } from "@tanstack/react-query";
 import {
   Avatar,
@@ -15,6 +16,7 @@ import {
 } from "antd";
 import { useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 export interface SectionHero2Props {
   className?: string;
@@ -31,28 +33,32 @@ const { Option } = Select;
 const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
   const searchParams = useSearchParams();
   const topicId = Number(searchParams.get("topicId"));
+  const user: User = useSelector((state: RootState) => state.admin);
 
   const [showModal, setShowModal] = useState<{
     open: boolean;
     topicId: number;
     classRoomId: number;
     classRoomName?: string;
+    isPrivate?: string;
   }>({
     open: false,
     topicId: 0,
     classRoomId: 0,
     classRoomName: "",
+    isPrivate: "false",
   });
 
   const [searchText, setSearchText] = useState<string>("");
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
+  const [lstVocabulary, setLstVocabulary] = useState<any[]>([]);
 
   // API lấy danh sách topics
   const { data: allTopics, isFetching } = useQuery({
-    queryKey: ["getAllTopics", showModal.classRoomId],
+    queryKey: ["getAllTopics", showModal],
     queryFn: async () => {
       const res = await Learning.getAllTopics({
-        isPrivate: true,
+        isPrivate: user.role === "USER" ? "false" : showModal.isPrivate,
         classRoomId: showModal.classRoomId,
       });
       if (!res.data?.length) {
@@ -109,6 +115,7 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
           );
         },
       );
+      setLstVocabulary(res.data);
       return (res.data as Vocabulary[]) || [];
     },
     enabled: !!showModal.topicId,
@@ -128,33 +135,72 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
   return (
     <Spin spinning={isFetchingVocabulary}>
       <div className="flex flex-col gap-4">
-        <Select
-          className="w-2/3"
-          placeholder="Lựa chọn lớp học"
-          size="large"
-          loading={isFetchingClass}
-          onSelect={(value) => {
-            setShowModal({
-              ...showModal,
-              classRoomId: value,
-            });
-          }}
-          optionLabelProp="label"
-        >
-          {allCLass?.map((item: any) => (
-            <Option key={item.value} value={item.value} label={item.label}>
-              <div className="">
-                <Avatar
-                  size={40}
-                  src={item.imageLocation}
-                  alt={item.label}
-                  className=""
-                />
-                <span className="ml-2">{item.label}</span>
-              </div>
-            </Option>
-          ))}
-        </Select>
+        <div className="flex gap-4">
+          <Select
+            className="w-1/4"
+            placeholder="Lựa chọn lớp học"
+            size="large"
+            allowClear
+            onClear={() => {
+              setShowModal({
+                ...showModal,
+                classRoomId: 0,
+              });
+              setLstVocabulary([]);
+            }}
+            loading={isFetchingClass}
+            onSelect={(value) => {
+              setShowModal({
+                ...showModal,
+                classRoomId: value,
+              });
+              setLstVocabulary([]);
+            }}
+            optionLabelProp="label"
+          >
+            {allCLass?.map((item: any) => (
+              <Option key={item.value} value={item.value} label={item.label}>
+                <div className="">
+                  <Avatar
+                    size={40}
+                    src={item.imageLocation}
+                    alt={item.label}
+                    className=""
+                  />
+                  <span className="ml-2">{item.label}</span>
+                </div>
+              </Option>
+            ))}
+          </Select>
+
+          {(user?.role === "ADMIN" || user?.role === "TEACHER") && (
+            <Select
+              size="large"
+              className="w-1/4"
+              allowClear
+              placeholder="Loại bài kiểm tra"
+              defaultValue={"false"}
+              options={[
+                {
+                  label: "Chung",
+                  value: "false",
+                },
+                {
+                  label: "Riêng",
+                  value: "true",
+                },
+              ]}
+              onChange={(value, option: any) => {
+                setShowModal({
+                  ...showModal,
+                  isPrivate: value,
+                });
+                setLstVocabulary([]);
+              }}
+            />
+          )}
+        </div>
+
         {allTopics?.length ? (
           <ButtonSecondary
             disabled={isFetching}
@@ -165,8 +211,8 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
           </ButtonSecondary>
         ) : null}
 
-        {allVocabulary?.length ? (
-          <StudyComponent allVocabulary={allVocabulary} />
+        {lstVocabulary?.length ? (
+          <StudyComponent allVocabulary={lstVocabulary} />
         ) : null}
       </div>
 

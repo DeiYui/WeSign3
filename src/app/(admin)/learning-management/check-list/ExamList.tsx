@@ -49,7 +49,7 @@ const ExamListPage = ({ isPrivate }: any) => {
 
   // xử lý khi hover vào row
   const [filterParams, setFilterParams] = useState<{
-    classRoomId: number;
+    classRoomId: number | string;
     nameSearch: string;
     isPrivate: string;
   }>({
@@ -182,9 +182,13 @@ const ExamListPage = ({ isPrivate }: any) => {
           allowClear
           placeholder="Lớp học"
           options={allClass}
-          onChange={(value, option: any) =>
-            setFilterParams({ ...filterParams, classRoomId: value })
-          }
+          onChange={(value, option: any) => {
+            if (value) {
+              setFilterParams({ ...filterParams, classRoomId: value });
+            } else {
+              setFilterParams({ ...filterParams, classRoomId: 0 });
+            }
+          }}
         />
       </div>
       <div className="mb-3 flex justify-end gap-3">
