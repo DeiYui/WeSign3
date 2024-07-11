@@ -367,16 +367,15 @@ const TopicList = (props: any) => {
                 content: value.content,
                 imageLocation: value.file,
                 videoLocation: "",
+                private: isPrivate,
               };
 
               if (modalCreate.typeModal === "create") {
                 if (modalCreate.type === "topics") {
-                  payload.private = false;
                   mutationCreateUpdate.mutate(payload);
                 } else {
                   payload.classRoomId = value.classRoomId;
                   if (isPrivate) {
-                    payload.private = true;
                   }
                   mutationCreateUpdate.mutate(payload);
                 }
