@@ -33,6 +33,7 @@ import React, { useState } from "react";
 import { CustomTable } from "../check-list/ExamList";
 import ModalListMedia from "./create-edit/ModalListMedia";
 import { isImageLocation } from "./create-edit/VocabularyCreateUpdate";
+import { filterOption } from "@/components/Dashboard/DashboardApp";
 
 interface FilterParams {
   topicId: number;
@@ -400,11 +401,13 @@ const VocabularyList = ({ isPrivate }: any) => {
             size="large"
             className="w-full"
             allowClear
+            showSearch
             placeholder="Chọn chủ đề"
             options={allTopics}
             onChange={(value, option: any) =>
               setFilterParams({ ...filterParams, topicId: value })
             }
+            filterOption={filterOption}
           />
           <Select
             allowClear
