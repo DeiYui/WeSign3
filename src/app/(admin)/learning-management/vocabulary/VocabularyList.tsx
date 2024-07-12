@@ -34,6 +34,8 @@ import { CustomTable } from "../check-list/ExamList";
 import ModalListMedia from "./create-edit/ModalListMedia";
 import { isImageLocation } from "./create-edit/VocabularyCreateUpdate";
 import { filterOption } from "@/components/Dashboard/DashboardApp";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 interface FilterParams {
   topicId: number;
@@ -51,6 +53,7 @@ const VocabularyList = ({ isPrivate }: any) => {
   //Hooks
   const router = useRouter();
   const [form] = useForm();
+  const user: User = useSelector((state: RootState) => state.admin);
 
   // danh sách topics
   const [filterParams, setFilterParams] = useState<FilterParams>({
@@ -138,7 +141,7 @@ const VocabularyList = ({ isPrivate }: any) => {
     queryFn: async () => {
       const res = await Learning.getAllVocabulary({
         ...filterParams,
-        isPrivate: `${isPrivate}`,
+        isPrivate: !(user.role === "ADMIN" && !isPrivate) && `${isPrivate}`,
       });
       // Sắp xếp priamry lên đầu
       res?.data?.forEach(
