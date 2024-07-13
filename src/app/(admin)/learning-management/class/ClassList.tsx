@@ -44,6 +44,7 @@ const ClassList: React.FC = () => {
   const [lstClass, setLstClass] = useState([]);
   const [filteredLstClass, setFilteredLstClass] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchText, setSearchText] = useState("");
   const pageSize = 10;
   // Modal thêm mới
   const [modalCreate, setModalCreate] = useState<{
@@ -60,12 +61,31 @@ const ClassList: React.FC = () => {
     setCurrentPage(newPage);
   };
 
+  const getNumberFromContent = (content: string) => {
+    const match = content.match(/\d+/);
+    return match ? parseInt(match[0], 10) : null;
+  };
+
   // API lấy danh sách lớp
   const { isFetching, refetch } = useQuery({
     queryKey: ["getListClass"],
     queryFn: async () => {
       const res = await Learning.getListClass();
       setLstClass(res.data);
+      res.data.sort((a: { content: string }, b: { content: any }) => {
+        const numA = getNumberFromContent(a.content);
+        const numB = getNumberFromContent(b.content);
+
+        if (numA !== null && numB !== null) {
+          return numA - numB;
+        } else if (numA !== null) {
+          return -1;
+        } else if (numB !== null) {
+          return 1;
+        } else {
+          return a.content.localeCompare(b.content);
+        }
+      });
       setFilteredLstClass(res.data);
       return res.data as Class[];
     },
@@ -226,6 +246,12 @@ const ClassList: React.FC = () => {
           onClear={() => {
             refetch();
             setCurrentPage(1);
+            setSearchText("");
+          }}
+          value={searchText}
+          onChange={(e) => {
+            setSearchText(e.target.value);
+            handleSearch(e.target.value);
           }}
           className="mb-4"
           style={{ width: 400 }}

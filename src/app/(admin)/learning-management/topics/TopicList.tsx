@@ -42,6 +42,7 @@ const TopicList = (props: any) => {
   // danh sách topics
   const [lstTopics, setLstTopics] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchText, setSearchText] = useState("");
   const pageSize = 10;
   // Modal thêm mới
   const [modalCreate, setModalCreate] = useState<{
@@ -266,6 +267,22 @@ const TopicList = (props: any) => {
             }}
             style={{ width: 300 }}
             placeholder="Tìm kiếm chủ đề"
+            value={searchText}
+            onChange={(e) => {
+              setSearchText(e.target.value);
+
+              if (e.target.value) {
+                mutation.mutate({
+                  page: 1,
+                  size: 999999,
+                  text: e.currentTarget.value,
+                  ascending: true,
+                  orderBy: "",
+                });
+              } else {
+                refetch();
+              }
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 if (e.currentTarget.value) {
