@@ -125,7 +125,7 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
         />
         <div className="flex w-full gap-4">
           <div className="mt-2  flex-1 text-base font-bold">Chủ đề chung</div>
-          {user.role === "USER" ? null : (
+          {user && user?.role === "USER" ? null : (
             <div className="mt-2 w-1/2 text-base font-bold ">Chủ đề riêng</div>
           )}
         </div>
