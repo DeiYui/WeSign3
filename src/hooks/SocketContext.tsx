@@ -203,6 +203,10 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
         autoGainControl: true,
       },
     });
+    localStream.getAudioTracks().forEach((track) => {
+      track.enabled = false;
+    });
+
     dispatch({ type: "SET_LOCAL_STREAM", payload: localStream });
 
     localStream

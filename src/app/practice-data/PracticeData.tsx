@@ -233,7 +233,7 @@ const PracticeData: React.FC = () => {
         if (checkButtonRef.current) {
           checkButtonRef.current.click();
         }
-      }, 2000);
+      }, 1000);
     },
 
     [showModalPreview],
@@ -252,10 +252,17 @@ const PracticeData: React.FC = () => {
   // Kiểm tra AI
   const mutationDetectAI = useMutation({
     mutationFn: UploadModel.checkAI,
-    onSuccess: async (res) => {
-      message.success("Xử lý dữ liệu thành công");
+    onSuccess: async (res: any) => {
       // Nếu mà AI nhận diện đúng đẩy từ đó đi thành dữ liệu tnv
-      if (res?.data?.content === filterParams.vocabularyName) {
+      const vocabularyName =
+        typeof filterParams?.vocabularyName === "string"
+          ? filterParams.vocabularyName.toLowerCase()
+          : null;
+      const content =
+        typeof res?.data?.content === "string"
+          ? res?.data?.content.toLowerCase()
+          : null;
+      if (content && vocabularyName && content === vocabularyName) {
         const body = {
           dataLocation: filterParams.file,
           vocabularyId: filterParams.vocabulary,
@@ -269,6 +276,7 @@ const PracticeData: React.FC = () => {
           fileLocation: res?.data.fileLocation,
         });
         setShowModalResult(true);
+        message.success("Xử lý dữ liệu thành công");
       } else {
         message.error("Không có từ nào đúng với nội dung cung cấp");
       }
@@ -534,11 +542,21 @@ const PracticeData: React.FC = () => {
         title="Kết quả"
         width={1200}
       >
-        <div className="flex items-center justify-center gap-x-5">
+        <div className="w-full ">
           <Spin spinning={mutationDetectAI.isPending}>
-            <div className="flex items-center justify-center gap-4 text-[60px] font-bold">
-              <div className="text-[30px]">Từ vựng:</div>
-              {resultContent.content}
+            <div className="mb-4 flex items-center justify-between gap-4 text-[60px] font-bold">
+              <div className="w-1/2">
+                <div className=" text-[20px]">Từ cần biểu diễn</div>
+                <div className=" text-[24px] text-primary">
+                  {modalVideo.vocabularyContent}
+                </div>
+              </div>
+              <div className="w-1/2">
+                <div className="w-1/2 text-[20px]">Từ nhận diện</div>
+                <div className="text-[24px] text-primary">
+                  {resultContent.content}
+                </div>
+              </div>
             </div>
 
             {resultContent.fileLocation && (
@@ -563,11 +581,17 @@ const PracticeData: React.FC = () => {
         }
         width={800}
       >
-        {showModalPreview.type === "video" ? (
-          <video controls src={showModalPreview.preview}></video>
-        ) : (
-          <Image preview={false} src={showModalPreview.preview} alt="preview" />
-        )}
+        <div className="flex justify-center">
+          {showModalPreview.type === "video" ? (
+            <video controls src={showModalPreview.preview}></video>
+          ) : (
+            <Image
+              preview={false}
+              src={showModalPreview.preview}
+              alt="preview"
+            />
+          )}
+        </div>
       </Modal>
     </>
   );

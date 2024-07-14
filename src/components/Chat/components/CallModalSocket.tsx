@@ -2,7 +2,11 @@ import { CallIcon, EndCallIcon, Logo } from "@/assets/icons";
 import ButtonPrimary from "@/components/UI/Button/ButtonPrimary";
 import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
 import User from "@/model/User";
+import * as handpose from "@tensorflow-models/handpose";
+import * as tf from "@tensorflow/tfjs";
+import * as fp from "fingerpose";
 import { RootState } from "@/store";
+import Handsigns from "@/utils/handsigns";
 import {
   AudioMutedOutlined,
   AudioOutlined,
@@ -10,10 +14,12 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
+import { HandPose } from "@tensorflow-models/handpose";
 import { Avatar, Modal, Tooltip } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
+import { drawHand } from "@/app/practice-data/drawHand";
 
 type CallModalProps = {
   incoming: any;
@@ -61,6 +67,8 @@ const CallModalSocket: React.FC<CallModalProps> = ({
   const user: User = useSelector((state: RootState) => state.admin);
   const [showModalConfirm, setShowModalConfirm] = useState(false);
   const [refsReady, setRefsReady] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [sign, setSign] = useState<string | null>(null);
 
   // video
   const myVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -114,6 +122,87 @@ const CallModalSocket: React.FC<CallModalProps> = ({
   const handleEndCall = () => {
     endCall({ user: user, remoteUser: userInfo || users });
   };
+
+  // detect
+  async function runHandpose() {
+    await tf.setBackend("webgl");
+    await tf.ready();
+
+    const net = await handpose.load();
+
+    setInterval(() => {
+      detect(net);
+    }, 150);
+  }
+
+  async function detect(net: handpose.HandPose) {
+    if (userVideoRef.current && userVideoRef.current?.readyState === 4) {
+      const video = userVideoRef.current as HTMLVideoElement;
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+
+      userVideoRef.current.width = videoWidth;
+      userVideoRef.current.height = videoHeight;
+
+      canvasRef.current!.width = videoWidth;
+      canvasRef.current!.height = videoHeight;
+
+      const hand: any = await net.estimateHands(video);
+
+      if (hand.length > 0) {
+        const GE = new fp.GestureEstimator([
+          Handsigns.aSign,
+          Handsigns.bSign,
+          Handsigns.cSign,
+          Handsigns.dSign,
+          Handsigns.eSign,
+          Handsigns.fSign,
+          Handsigns.gSign,
+          Handsigns.hSign,
+          Handsigns.iSign,
+          Handsigns.jSign,
+          Handsigns.kSign,
+          Handsigns.lSign,
+          Handsigns.mSign,
+          Handsigns.nSign,
+          Handsigns.oSign,
+          Handsigns.pSign,
+          Handsigns.qSign,
+          Handsigns.rSign,
+          Handsigns.sSign,
+          Handsigns.tSign,
+          Handsigns.uSign,
+          Handsigns.vSign,
+          Handsigns.wSign,
+          Handsigns.xSign,
+          Handsigns.ySign,
+          Handsigns.zSign,
+        ]);
+
+        const estimatedGestures = await GE.estimate(hand[0].landmarks, 7);
+
+        if (
+          estimatedGestures.gestures !== undefined &&
+          estimatedGestures.gestures.length > 0
+        ) {
+          const confidence = estimatedGestures.gestures.map((p) => p.score);
+          const maxConfidence = confidence.indexOf(
+            Math.max.apply(undefined, confidence),
+          );
+          setSign(estimatedGestures.gestures[maxConfidence].name);
+        } else {
+          setSign("");
+        }
+      }
+
+      const ctx = canvasRef.current!.getContext("2d")!;
+      drawHand(hand, ctx);
+    }
+  }
+
+  useEffect(() => {
+    runHandpose();
+  }, []);
 
   return (
     <>
@@ -175,6 +264,20 @@ const CallModalSocket: React.FC<CallModalProps> = ({
             autoPlay
             playsInline
           />
+          <canvas
+            ref={canvasRef}
+            width={400}
+            height={300}
+            style={{
+              filter: "FlipH",
+            }}
+            className="absolute left-0 top-0 z-999 scale-x-[-1] object-cover pb-3"
+          />
+          {/* {sign && ( */}
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 transform text-[30px] font-bold text-primary">
+            {sign}
+          </div>
+          {/* )} */}
         </div>
 
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 transform">
@@ -216,7 +319,7 @@ const CallModalSocket: React.FC<CallModalProps> = ({
                 className="cursor-pointer rounded-full bg-neutral-500 p-2.5"
                 onClick={toggleAudio}
               >
-                {isAudioMuted ? (
+                {!isAudioMuted ? (
                   <AudioMutedOutlined
                     style={{ fontSize: 20, color: "white" }}
                   />

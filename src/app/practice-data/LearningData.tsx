@@ -108,7 +108,7 @@ export default function LearningData() {
           Handsigns.zSign,
         ]);
 
-        const estimatedGestures = await GE.estimate(hand[0].landmarks, 6.5);
+        const estimatedGestures = await GE.estimate(hand[0].landmarks, 7);
 
         if (gamestate === "started") {
         }
@@ -154,8 +154,6 @@ export default function LearningData() {
           } else {
             return;
           }
-        } else {
-          setSign("")
         }
       }
 
