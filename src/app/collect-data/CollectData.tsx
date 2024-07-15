@@ -736,6 +736,7 @@ export default function CollectData() {
                           previewImg: "",
                           previewVideo: "",
                         });
+                        setFilterParams({ ...filterParams, vocabulary: "" });
                       }
                     }}
                     filterOption={filterOption}

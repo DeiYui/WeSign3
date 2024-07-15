@@ -28,6 +28,7 @@ import { useForm } from "antd/es/form/Form";
 import React, { useState } from "react";
 import { CustomTable } from "../check-list/ExamList";
 import styled from "styled-components";
+import { getNumberFromContent } from "../class/ClassList";
 
 interface Topic {
   topicId?: number;
@@ -87,6 +88,20 @@ const TopicList = (props: any) => {
     queryFn: async () => {
       const res = await Learning.getListClass();
 
+      res.data?.sort((a: { content: string }, b: { content: any }) => {
+        const numA = getNumberFromContent(a.content);
+        const numB = getNumberFromContent(b.content);
+
+        if (numA !== null && numB !== null) {
+          return numA - numB;
+        } else if (numA !== null) {
+          return -1;
+        } else if (numB !== null) {
+          return 1;
+        } else {
+          return a.content.localeCompare(b.content);
+        }
+      });
       return res.data?.map((item: { content: any; classRoomId: any }) => ({
         label: item.content,
         value: item.classRoomId,
@@ -99,7 +114,20 @@ const TopicList = (props: any) => {
     queryKey: ["getOptionClass", modalCreate.type],
     queryFn: async () => {
       const res = await Learning.getListClass();
+      res.data?.sort((a: { content: string }, b: { content: any }) => {
+        const numA = getNumberFromContent(a.content);
+        const numB = getNumberFromContent(b.content);
 
+        if (numA !== null && numB !== null) {
+          return numA - numB;
+        } else if (numA !== null) {
+          return -1;
+        } else if (numB !== null) {
+          return 1;
+        } else {
+          return a.content.localeCompare(b.content);
+        }
+      });
       return res.data?.map((e: { content: any; classRoomId: any }) => ({
         label: e.content,
         value: e.classRoomId,

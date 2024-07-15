@@ -36,6 +36,11 @@ interface Class {
   videoLocation?: string;
 }
 
+export const getNumberFromContent = (content: string) => {
+  const match = content.match(/\d+/);
+  return match ? parseInt(match[0], 10) : null;
+};
+
 const ClassList: React.FC = () => {
   const user: User = useSelector((state: RootState) => state.admin);
 
@@ -61,18 +66,13 @@ const ClassList: React.FC = () => {
     setCurrentPage(newPage);
   };
 
-  const getNumberFromContent = (content: string) => {
-    const match = content.match(/\d+/);
-    return match ? parseInt(match[0], 10) : null;
-  };
-
   // API lấy danh sách lớp
   const { isFetching, refetch } = useQuery({
     queryKey: ["getListClass"],
     queryFn: async () => {
       const res = await Learning.getListClass();
       setLstClass(res.data);
-      res.data.sort((a: { content: string }, b: { content: any }) => {
+      res.data?.sort((a: { content: string }, b: { content: any }) => {
         const numA = getNumberFromContent(a.content);
         const numB = getNumberFromContent(b.content);
 
