@@ -7,6 +7,7 @@ import {
   PracticeIcon,
   StudyIcon,
 } from "@/assets/icons";
+import { Introduction } from "@/assets/icons/Introduction";
 import { RootState, store } from "@/store";
 import { UserOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
@@ -15,6 +16,13 @@ export const MenuSystem = () => {
   const admin = useSelector((state: RootState) => state.admin);
 
   return [
+    {
+      key: "/introduction",
+      label: "Giới thiệu",
+      path: "/introduction",
+      icon: <Introduction color="white" size={20} />,
+      hidden: false,
+    },
     {
       key: "/dashboard",
       label: "Dashboard",
