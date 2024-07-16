@@ -90,7 +90,8 @@ const Projects: React.FC = () => {
           ))}
         </div>
       </div>
-      {alphabet === "All" ? (
+      {alphabet === "All" && <LearnHome isAlphabet />}
+      {/* {alphabet === "All" ? (
         <LearnHome isAlphabet />
       ) : (
         <div className="grid justify-center gap-8 ">
@@ -102,7 +103,7 @@ const Projects: React.FC = () => {
             <Empty description="Không có dữ liệu" />
           )}
         </div>
-      )}
+      )} */}
 
       {/* API trả ra kết quả */}
       {recordLstAlphabet?.length ? (
