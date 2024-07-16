@@ -1,4 +1,5 @@
 "use client";
+import { filterOption } from "@/components/Dashboard/DashboardApp";
 import Breadcrumb from "@/components/UI/Breadcrumbs/Breadcrumb";
 import { AvatarUpload } from "@/components/UI/Upload/AvatarUpload";
 import Learning from "@/model/Learning";
@@ -97,7 +98,7 @@ const VocabularyCreateUpdate: React.FC = () => {
   }, [tabKey]);
 
   // API lấy danh sách  topics
-  const { data: allTopics, isFetching:isFetchingTopic } = useQuery({
+  const { data: allTopics, isFetching: isFetchingTopic } = useQuery({
     queryKey: ["getAllTopics", isPrivate],
     queryFn: async () => {
       const res = await Learning.getAllTopics({ isPrivate: isPrivate });
@@ -336,6 +337,8 @@ const VocabularyCreateUpdate: React.FC = () => {
                     placeholder="Chọn chủ đề"
                     options={allTopics}
                     loading={isFetchingTopic}
+                    showSearch
+                    filterOption={filterOption}
                     notFoundContent={
                       isFetchingTopic ? (
                         <Spin size="small" />
@@ -490,6 +493,8 @@ const VocabularyCreateUpdate: React.FC = () => {
                     allowClear
                     placeholder="Chọn chủ đề"
                     options={allTopics}
+                    showSearch
+                    filterOption={filterOption}
                   />
                 </Form.Item>
                 <Form.Item

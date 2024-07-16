@@ -68,6 +68,13 @@ const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
           className="relative mb-4"
           style={{ width: 400 }}
           placeholder="Tìm kiếm từ vựng"
+          value={filterParams?.contentSearch}
+          onChange={(e) => {
+            setFilerParams({
+              ...filterParams,
+              contentSearch: e.target.value,
+            });
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               setFilerParams({
