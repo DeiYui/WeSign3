@@ -66,7 +66,8 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
           (item: { value: any }) => item.value === showModal.classRoomId,
         )?.label;
         message.error(`Không có chủ đề theo lớp ${className} `);
-        return;
+        setLstVocabulary([]);
+        return [];
       }
       return res.data;
     },
@@ -89,11 +90,13 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
 
   // API lấy danh sách từ theo topics
   const { data: allVocabulary, isFetching: isFetchingVocabulary } = useQuery({
-    queryKey: ["getVocabularyTopic", showModal.topicId],
+    queryKey: ["getVocabularyTopic", showModal.topicId, showModal.isPrivate],
     queryFn: async () => {
       const res = await Learning.getVocabularyTopic(showModal.topicId);
       if (!res.data?.length) {
         message.error(`Không có từng vựng theo chủ đề đã chọn `);
+        setLstVocabulary([]);
+
         return;
       }
       res?.data?.forEach(
@@ -118,7 +121,7 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
       setLstVocabulary(res.data);
       return (res.data as Vocabulary[]) || [];
     },
-    enabled: !!showModal.topicId,
+    enabled: !!showModal.topicId && !!allTopics?.length,
   });
 
   // Tìm kiếm
@@ -211,9 +214,7 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
           </ButtonSecondary>
         ) : null}
 
-        {lstVocabulary?.length ? (
-          <StudyComponent allVocabulary={lstVocabulary} />
-        ) : null}
+        <StudyComponent allVocabulary={lstVocabulary} />
       </div>
 
       {/* Modal */}

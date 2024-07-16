@@ -48,7 +48,7 @@ export default function DefaultLayout({
 
         {/* <!-- ===== Sidebar End ===== --> */}
         <button
-          className="rounded-full bg-white p-2 focus:outline-none dark:bg-boxdark md:px-0"
+          className="rounded-full bg-white p-2 focus:outline-none dark:bg-boxdark md:px-1"
           onClick={toggleSidebar}
         >
           {sidebarOpen ? (
