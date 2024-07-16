@@ -118,6 +118,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
     );
   }
 
+
   return (
     <>
       <div className="">
@@ -269,13 +270,27 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
                               alt="imageLocation"
                               className="flex max-h-[400px] w-[400px] items-center justify-center object-scale-down "
                             />
-                            {allVocabulary &&
-                              allVocabulary[fileIndex].vocabularyType !==
-                                TYPE_VOCABULARY.WORD && (
-                                <div className="line-clamp-[10] w-[420px] overflow-y-auto text-left  text-[18px]">
+                            {allVocabulary && (
+                              <>
+                                <div
+                                  className="line-clamp-[10] w-[420px] overflow-y-auto text-left  text-[18px]"
+                                  style={{
+                                    display:
+                                      allVocabulary[fileIndex]
+                                        .vocabularyType !== TYPE_VOCABULARY.WORD
+                                        ? "block"
+                                        : "none",
+                                  }}
+                                >
                                   {allVocabulary[fileIndex]?.content}
                                 </div>
-                              )}
+                                {allVocabulary[fileIndex]?.note && (
+                                  <div className="mt-2">
+                                    {allVocabulary[fileIndex]?.note}
+                                  </div>
+                                )}
+                              </>
+                            )}
                           </div>
                         ) : (
                           <div className="text-center text-xl">

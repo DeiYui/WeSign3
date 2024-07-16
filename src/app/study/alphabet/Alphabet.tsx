@@ -2,10 +2,10 @@
 import LearnHome from "@/components/Study/LearnHome";
 import StudyComponent from "@/components/Study/StudyComponent";
 import Learning from "@/model/Learning";
-import { HistoryOutlined } from "@ant-design/icons";
 import { useMutation } from "@tanstack/react-query";
 import { Empty, Image, message } from "antd";
 import React, { useEffect, useState } from "react";
+import { A_Z } from "../../../../public/A-Z";
 
 export interface letter {
   name: string;
@@ -91,7 +91,7 @@ const Projects: React.FC = () => {
         </div>
       </div>
       {alphabet === "All" ? (
-        <LearnHome />
+        <LearnHome isAlphabet />
       ) : (
         <div className="grid justify-center gap-8 ">
           {lstLetter?.length ? (

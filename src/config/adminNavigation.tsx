@@ -1,5 +1,6 @@
 import { DotIcon, RequestIcon } from "@/assets/icons";
 import { AdminIcon } from "@/assets/icons/AdminIcon";
+import { MobileOutlined } from "@ant-design/icons";
 
 export const AdminSystem = (admin: any) => {
   const menu = admin
@@ -117,6 +118,13 @@ export const AdminSystem = (admin: any) => {
               icon: <DotIcon color="white" size={20} />,
             },
           ],
+          hidden: !(admin?.role === "ADMIN"),
+        },
+        {
+          key: "/mobile",
+          label: "Link file mobile",
+          path: "/mobile",
+          icon: <MobileOutlined color="white" size={20} />,
           hidden: !(admin?.role === "ADMIN"),
         },
       ]

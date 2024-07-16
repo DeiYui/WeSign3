@@ -189,6 +189,30 @@ class Learning extends Base {
     const res = await this.apiDelete(`/classrooms/${id}`);
     return res.data;
   };
+
+  // Link mobile
+  getLinkMobile = async (params?: any) => {
+    const res = await this.apiGet(`/mobiles/all`, params);
+    return res.data;
+  };
+
+  addLinkMobile = async (body?: any) => {
+    const res = await this.apiPost(`/mobiles`, body);
+    return res.data;
+  };
+
+  editLinkMobile = async (body?: any) => {
+    debugger;
+    const res = await this.apiPut(`/mobiles/${body?.id}`, {
+      mobileLocation: body?.mobileLocation,
+    });
+    return res.data;
+  };
+
+  deleteLinkMobile = async (id?: number) => {
+    const res = await this.apiDelete(`/mobiles/${id}`);
+    return res.data;
+  };
 }
 
 export default new Learning("learning-service");

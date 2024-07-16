@@ -2,12 +2,14 @@ import { colors } from "@/assets/colors";
 import { Logo } from "@/assets/icons";
 import { AdminSystem } from "@/config/adminNavigation";
 import { MenuSystem } from "@/config/userNavigation";
+import Learning from "@/model/Learning";
 import { RootState, store } from "@/store";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "antd";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import SidebarLinkGroup from "./SidebarLinkGroup";
-import { Button, Image } from "antd";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -15,7 +17,7 @@ interface SidebarProps {
 }
 
 const linkAPK =
-  "https://husteduvn-my.sharepoint.com/:u:/g/personal/huy_hoangquang_hust_edu_vn/EfLtorT2W-9El_iVDxMUITwBm7uaFwXmAE5XX8ZjGPRLOA?e=UOFo6z";
+  "https://husteduvn-my.sharepoint.com/personal/huy_hoangquang_hust_edu_vn/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fhuy%5Fhoangquang%5Fhust%5Fedu%5Fvn%2FDocuments%2F05%20Projects%20Sv%2F2023%2E2%20B%C3%A1o%20c%C3%A1o%20h%C3%A0ng%20tu%E1%BA%A7n%2FK64%2FTr%E1%BA%A7n%20V%C4%83n%20Doanh%2020192759%2FWeSignUpdateMic%2Eapk&parent=%2Fpersonal%2Fhuy%5Fhoangquang%5Fhust%5Fedu%5Fvn%2FDocuments%2F05%20Projects%20Sv%2F2023%2E2%20B%C3%A1o%20c%C3%A1o%20h%C3%A0ng%20tu%E1%BA%A7n%2FK64%2FTr%E1%BA%A7n%20V%C4%83n%20Doanh%2020192759&ga=1";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const pathname = usePathname();
@@ -105,6 +107,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       ))}
     </ul>
   );
+
+  const {
+    data: listLinkMobile,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ["getLinkMobile"],
+    queryFn: async () => {
+      const res = await Learning.getLinkMobile();
+      return res?.data;
+    },
+  });
 
   return (
     <aside

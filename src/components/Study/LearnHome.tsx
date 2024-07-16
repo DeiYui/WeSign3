@@ -5,10 +5,14 @@ import { Image } from "antd";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
-function LearnHome() {
-  const slides = Array.from({ length: 26 }).map((_, index) => ({
-    url: `/images/study/${String.fromCharCode(65 + index)}.webp`,
-  }));
+function LearnHome({ isAlphabet }: any) {
+  const slides = isAlphabet
+    ? Array.from({ length: 26 }).map((_, index) => ({
+        url: `/images/study/${String.fromCharCode(65 + index)}.webp`,
+      }))
+    : Array.from({ length: 9 }).map((_, index) => ({
+        url: `/1-9/${index + 1}.webp`,
+      }));
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
