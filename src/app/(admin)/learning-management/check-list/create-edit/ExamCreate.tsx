@@ -3,7 +3,6 @@ import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
 import Questions from "@/model/Questions";
 import {
-  validateInputValueRange,
   validateRequire,
   validateRequireInput,
 } from "@/utils/validation/validtor";
@@ -252,14 +251,7 @@ const CreateAndEditExamPage: React.FC = () => {
             name="numQuestions"
             className="mb-2"
             required
-            rules={[
-              validateRequire("Số lượng câu hỏi không được bỏ trống"),
-              validateInputValueRange(
-                0,
-                limitQuestion?.length,
-                "Vượt quá số lượng câu hỏi đang có",
-              ),
-            ]}
+            rules={[validateRequire("Số lượng câu hỏi không được bỏ trống")]}
           >
             <Input
               disabled={!openChooseQuestions.classRoomId}
