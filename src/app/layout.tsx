@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
 import "flatpickr/dist/flatpickr.min.css";
 import "jsvectormap/dist/css/jsvectormap.css";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import ClientLoader from "./ClientLoader";
@@ -21,11 +21,11 @@ export default function RootLayout({ children }: any) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            refetchOnWindowFocus: false, 
+            refetchOnWindowFocus: false,
           },
         },
       }),
-  )
+  );
 
   return (
     <html lang="en">
