@@ -16,7 +16,16 @@ import { SocketProvider } from "@/hooks/SocketContext";
 injectStore(store);
 
 export default function RootLayout({ children }: any) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = React.useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            refetchOnWindowFocus: false, 
+          },
+        },
+      }),
+  )
 
   return (
     <html lang="en">
