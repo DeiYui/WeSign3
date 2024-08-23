@@ -1,11 +1,12 @@
-// pages/auth/login.tsx
-import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import Chart from "@/components/Charts/page";
 import { Metadata } from "next";
-import IntroductionWeb from "./IntroductionWeb";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import React from "react";
+import IntroductionPage from "./IntroductionPage";
 
 export const metadata: Metadata = {
-  title: "Introduction - WeSign",
-  description: "Introduction page for WeSign",
+  title: "IntroductionManagement - We_sign",
+  description: "IntroductionManagement page for We_sign",
   icons: {
     icon: [
       {
@@ -22,10 +23,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Introduction() {
+const IntroductionManagement: React.FC = () => {
   return (
     <DefaultLayout>
-      <IntroductionWeb />
+      <IntroductionPage />
     </DefaultLayout>
   );
-}
+};
+
+export default IntroductionManagement;

@@ -127,6 +127,13 @@ export const AdminSystem = (admin: any) => {
           icon: <MobileOutlined color="white" size={20} />,
           hidden: !(admin?.role === "ADMIN"),
         },
+        {
+          key: "/introduction-management",
+          label: "Giới thiệu",
+          path: "/introduction-management",
+          icon: <MobileOutlined color="white" size={20} />,
+          hidden: !(admin?.role === "ADMIN"),
+        },
       ]
     : [];
 

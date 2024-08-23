@@ -213,6 +213,22 @@ class Learning extends Base {
     const res = await this.apiDelete(`/mobiles/${id}`);
     return res.data;
   };
+
+  // GIới thiệu
+  addIntroduction = async (body?: any) => {
+    const res = await this.apiPost(`/introductions`, body);
+    return res.data;
+  };
+
+  editIntroduction = async (body?: any) => {
+    const res = await this.apiPut(`/introductions`, body);
+    return res.data;
+  };
+
+  getIntroduction = async () => {
+    const res = await this.apiGet(`/introductions`);
+    return res.data;
+  };
 }
 
 export default new Learning("learning-service");
