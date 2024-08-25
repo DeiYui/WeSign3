@@ -50,7 +50,11 @@ const IntroductionPage: React.FC = () => {
         <Form
           form={form}
           onFinish={(values) => {
-            mutation.mutate(values);
+            mutation.mutate({
+              title: values?.title || "",
+              body: values?.body,
+              footer: values?.footer || "",
+            });
           }}
           layout="vertical"
         >
