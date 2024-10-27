@@ -1,11 +1,12 @@
 "use client";
+import { CustomTable } from "@/app/(admin)/learning-management/check-list/ExamList";
 import StudyComponent from "@/components/Study/StudyComponent";
-import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
 import { default as Learning } from "@/model/Learning";
 import { RootState } from "@/store";
 import { useQuery } from "@tanstack/react-query";
 import {
   Avatar,
+  Image,
   Input,
   List,
   Modal,
@@ -14,7 +15,7 @@ import {
   Spin,
   message,
 } from "antd";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
@@ -31,6 +32,7 @@ interface Hero2DataType {
 const { Option } = Select;
 
 const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const topicId = Number(searchParams.get("topicId"));
   const user: User = useSelector((state: RootState) => state.admin);
@@ -52,6 +54,24 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
   const [searchText, setSearchText] = useState<string>("");
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
   const [lstVocabulary, setLstVocabulary] = useState<any[]>([]);
+  const [filteredClass, setFilteredClass] = useState<any[]>([]);
+  const [lstClass, setLstClass] = useState<any[]>([]);
+
+  const { data: allCLass, isFetching: isFetchingClass } = useQuery({
+    queryKey: ["getListClass"],
+    queryFn: async () => {
+      const res = await Learning.getListClass();
+      setLstClass(res?.data);
+      setFilteredClass(res?.data);
+      return res.data?.map(
+        (e: { content: any; classRoomId: any; imageLocation: string }) => ({
+          label: e.content,
+          value: e.classRoomId,
+          imageLocation: e.imageLocation,
+        }),
+      );
+    },
+  });
 
   // API lấy danh sách topics
   const { data: allTopics, isFetching } = useQuery({
@@ -72,20 +92,6 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
       return res.data;
     },
     enabled: !!showModal.classRoomId,
-  });
-
-  const { data: allCLass, isFetching: isFetchingClass } = useQuery({
-    queryKey: ["getListClass"],
-    queryFn: async () => {
-      const res = await Learning.getListClass();
-      return res.data?.map(
-        (e: { content: any; classRoomId: any; imageLocation: string }) => ({
-          label: e.content,
-          value: e.classRoomId,
-          imageLocation: e.imageLocation,
-        }),
-      );
-    },
   });
 
   // API lấy danh sách từ theo topics
@@ -135,6 +141,56 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
     }
   }, [searchText, allTopics]);
 
+  const columns = [
+    {
+      title: "STT",
+      key: "index",
+      render: (_: any, __: any, index: number) => index + 1,
+      width: 80,
+    },
+    {
+      title: "Tên lớp học",
+      dataIndex: "content",
+      key: "content",
+      render: (value: string, record: any) => (
+        <div
+          className="text-lg text-blue-700 hover:cursor-pointer"
+          onClick={() => {
+            setShowModal({
+              ...showModal,
+              classRoomName: record?.content,
+              classRoomId: record?.classRoomId,
+              open: true,
+            });
+          }}
+        >
+          {value}
+        </div>
+      ),
+    },
+    {
+      title: "Minh họa",
+      dataIndex: "imageLocation",
+      key: "image",
+      render: (text: string) => (
+        <>
+          {text ? (
+            <Image src={text} alt="" />
+          ) : (
+            <div className="">Không có ảnh minh hoạ</div>
+          )}
+        </>
+      ),
+      width: 200,
+    },
+    {
+      title: "Người tạo",
+      dataIndex: "createdBy",
+      key: "createdBy",
+      render: (value: string) => <div className="text-lg">{value}</div>,
+    },
+  ];
+
   return (
     <Spin spinning={isFetchingVocabulary}>
       <div className="flex flex-col gap-4">
@@ -145,18 +201,14 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
             size="large"
             allowClear
             onClear={() => {
-              setShowModal({
-                ...showModal,
-                classRoomId: 0,
-              });
+              setFilteredClass(lstClass);
               setLstVocabulary([]);
             }}
             loading={isFetchingClass}
             onSelect={(value) => {
-              setShowModal({
-                ...showModal,
-                classRoomId: value,
-              });
+              setFilteredClass(
+                lstClass?.filter((item) => item.classRoomId === value),
+              );
               setLstVocabulary([]);
             }}
             optionLabelProp="label"
@@ -204,7 +256,7 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
           )}
         </div>
 
-        {allTopics?.length ? (
+        {/* {allTopics?.length ? (
           <ButtonSecondary
             disabled={isFetching}
             className="mb-4 w-1/4 border border-solid border-neutral-700"
@@ -212,15 +264,23 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
           >
             Lựa chọn chủ đề
           </ButtonSecondary>
-        ) : null}
-
-        <StudyComponent allVocabulary={lstVocabulary} />
+        ) : null} */}
+        {lstVocabulary?.length ? (
+          <StudyComponent allVocabulary={lstVocabulary} />
+        ) : (
+          <CustomTable
+            columns={columns as any}
+            dataSource={filteredClass}
+            pagination={{ pageSize: 100 }}
+            scroll={{ y: 800 }}
+          />
+        )}
       </div>
 
       {/* Modal */}
       <Modal
         width={700}
-        title="Danh sách chủ đề"
+        title={`Danh sách chủ đề - ${showModal.classRoomName}`}
         open={showModal.open}
         centered
         footer={null}
@@ -243,11 +303,14 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
             <List.Item
               className={`${showModal.topicId === topic.topicId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
               onClick={() => {
-                setShowModal({
-                  ...showModal,
-                  topicId: topic.topicId,
-                  open: false,
-                });
+                // setShowModal({
+                //   ...showModal,
+                //   topicId: topic.topicId,
+                //   open: false,
+                // });
+                router.push(
+                  `/study/topics/?classRoomId=${showModal.classRoomId}&&topicId=${topic.topicId}`,
+                );
               }}
             >
               <Skeleton avatar title={false} loading={isFetching} active>

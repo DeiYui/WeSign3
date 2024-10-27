@@ -20,7 +20,7 @@ export const AdminSystem = (admin: any) => {
             },
             {
               key: "/learning-management/topics",
-              label: "Chủ đề ",
+              label: "Chủ đề",
               path: "/learning-management/topics",
               icon: <DotIcon color="white" size={20} />,
               children: [
@@ -43,7 +43,7 @@ export const AdminSystem = (admin: any) => {
             },
             {
               key: "/learning-management/vocabulary",
-              label: "Từ điển",
+              label: "Từ điển học liệu",
               path: "/learning-management/vocabulary",
               hidden: false,
               icon: <DotIcon color="white" size={20} />,

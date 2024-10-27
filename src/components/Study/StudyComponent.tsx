@@ -36,7 +36,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
   const [videoCurrent, setVideoCurrent] = useState<any>();
 
   useEffect(() => {
-    if (showFileDetail) {
+    if (showFileDetail && allVocabulary?.length) {
       setAutoplay(true);
       setVideoCurrent(
         allVocabulary[fileIndex]?.vocabularyVideoResList[0]?.videoLocation,
@@ -117,7 +117,6 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
       />
     );
   }
-
 
   return (
     <>
@@ -243,7 +242,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
           </>
         }
         width={1420}
-        key={allVocabulary[fileIndex]?.content}
+        key={allVocabulary?.length && allVocabulary[fileIndex]?.content}
         centered
       >
         <div className="w-full px-4  ">
@@ -329,7 +328,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
             <Button
               style={{
                 display:
-                  allVocabulary &&
+                  allVocabulary?.length &&
                   allVocabulary[fileIndex]?.vocabularyImageResList?.length < 2
                     ? "none"
                     : "block",
@@ -340,6 +339,7 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
             <Button
               style={{
                 display:
+                  allVocabulary?.length &&
                   allVocabulary[fileIndex]?.vocabularyImageResList?.length < 2
                     ? "none"
                     : "block",
@@ -357,8 +357,9 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
             <Button
               style={{
                 display:
+                  allVocabulary?.length &&
                   currentVideoIndex ===
-                  allVocabulary[fileIndex]?.vocabularyVideoResList?.length - 1
+                    allVocabulary[fileIndex]?.vocabularyVideoResList?.length - 1
                     ? "none"
                     : "block",
               }}

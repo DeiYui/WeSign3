@@ -16,9 +16,6 @@ interface SidebarProps {
   setSidebarOpen: (arg: boolean) => void;
 }
 
-const linkAPK =
-  "https://husteduvn-my.sharepoint.com/personal/huy_hoangquang_hust_edu_vn/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fhuy%5Fhoangquang%5Fhust%5Fedu%5Fvn%2FDocuments%2F05%20Projects%20Sv%2F2023%2E2%20B%C3%A1o%20c%C3%A1o%20h%C3%A0ng%20tu%E1%BA%A7n%2FK64%2FTr%E1%BA%A7n%20V%C4%83n%20Doanh%2020192759%2FWeSignUpdateMic%2Eapk&parent=%2Fpersonal%2Fhuy%5Fhoangquang%5Fhust%5Fedu%5Fvn%2FDocuments%2F05%20Projects%20Sv%2F2023%2E2%20B%C3%A1o%20c%C3%A1o%20h%C3%A0ng%20tu%E1%BA%A7n%2FK64%2FTr%E1%BA%A7n%20V%C4%83n%20Doanh%2020192759&ga=1";
-
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const pathname = usePathname();
   const state: RootState = store.getState();
@@ -202,7 +199,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
           <Button
             className="mb-4 ml-4 text-sm font-semibold text-primary-700"
             onClick={() => {
-              window.open(linkAPK);
+              window.open(listLinkMobile[0]);
             }}
           >
             TẢI ỨNG DỤNG MOBILE

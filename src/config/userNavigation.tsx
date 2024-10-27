@@ -14,6 +14,8 @@ import { useSelector } from "react-redux";
 
 export const MenuSystem = () => {
   const admin = useSelector((state: RootState) => state.admin);
+  const token = localStorage.getItem("access_token");
+  console.log("token", token);
 
   return [
     {
@@ -28,14 +30,14 @@ export const MenuSystem = () => {
       label: "Dashboard",
       path: "/dashboard",
       icon: <DashboardIcon />,
-      hidden: false,
+      hidden: !token,
     },
     {
       key: "/friend",
       label: "Bạn bè",
       path: "/friend",
       icon: <UserOutlined color="white" size={20} />,
-      hidden: !admin,
+      hidden: !token && !admin,
     },
     {
       key: "/study",
@@ -47,37 +49,37 @@ export const MenuSystem = () => {
           key: "/study/room",
           label: "Lớp",
           path: "/study/room",
-          hidden: false,
+          hidden: !token,
           icon: <DotIcon color="white" size={20} />,
         },
-        {
-          key: "/study/topics",
-          label: "Chủ đề",
-          path: "/study/topics",
-          hidden: false,
-          icon: <DotIcon color="white" size={20} />,
-        },
+        // {
+        //   key: "/study/topics",
+        //   label: "Chủ đề",
+        //   path: "/study/topics",
+        //   hidden: false,
+        //   icon: <DotIcon color="white" size={20} />,
+        // },
         {
           key: "/study/vocabulary",
-          label: "Từ vựng",
+          label: "Từ vựng học liệu",
           path: "/study/vocabulary",
-          hidden: false,
+          hidden: !token,
           icon: <DotIcon color="white" size={20} />,
         },
-        {
-          key: "/study/sentence",
-          label: "Câu",
-          path: "/study/sentence",
-          hidden: false,
-          icon: <DotIcon color="white" size={20} />,
-        },
-        {
-          key: "/study/paragraph",
-          label: "Đoạn",
-          path: "/study/paragraph",
-          hidden: false,
-          icon: <DotIcon color="white" size={20} />,
-        },
+        // {
+        //   key: "/study/sentence",
+        //   label: "Câu",
+        //   path: "/study/sentence",
+        //   hidden: false,
+        //   icon: <DotIcon color="white" size={20} />,
+        // },
+        // {
+        //   key: "/study/paragraph",
+        //   label: "Đoạn",
+        //   path: "/study/paragraph",
+        //   hidden: false,
+        //   icon: <DotIcon color="white" size={20} />,
+        // },
         {
           key: "/study/alphabet",
           label: "Bảng chữ cái",
@@ -92,7 +94,7 @@ export const MenuSystem = () => {
           hidden: false,
           icon: <DotIcon color="white" size={20} />,
         },
-      ],
+      ]?.filter((item) => !item.hidden),
       hidden: false,
     },
     {
@@ -107,21 +109,21 @@ export const MenuSystem = () => {
       label: "Kiểm tra",
       path: "/exam",
       icon: <ExamIcon color="white" size={20} />,
-      hidden: !admin,
+      hidden: !token && !admin,
     },
     {
       key: "/collect-data",
       label: "Thu thập dữ liệu",
       path: "/collect-data",
       icon: <CollectDataIcon color="white" size={20} />,
-      hidden: !admin,
+      hidden: !token && !admin,
     },
     {
       key: "/practice-data",
       label: "Luyện tập",
       path: "/practice-data",
       icon: <PracticeIcon color="white" size={20} />,
-      hidden: false,
+      hidden: !token,
     },
   ].filter((item) => !item.hidden);
 };

@@ -5,7 +5,7 @@ import InputPrimary from "@/components/UI/Input/InputPrimary";
 import Learning from "@/model/Learning";
 import { RootState } from "@/store";
 import { useQuery } from "@tanstack/react-query";
-import { Spin, message } from "antd";
+import { Select, Spin, message } from "antd";
 import { FC, useState } from "react";
 import { useSelector } from "react-redux";
 
@@ -30,7 +30,6 @@ const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
     queryFn: async () => {
       const res = await Learning.getAllVocabulary({
         ...filterParams,
-        vocabularyType: "WORD",
         isPrivate: user.role === "USER" && "false",
       });
       if (!res?.data?.length) {
@@ -91,6 +90,30 @@ const Vocabulary: FC<SectionHero2Props> = ({ className = "" }) => {
           onClear={() => {
             setFilerParams({ ...filterParams, contentSearch: "" });
           }}
+        />
+        <Select
+          allowClear
+          className="w-1/4"
+          style={{ width: 400, height: 44, borderRadius: 20 }}
+          placeholder="Loại từ vựng"
+          size="large"
+          options={[
+            {
+              label: "Từ",
+              value: "WORD",
+            },
+            {
+              label: "Câu",
+              value: "SENTENCE",
+            },
+            {
+              label: "Đoạn",
+              value: "PARAGRAPH",
+            },
+          ]}
+          onChange={(value) =>
+            setFilerParams({ ...filterParams, vocabularyType: value })
+          }
         />
       </div>
 

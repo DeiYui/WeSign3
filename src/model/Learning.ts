@@ -96,8 +96,8 @@ class Learning extends Base {
   };
 
   // Danh sách từ vựng theo topics
-  getVocabularyTopic = async (topicId: number | string) => {
-    const res = await this.apiGet(`/vocabularies/${topicId}`);
+  getVocabularyTopic = async (topicId: number | string, params?: any) => {
+    const res = await this.apiGet(`/vocabularies/${topicId}`, params);
     return res.data;
   };
 
