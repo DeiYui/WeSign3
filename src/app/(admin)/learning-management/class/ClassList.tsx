@@ -17,6 +17,7 @@ import {
   Form,
   Image,
   Input,
+  Modal,
   Table,
   Upload,
   UploadProps,
@@ -128,6 +129,17 @@ const ClassList: React.FC = () => {
     },
   });
 
+  const handleDelete = (value: number) => {
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn xoá lớp này?",
+      content: "Hành động này sẽ xoá tất cả các chủ đề liên quan đến lớp.",
+      okText: "Xác nhận",
+      okType: "danger",
+      cancelText: "Huỷ",
+      onOk: () => mutationDel.mutate(value),
+    });
+  };
+
   const columns = [
     {
       title: "STT",
@@ -183,7 +195,7 @@ const ClassList: React.FC = () => {
               <Button
                 icon={<DeleteOutlined />}
                 danger
-                onClick={() => mutationDel.mutate(value)}
+                onClick={() => handleDelete(value)}
               />
             </div>
           ),

@@ -1,5 +1,6 @@
 "use client";
 import { CustomTable } from "@/app/(admin)/learning-management/check-list/ExamList";
+import { getNumberFromContent } from "@/app/(admin)/learning-management/class/ClassList";
 import StudyComponent from "@/components/Study/StudyComponent";
 import { default as Learning } from "@/model/Learning";
 import { RootState } from "@/store";
@@ -61,6 +62,20 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
     queryKey: ["getListClass"],
     queryFn: async () => {
       const res = await Learning.getListClass();
+      res.data?.sort((a: { content: string }, b: { content: any }) => {
+        const numA = getNumberFromContent(a.content);
+        const numB = getNumberFromContent(b.content);
+
+        if (numA !== null && numB !== null) {
+          return numA - numB;
+        } else if (numA !== null) {
+          return -1;
+        } else if (numB !== null) {
+          return 1;
+        } else {
+          return a.content.localeCompare(b.content);
+        }
+      });
       setLstClass(res?.data);
       setFilteredClass(res?.data);
       return res.data?.map(
