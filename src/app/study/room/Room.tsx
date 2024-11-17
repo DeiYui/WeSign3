@@ -295,7 +295,7 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
       {/* Modal */}
       <Modal
         width={700}
-        title={`Danh sách chủ đề - ${showModal.classRoomName}`}
+        title={`Danh sách bài học - ${showModal.classRoomName}`}
         open={showModal.open}
         centered
         footer={null}
@@ -303,7 +303,7 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
       >
         <Input
           size="large"
-          placeholder="Nhập chủ đè muốn tìm kiếm"
+          placeholder="Nhập bài học muốn tìm kiếm"
           className="w-2/3"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
@@ -324,7 +324,7 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
                 //   open: false,
                 // });
                 router.push(
-                  `/study/topics/?classRoomId=${showModal.classRoomId}&&topicId=${topic.topicId}`,
+                  `/study/lessons/?classRoomId=${showModal.classRoomId}&&topicId=${topic.topicId}`,
                 );
               }}
             >

@@ -321,11 +321,11 @@ const VocabularyCreateUpdate: React.FC = () => {
               >
                 <Form.Item
                   name="topicId"
-                  label="Chủ đề liên quan"
+                  label="Bài học liên quan"
                   required
                   rules={[
                     validateRequireInput(
-                      "Chủ đề liên quan không được bỏ trống",
+                      "Bài học liên quan không được bỏ trống",
                     ),
                   ]}
                   className="mb-2"
@@ -334,7 +334,7 @@ const VocabularyCreateUpdate: React.FC = () => {
                     size="large"
                     className="w-full"
                     allowClear
-                    placeholder="Chọn chủ đề"
+                    placeholder="Chọn bài học"
                     options={allTopics}
                     loading={isFetchingTopic}
                     showSearch
@@ -343,9 +343,49 @@ const VocabularyCreateUpdate: React.FC = () => {
                       isFetchingTopic ? (
                         <Spin size="small" />
                       ) : (
-                        "Không tìm thấy chủ đề"
+                        "Không tìm thấy bài học"
                       )
                     }
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="part"
+                  label="Phần"
+                  required
+                  rules={[validateRequireInput("Phần không được bỏ trống")]}
+                  className="mb-2"
+                >
+                  <Select
+                    size="large"
+                    className="w-full"
+                    allowClear
+                    placeholder="Chọn phần"
+                    options={[
+                      {
+                        label: "Phần 1",
+                        value: 1,
+                      },
+                      {
+                        label: "Phần 2",
+                        value: 2,
+                      },
+                      {
+                        label: "Phần 3",
+                        value: 3,
+                      },
+                      {
+                        label: "Phần 4",
+                        value: 4,
+                      },
+                      {
+                        label: "Phần 5",
+                        value: 5,
+                      },
+                      {
+                        label: "Phần 6",
+                        value: 6,
+                      },
+                    ]}
                   />
                 </Form.Item>
                 <Form.Item
@@ -478,11 +518,11 @@ const VocabularyCreateUpdate: React.FC = () => {
               >
                 <Form.Item
                   name="topicId"
-                  label="Chủ đề liên quan"
+                  label="Bài học liên quan"
                   required
                   rules={[
                     validateRequireInput(
-                      "Chủ đề liên quan không được bỏ trống",
+                      "Bài học liên quan không được bỏ trống",
                     ),
                   ]}
                   className="mb-2"
@@ -491,10 +531,50 @@ const VocabularyCreateUpdate: React.FC = () => {
                     size="large"
                     className="w-full"
                     allowClear
-                    placeholder="Chọn chủ đề"
+                    placeholder="Chọn bài học"
                     options={allTopics}
                     showSearch
                     filterOption={filterOption}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="part"
+                  label="Phần"
+                  required
+                  rules={[validateRequireInput("Phần không được bỏ trống")]}
+                  className="mb-2"
+                >
+                  <Select
+                    size="large"
+                    className="w-full"
+                    allowClear
+                    placeholder="Chọn phần"
+                    options={[
+                      {
+                        label: "Phần 1",
+                        value: 1,
+                      },
+                      {
+                        label: "Phần 2",
+                        value: 2,
+                      },
+                      {
+                        label: "Phần 3",
+                        value: 3,
+                      },
+                      {
+                        label: "Phần 4",
+                        value: 4,
+                      },
+                      {
+                        label: "Phần 5",
+                        value: 5,
+                      },
+                      {
+                        label: "Phần 6",
+                        value: 6,
+                      },
+                    ]}
                   />
                 </Form.Item>
                 <Form.Item
@@ -527,6 +607,7 @@ const VocabularyCreateUpdate: React.FC = () => {
                     ]}
                   />
                 </Form.Item>
+
                 <div className="max-h-[600px] overflow-y-scroll">
                   <CustomUpload
                     listType="text"

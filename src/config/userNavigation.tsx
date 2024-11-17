@@ -61,7 +61,7 @@ export const MenuSystem = () => {
         // },
         {
           key: "/study/vocabulary",
-          label: "Từ vựng học liệu",
+          label: "Từ điển học liệu",
           path: "/study/vocabulary",
           hidden: !token,
           icon: <DotIcon color="white" size={20} />,
