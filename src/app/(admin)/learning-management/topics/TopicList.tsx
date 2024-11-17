@@ -17,6 +17,7 @@ import {
   Form,
   Image,
   Input,
+  Modal,
   Popover,
   Select,
   Table,
@@ -188,6 +189,18 @@ const TopicList = (props: any) => {
     },
   });
 
+  const handleDelete = (value: number) => {
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn xoá chủ đề này?",
+      content:
+        "Hành động này sẽ xoá tất cả các học liệu liên quan đến chủ đề này.",
+      okText: "Xác nhận",
+      okType: "danger",
+      cancelText: "Huỷ",
+      onOk: () => mutationDel.mutate(value),
+    });
+  };
+
   const columns = [
     {
       title: "STT",
@@ -248,7 +261,7 @@ const TopicList = (props: any) => {
           <Button
             icon={<DeleteOutlined />}
             danger
-            onClick={() => mutationDel.mutate(value)}
+            onClick={() => handleDelete(value)}
           />
         </div>
       ),

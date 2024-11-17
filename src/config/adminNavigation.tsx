@@ -18,29 +18,29 @@ export const AdminSystem = (admin: any) => {
               hidden: false,
               icon: <DotIcon color="white" size={20} />,
             },
-            // {
-            //   key: "/learning-management/topics",
-            //   label: "Chủ đề",
-            //   path: "/learning-management/topics",
-            //   icon: <DotIcon color="white" size={20} />,
-            //   children: [
-            //     {
-            //       key: "/learning-management/topics/public",
-            //       label: "Chung",
-            //       path: "/learning-management/topics/public",
-            //       hidden: false,
-            //       icon: <DotIcon color="white" size={20} />,
-            //     },
-            //     {
-            //       key: "/learning-management/topics/private",
-            //       label: "Riêng",
-            //       path: "/learning-management/topics/private",
-            //       hidden: false,
-            //       icon: <DotIcon color="white" size={20} />,
-            //     },
-            //   ],
-            //   hidden: false,
-            // },
+            {
+              key: "/learning-management/topics",
+              label: "Chủ đề",
+              path: "/learning-management/topics",
+              icon: <DotIcon color="white" size={20} />,
+              children: [
+                {
+                  key: "/learning-management/topics/public",
+                  label: "Chung",
+                  path: "/learning-management/topics/public",
+                  hidden: false,
+                  icon: <DotIcon color="white" size={20} />,
+                },
+                {
+                  key: "/learning-management/topics/private",
+                  label: "Riêng",
+                  path: "/learning-management/topics/private",
+                  hidden: false,
+                  icon: <DotIcon color="white" size={20} />,
+                },
+              ],
+              hidden: false,
+            },
             {
               key: "/learning-management/lesson",
               label: "Bài học",
