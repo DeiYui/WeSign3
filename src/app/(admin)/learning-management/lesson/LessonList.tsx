@@ -30,10 +30,11 @@ import React, { useState } from "react";
 import { CustomTable } from "../check-list/ExamList";
 import styled from "styled-components";
 import { getNumberFromContent } from "../class/ClassList";
+import Lesson from "@/model/Lesson";
 
-interface Topic {
-  topicId?: number;
-  content: string;
+interface Lessons {
+  lessonId?: number;
+  lessonName: string;
   imageLocation: string;
   videoLocation?: string;
 }
@@ -41,8 +42,9 @@ interface Topic {
 const LessonList = (props: any) => {
   const { isPrivate } = props;
   const [form] = useForm();
-  // danh sách topics
-  const [lstTopics, setLstTopics] = useState([]);
+  // danh sách lessons
+  const [lstLessons, setLstLessons] = useState([]);
+  const [lstLessonsSearch, setLstLessonsSearch] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchText, setSearchText] = useState("");
   const pageSize = 10;
@@ -56,7 +58,7 @@ const LessonList = (props: any) => {
     open: false,
     file: "",
     typeModal: "create",
-    type: "topic",
+    type: "lesson",
   });
 
   // filter params
@@ -70,16 +72,21 @@ const LessonList = (props: any) => {
     setCurrentPage(newPage);
   };
 
-  // API lấy danh sách topics
+  // API lấy danh sách lessons
   const { isFetching, refetch } = useQuery({
-    queryKey: ["getAllTopics", filterParams],
+    queryKey: ["getAlllessons", filterParams],
     queryFn: async () => {
-      const res = await Learning.getAllTopics({
-        ...filterParams,
+      const res = await Lesson.getLstLessonByClass({
+        classRoomId: filterParams?.classRoomId,
         isPrivate: `${isPrivate}`,
       });
-      setLstTopics(res.data);
-      return res.data as Topic[];
+      setLstLessons(
+        res?.data?.sort((a: any, b: any) => b.lessonId - a.lessonId),
+      );
+      setLstLessonsSearch(
+        res?.data?.sort((a: any, b: any) => b.lessonId - a.lessonId),
+      );
+      return res?.data as Lessons[];
     },
   });
 
@@ -137,20 +144,12 @@ const LessonList = (props: any) => {
     enabled: modalCreate.type === "class",
   });
 
-  // Tìm kiếm
-  const mutation = useMutation({
-    mutationFn: Learning.searchTopics,
-    onSuccess: (res) => {
-      setLstTopics(res.data.data);
-    },
-  });
-
-  // Thêm mới / chỉnh sửa topics
+  // Thêm mới / chỉnh sửa lessons
   const mutationCreateUpdate = useMutation({
     mutationFn:
       modalCreate.typeModal === "create"
-        ? Learning.addTopics
-        : Learning.editTopics,
+        ? Lesson.createLesson
+        : Lesson.editLesson,
     onSuccess: (res) => {
       message.success(
         `${
@@ -167,11 +166,11 @@ const LessonList = (props: any) => {
     },
   });
 
-  // Xoá chủ đề
+  // Xoá bài học
   const mutationDel = useMutation({
-    mutationFn: Learning.deleteTopics,
+    mutationFn: Lesson.deleteLstLesson,
     onSuccess: () => {
-      message.success("Xoá chủ đề thành công");
+      message.success("Xoá bài học thành công");
       refetch();
     },
   });
@@ -210,9 +209,9 @@ const LessonList = (props: any) => {
       width: 50,
     },
     {
-      title: "Tên chủ đề",
-      dataIndex: "content",
-      key: "content",
+      title: "Tên bài học",
+      dataIndex: "lessonName",
+      key: "lessonName",
       render: (value: string) => <div className="text-lg">{value}</div>,
     },
     {
@@ -238,8 +237,8 @@ const LessonList = (props: any) => {
     },
     {
       title: "Hành động",
-      key: "topicId",
-      dataIndex: "topicId",
+      key: "lessonId",
+      dataIndex: "lessonId",
       render: (value: any, record: any) => (
         <div className="flex space-x-2">
           <Button
@@ -254,7 +253,7 @@ const LessonList = (props: any) => {
                 open: true,
                 file: record.imageLocation,
                 typeModal: "edit",
-                type: record.classRoomId ? "class" : "topic",
+                type: record.classRoomId ? "class" : "lesson",
               });
             }}
           />
@@ -311,29 +310,18 @@ const LessonList = (props: any) => {
             value={searchText}
             onChange={(e) => {
               setSearchText(e.target.value);
-
-              if (e.target.value) {
-                mutation.mutate({
-                  page: 1,
-                  size: 999999,
-                  text: e.currentTarget.value,
-                  ascending: true,
-                  orderBy: "",
-                });
-              } else {
-                refetch();
-              }
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 if (e.currentTarget.value) {
-                  mutation.mutate({
-                    page: 1,
-                    size: 999999,
-                    text: e.currentTarget.value,
-                    ascending: true,
-                    orderBy: "",
+                  const listLessons = lstLessons.filter((item: any) => {
+                    return item.lessonName
+                      .toLowerCase()
+                      .includes(e.currentTarget.value.toLowerCase());
                   });
+                  setTimeout(() => {
+                    setLstLessonsSearch(listLessons);
+                  }, 1000);
                 } else {
                   refetch();
                 }
@@ -371,7 +359,7 @@ const LessonList = (props: any) => {
       </div>
       <CustomTable
         columns={columns as any}
-        dataSource={lstTopics}
+        dataSource={lstLessonsSearch}
         loading={isLoading}
         pagination={{
           pageSize: pageSize,
@@ -422,24 +410,22 @@ const LessonList = (props: any) => {
             layout="vertical"
             onFinish={(value) => {
               let payload: any = {
-                content: value.content,
+                lessonName: value.lessonName,
                 imageLocation: value.file,
                 videoLocation: "",
                 private: isPrivate,
               };
 
               if (modalCreate.typeModal === "create") {
-                if (modalCreate.type === "topics") {
+                if (modalCreate.type === "lessons") {
                   mutationCreateUpdate.mutate(payload);
                 } else {
                   payload.classRoomId = value.classRoomId;
-                  if (isPrivate) {
-                  }
                   mutationCreateUpdate.mutate(payload);
                 }
               } else {
-                payload.topicId = value?.topicId;
-                if (modalCreate.type === "topic") {
+                payload.lessonId = value?.lessonId;
+                if (modalCreate.type === "lesson") {
                   mutationCreateUpdate.mutate(payload);
                 } else {
                   payload.classRoomId = value.classRoomId;
@@ -448,9 +434,9 @@ const LessonList = (props: any) => {
               }
             }}
           >
-            <Form.Item name="topicId" hidden />
+            <Form.Item name="lessonId" hidden />
             <Form.Item
-              hidden={modalCreate.type === "topic"}
+              hidden={modalCreate.type === "lesson"}
               name="classRoomId"
               label="Lớp học"
               className="mb-2"
@@ -464,7 +450,7 @@ const LessonList = (props: any) => {
               <Select options={optionClass} placeholder="Lựa chọn lớp học" />
             </Form.Item>
             <Form.Item
-              name="content"
+              name="lessonName"
               label="Tên bài học"
               className="mb-2"
               required

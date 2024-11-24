@@ -30,7 +30,7 @@ interface Hero2DataType {
   btnText: string;
 }
 interface FilterParams {
-  topicId: number;
+  topicId?: number;
   contentSearch: string;
   vocabularyType?: string;
 }
@@ -48,7 +48,7 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
   });
   const [showModal, setShowModal] = useState<{
     open: boolean;
-    topicId: number;
+    topicId?: number;
   }>({
     open: false,
     topicId: 0,
@@ -237,10 +237,10 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
                 <List.Item
                   className={`${showModal.topicId === topic.topicId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
                   onClick={() => {
-                    setShowModal({ topicId: topic.topicId, open: false });
+                    setShowModal({ topicId: topic?.topicId, open: false });
                     setFilterParams({
                       ...filterParams,
-                      topicId: topic.topicId,
+                      topicId: topic?.topicId,
                     });
                   }}
                 >
@@ -277,10 +277,10 @@ const Topics: FC<SectionHero2Props> = ({ className = "" }) => {
                   <List.Item
                     className={`${showModal.topicId === topic.topicId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
                     onClick={() => {
-                      setShowModal({ topicId: topic.topicId, open: false });
+                      setShowModal({ topicId: topic?.topicId, open: false });
                       setFilterParams({
                         ...filterParams,
-                        topicId: topic.topicId,
+                        topicId: topic?.topicId,
                       });
                     }}
                   >

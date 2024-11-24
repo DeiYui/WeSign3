@@ -1,11 +1,11 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
 import React from "react";
-import VocabularyList from "../VocabularyList";
+import PartCreateUpdate from "./PartCreateUpdate";
 
 export const metadata: Metadata = {
-  title: "Management-Part-We_sign",
-  description: "Management-Part page for We_sign",
+  title: "create-update-part- We_sign",
+  description: "createUpdate-part page for We_sign",
   icons: {
     icon: [
       {
@@ -22,12 +22,12 @@ export const metadata: Metadata = {
   },
 };
 
-const ManagementVocabularyPage: React.FC = () => {
+const CreateVocabularyPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <VocabularyList isPrivate={false} />
+      <PartCreateUpdate />
     </DefaultLayout>
   );
 };
 
-export default ManagementVocabularyPage;
+export default CreateVocabularyPage;

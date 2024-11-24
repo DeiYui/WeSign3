@@ -3,6 +3,7 @@ import { filterOption } from "@/components/Dashboard/DashboardApp";
 import Breadcrumb from "@/components/UI/Breadcrumbs/Breadcrumb";
 import { AvatarUpload } from "@/components/UI/Upload/AvatarUpload";
 import Learning from "@/model/Learning";
+import Lesson from "@/model/Lesson";
 import UploadModel from "@/model/UploadModel";
 import { validateRequireInput } from "@/utils/validation/validtor";
 import { UploadOutlined } from "@ant-design/icons";
@@ -60,12 +61,11 @@ export function isImageLocation(url: string) {
 const { TabPane } = Tabs;
 const { TextArea } = Input;
 
-const VocabularyCreateUpdate: React.FC = () => {
+const PartCreateUpdate: React.FC = () => {
   const router = useRouter();
   const [form] = useForm();
   const [formUpload] = useForm();
   const searchParams = useSearchParams();
-  const isPrivate = searchParams.get("isPrivate");
 
   //state
   const [tabKey, setTabKey] = useState("1");
@@ -91,41 +91,57 @@ const VocabularyCreateUpdate: React.FC = () => {
   const [isLoadingFile, setIsLoadingFile] = useState<boolean>(false);
 
   // Loại từ vựng
-  const vocabularyType = Form.useWatch("vocabularyType", form);
-
+  const lessonId = Form.useWatch("lessonId", form);
+  const lessonIdAddList = Form.useWatch("lessonId", formUpload);
   useEffect(() => {
     form.resetFields();
   }, [tabKey]);
 
-  // API lấy danh sách  topics
-  const { data: allTopics, isFetching: isFetchingTopic } = useQuery({
-    queryKey: ["getAllTopics", isPrivate],
+  // API lấy danh sách Bài học
+  const { data: allLesson, isFetching: isFetchingTopic } = useQuery({
+    queryKey: ["getallLesson"],
     queryFn: async () => {
-      const res = await Learning.getAllTopics({ isPrivate: isPrivate });
-      return res?.data?.map((item: { topicId: any; content: any }) => ({
-        id: item.topicId,
-        value: item.topicId,
-        label: item.content,
-        text: item.content,
+      const res = await Lesson.getLstLessonByClass();
+      return res?.data?.map((item: { lessonId: any; lessonName: any }) => ({
+        id: item.lessonId,
+        value: item.lessonId,
+        label: item.lessonName,
+        text: item.lessonName,
       }));
     },
-    enabled: !!isPrivate,
+  });
+
+  // API lấy danh sách phần
+  const { data: allPart, isFetching: isFetchingPart } = useQuery({
+    queryKey: ["getPartAll", lessonId, lessonIdAddList],
+    queryFn: async () => {
+      const res = await Learning.getPartAll({
+        lessonId: lessonId || lessonIdAddList,
+      });
+      return res?.data?.map((item: { partId: any; partName: any }) => ({
+        id: item.partId,
+        value: item.partName,
+        label: item.partName,
+        text: item.partName,
+      }));
+    },
+    enabled: !!lessonId || !!lessonIdAddList,
   });
 
   // Thêm mới / chỉnh sửa  từ vựng
   const mutationCreate = useMutation({
-    mutationFn: Learning.addVocabulary,
+    mutationFn: Learning.addPart,
     onSuccess: () => {
-      message.success("Thêm mới từ thành công");
-      router.back();
+      message.success("Thêm mới phần học thành công");
+      router.push("/learning-management/part/public");
     },
     onError: ({ response }: any) => {
       const { data } = response;
       if (data.code === 409) {
-        message.error("Từ vựng đã tồn tại");
+        message.error("Phần đã tồn tại");
         return;
       }
-      message.error("Thêm mới từ vựng thất bại");
+      message.error("Thêm mới phần thất bại");
     },
   });
 
@@ -138,10 +154,9 @@ const VocabularyCreateUpdate: React.FC = () => {
           ...preview,
           fileImage: res,
         });
-        form.setFieldValue("vocabularyImageReqs", [
+        form.setFieldValue("partImageReqs", [
           {
             imageLocation: res,
-            primary: true,
           },
         ]);
       } else {
@@ -149,10 +164,9 @@ const VocabularyCreateUpdate: React.FC = () => {
           ...preview,
           fileVideo: res,
         });
-        form.setFieldValue("vocabularyVideoReqs", [
+        form.setFieldValue("partVideoReqs", [
           {
             videoLocation: res,
-            primary: true,
           },
         ]);
       }
@@ -236,40 +250,30 @@ const VocabularyCreateUpdate: React.FC = () => {
     if (res.code === 200) {
       const body = res.data?.map(
         (e: {
-          content: any;
+          partName: any;
           imageLocation: any;
           vocabularyId: any;
           videoLocation: any;
         }) => ({
-          content: e.content,
-          vocabularyImageReqs: [
+          partName: value.partName,
+          partImageReqs: [
             {
-              imageLocation: e.imageLocation,
-              vocabularyId: e.vocabularyId,
-              primary: true,
+              imageLocation: e?.imageLocation,
             },
           ],
-          vocabularyVideoReqs: [
+          partVideoReqs: [
             {
-              vocabularyId: e.vocabularyId,
-              videoLocation: e.videoLocation,
-              primary: true,
+              videoLocation: e?.videoLocation,
             },
           ],
-          topicId: value.topicId,
-          vocabularyType: value.vocabularyType,
-          private: isPrivate === "false" ? false : true,
+          lessonId: value.lessonId,
         }),
       );
-      const response = await Learning.addLstVocabulary(body);
+      const response = await Learning.addListPart(body);
       if (response.code === 200) {
-        message.success("Thêm danh sách từ vựng thành công");
+        message.success("Thêm danh sách phần thành công");
         setFileList([]);
-        router.push(
-          isPrivate === "true"
-            ? "/learning-management/vocabulary/private"
-            : "/learning-management/vocabulary/public",
-        );
+        router.push("/learning-management/part/public");
       } else {
         message.error("Thêm thất bại");
         setFileList([]);
@@ -284,17 +288,14 @@ const VocabularyCreateUpdate: React.FC = () => {
     <Spin spinning={isLoadingUploadLst}>
       <div className="w-full p-4">
         <Breadcrumb
-          pageName="Thêm mới từ vựng"
+          pageName="Thêm mới phần"
           itemBreadcrumb={[
             { pathName: "/", name: "Trang chủ" },
             {
-              pathName:
-                isPrivate === "true"
-                  ? "/learning-management/vocabulary/private"
-                  : "/learning-management/vocabulary/public",
-              name: "Danh sách từ vựng",
+              pathName: "/learning-management/part/public",
+              name: "Danh sách phần",
             },
-            { pathName: "#", name: "Thêm mới từ vựng" },
+            { pathName: "#", name: "Thêm mới phần" },
           ]}
         />
         <div className="w-full bg-white">
@@ -311,21 +312,18 @@ const VocabularyCreateUpdate: React.FC = () => {
                 onFinish={(value) => {
                   mutationCreate.mutate({
                     ...value,
-                    vocabularyImageReqs:
-                      value?.vocabularyImageReqs || undefined,
-                    vocabularyVideoReqs:
-                      value?.vocabularyVideoReqs || undefined,
-                    private: isPrivate,
+                    partImageReqs: value?.partImageReqs || undefined,
+                    partVideoReqs: value?.partVideoReqs || undefined,
                   });
                 }}
               >
                 <Form.Item
-                  name="topicId"
-                  label="Chủ đề liên quan"
+                  name="lessonId"
+                  label="Bài học liên quan"
                   required
                   rules={[
                     validateRequireInput(
-                      "Chủ đề liên quan không được bỏ trống",
+                      "Bài học liên quan không được bỏ trống",
                     ),
                   ]}
                   className="mb-2"
@@ -334,8 +332,8 @@ const VocabularyCreateUpdate: React.FC = () => {
                     size="large"
                     className="w-full"
                     allowClear
-                    placeholder="Chọn chủ đề"
-                    options={allTopics}
+                    placeholder="Chọn bài học"
+                    options={allLesson}
                     loading={isFetchingTopic}
                     showSearch
                     filterOption={filterOption}
@@ -343,72 +341,30 @@ const VocabularyCreateUpdate: React.FC = () => {
                       isFetchingTopic ? (
                         <Spin size="small" />
                       ) : (
-                        "Không tìm thấy chủ đề"
+                        "Không tìm thấy bài học"
                       )
                     }
                   />
                 </Form.Item>
                 <Form.Item
-                  name="vocabularyType"
-                  label="Loại từ vựng"
+                  name="partName"
+                  label="Phần"
                   required
-                  rules={[
-                    validateRequireInput("Loại từ vựng không được bỏ trống"),
-                  ]}
+                  rules={[validateRequireInput("Phần không được bỏ trống")]}
                   className="mb-2"
                 >
                   <Select
                     size="large"
                     className="w-full"
                     allowClear
-                    placeholder="Chọn loại từ vựng"
-                    options={[
-                      {
-                        label: "Từ",
-                        value: "WORD",
-                      },
-                      {
-                        label: "Câu",
-                        value: "SENTENCE",
-                      },
-                      {
-                        label: "Đoạn",
-                        value: "PARAGRAPH",
-                      },
-                    ]}
+                    placeholder="Chọn phần"
+                    options={allPart}
                   />
                 </Form.Item>
-                {vocabularyType ? (
-                  <Form.Item
-                    name="content"
-                    label="Ngôn ngữ văn bản"
-                    required
-                    rules={[
-                      validateRequireInput(
-                        "Chủ đề liên quan không được bỏ trống",
-                      ),
-                    ]}
-                    className="mb-2"
-                  >
-                    <TextArea
-                      maxLength={200}
-                      showCount
-                      placeholder="Nhập từ vựng"
-                    />
-                  </Form.Item>
-                ) : null}
 
-                <Form.Item name="note" label="Mô tả">
-                  <TextArea
-                    maxLength={200}
-                    showCount
-                    placeholder="Nhập mô tả"
-                  />
-                </Form.Item>
-                <Form.Item name="vocabularyType" hidden />
                 <div className="flex flex-col gap-4">
-                  <Form.Item name="vocabularyImageReqs" noStyle />
-                  <Form.Item name="vocabularyVideoReqs" noStyle />
+                  <Form.Item name="partImageReqs" noStyle />
+                  <Form.Item name="partVideoReqs" noStyle />
 
                   <Upload {...props} showUploadList={false} accept="image/*">
                     <Button icon={<UploadOutlined />}>Tải file ảnh</Button>
@@ -477,12 +433,12 @@ const VocabularyCreateUpdate: React.FC = () => {
                 }}
               >
                 <Form.Item
-                  name="topicId"
-                  label="Chủ đề liên quan"
+                  name="lessonId"
+                  label="Bài học liên quan"
                   required
                   rules={[
                     validateRequireInput(
-                      "Chủ đề liên quan không được bỏ trống",
+                      "Bài học liên quan không được bỏ trống",
                     ),
                   ]}
                   className="mb-2"
@@ -491,42 +447,28 @@ const VocabularyCreateUpdate: React.FC = () => {
                     size="large"
                     className="w-full"
                     allowClear
-                    placeholder="Chọn chủ đề"
-                    options={allTopics}
+                    placeholder="Chọn bài học"
+                    options={allLesson}
                     showSearch
                     filterOption={filterOption}
                   />
                 </Form.Item>
                 <Form.Item
-                  name="vocabularyType"
-                  label="Loại từ vựng"
+                  name="partName"
+                  label="Phần"
                   required
-                  rules={[
-                    validateRequireInput("Loại từ vựng không được bỏ trống"),
-                  ]}
+                  rules={[validateRequireInput("Phần không được bỏ trống")]}
                   className="mb-2"
                 >
                   <Select
                     size="large"
                     className="w-full"
                     allowClear
-                    placeholder="Chọn loại từ vựng"
-                    options={[
-                      {
-                        label: "Từ",
-                        value: "WORD",
-                      },
-                      {
-                        label: "Câu",
-                        value: "SENTENCE",
-                      },
-                      {
-                        label: "Đoạn",
-                        value: "PARAGRAPH",
-                      },
-                    ]}
+                    placeholder="Chọn phần"
+                    options={allPart}
                   />
                 </Form.Item>
+
                 <div className="max-h-[600px] overflow-y-scroll">
                   <CustomUpload
                     listType="text"
@@ -598,7 +540,7 @@ const VocabularyCreateUpdate: React.FC = () => {
   );
 };
 
-export default VocabularyCreateUpdate;
+export default PartCreateUpdate;
 export const CustomUpload = styled(Upload)`
   .ant-upload-icon {
     display: none;

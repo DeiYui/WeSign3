@@ -1,6 +1,8 @@
 interface Topic {
-  topicId: number;
-  content: string;
+  topicId?: number;
+  content?: string;
+  lessonId?: number;
+  lessonName?: string;
   imageLocation: string;
   videoLocation: string;
 }

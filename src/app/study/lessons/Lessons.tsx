@@ -2,6 +2,7 @@
 import StudyComponent from "@/components/Study/StudyComponent";
 import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
 import { default as Learning } from "@/model/Learning";
+import Lesson from "@/model/Lesson";
 import { RootState } from "@/store";
 import { LeftOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +11,7 @@ import {
   Button,
   Input,
   List,
+  message,
   Modal,
   Select,
   Skeleton,
@@ -32,7 +34,7 @@ interface Hero2DataType {
   btnText: string;
 }
 interface FilterParams {
-  topicId: number;
+  lessonId?: number;
   contentSearch: string;
   vocabularyType?: string;
 }
@@ -42,15 +44,6 @@ interface SectionTab {
   title: string;
   content: string;
 }
-
-const sections: SectionTab[] = [
-  { key: "1", title: "Phần 1", content: "Nội dung Phần 1" },
-  { key: "2", title: "Phần 2", content: "Nội dung Phần 2" },
-  { key: "3", title: "Phần 3", content: "Nội dung Phần 3" },
-  { key: "4", title: "Phần 4", content: "Nội dung Phần 4" },
-  { key: "5", title: "Phần 5", content: "Nội dung Phần 5" },
-  { key: "6", title: "Phần 6", content: "Nội dung Phần 6" },
-];
 
 const CustomTab = styled(Tabs)`
   .ant-tabs-nav {
@@ -155,37 +148,75 @@ const CustomTab = styled(Tabs)`
   }
 `;
 
+function transformData(inputData: any[]) {
+  return inputData?.map(
+    (item: {
+      partId: any;
+      partName: any;
+      partImageResList: any[];
+      partVideoResList: any[];
+      lessonId: any;
+    }) => ({
+      vocabularyId: item.partId || null,
+      content: item.partName || null,
+      note: null,
+      vocabularyType: "WORD",
+      vocabularyImageResList: item.partImageResList.length
+        ? item.partImageResList.map(
+            (image: { partImageId: any; imageLocation: any }) => ({
+              vocabularyImageId: image.partImageId || null,
+              imageLocation: image.imageLocation || null,
+              vocabularyId: item.partId || null,
+              vocabularyContent: item.partName || null,
+              primary: true,
+            }),
+          )
+        : [],
+      vocabularyVideoResList: item.partVideoResList.length
+        ? item.partVideoResList.map(
+            (video: { partVideoId: any; videoLocation: any }) => ({
+              vocabularyVideoId: video.partVideoId || null,
+              videoLocation: video.videoLocation || null,
+              vocabularyId: item.partId || null,
+              vocabularyContent: item.partName || null,
+              primary: true,
+            }),
+          )
+        : [],
+      topicId: item.lessonId || null,
+      topicContent: null,
+    }),
+  );
+}
+
 const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const topicId = Number(searchParams.get("topicId"));
+  const lessonId = Number(searchParams.get("lessonId"));
   const classRoomId = Number(searchParams.get("classRoomId"));
   const user: User = useSelector((state: RootState) => state.admin);
   const [filterParams, setFilterParams] = useState<FilterParams>({
-    topicId: topicId,
+    lessonId: lessonId,
     contentSearch: "",
     vocabularyType: "",
   });
   const [showModal, setShowModal] = useState<{
     open: boolean;
-    topicId: number;
+    lessonId?: number;
   }>({
     open: false,
-    topicId: 0,
+    lessonId: 0,
   });
   const [searchText, setSearchText] = useState<string>("");
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
-  const [topicPrivates, setTopicPrivates] = useState<Topic[]>([]);
-  const [activeKey, setActiveKey] = useState<string>("1");
+  const [activeKey, setActiveKey] = useState<string>("");
+  const [lstVocabularyPart, setLstVocabularyPart] = useState<any[]>([]);
 
-  const token = localStorage.getItem("access_token");
-
-  // API lấy danh sách topics
-  const { data: allTopicsPublic, isFetching } = useQuery({
-    queryKey: ["getAllTopics"],
+  // API lấy danh sách bài học
+  const { data: allLessonPublic, isFetching } = useQuery({
+    queryKey: ["getLstLessonByClass", classRoomId],
     queryFn: async () => {
-      const res = await Learning.getAllTopics({
-        isPrivate: "false",
+      const res = await Lesson.getLstLessonByClass({
         classRoomId: classRoomId,
       });
       return res.data as Topic[];
@@ -193,78 +224,52 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
     enabled: showModal.open,
   });
 
-  const { data: allTopicsPrivate, isFetching: isFetchingPrivate } = useQuery({
-    queryKey: ["getAllTopicsPrivate"],
+  // API lấy danh sách phần
+  const { data: allPart, isFetching: isFetchingVocabulary } = useQuery({
+    queryKey: ["getPartAll", lessonId],
     queryFn: async () => {
-      const res = await Learning.getAllTopics({
-        isPrivate: "true",
-        classRoomId: classRoomId,
+      const res = await Learning.getPartAll({
+        lessonId: lessonId,
       });
-
-      return res.data as Topic[];
+      if (!res.data?.length) {
+        message.error("Bài học chưa có phần nào!");
+        return;
+      }
+      const data = res.data?.sort((a: any, b: any) => b.partId - a.partId);
+      setActiveKey(data[0]?.partId.toString());
+      return data;
     },
-    enabled: showModal.open && user.role !== "USER",
-  });
-
-  // API lấy danh sách từ vựng
-  const {
-    data: allVocabulary,
-    isFetching: isFetchingVocabulary,
-    refetch,
-  } = useQuery({
-    queryKey: ["getAllVocalizations", filterParams],
-    queryFn: async () => {
-      const res = await Learning.getAllVocabulary({
-        ...filterParams,
-      });
-      // Sắp xếp priamry lên đầu
-      res?.data?.forEach(
-        (item: {
-          vocabularyImageResList: any[];
-          vocabularyVideoResList: any[];
-        }) => {
-          item.vocabularyImageResList?.sort(
-            (a: { primary: any }, b: { primary: any }) => {
-              // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
-              return a.primary === b.primary ? 0 : a.primary ? -1 : 1;
-            },
-          );
-          item.vocabularyVideoResList?.sort(
-            (a: { primary: any }, b: { primary: any }) => {
-              // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
-              return a.primary === b.primary ? 0 : a.primary ? -1 : 1;
-            },
-          );
-        },
-      );
-      return res.data || [];
-    },
-    enabled: !!showModal.topicId,
+    enabled: !!lessonId,
   });
 
   useEffect(() => {
-    if (topicId) {
-      setShowModal({ open: false, topicId });
+    if (activeKey) {
+      setLstVocabularyPart(
+        transformData(
+          allPart?.filter(
+            (item: { partId: number }) => item.partId === Number(activeKey),
+          ),
+        ),
+      );
     }
-  }, [topicId]);
+  }, [activeKey, allPart]);
+
+  useEffect(() => {
+    if (lessonId) {
+      setShowModal({ open: false, lessonId });
+    }
+  }, [lessonId]);
 
   // Tìm kiếm
   useEffect(() => {
-    if (allTopicsPublic) {
+    if (allLessonPublic) {
       setFilteredTopics(
-        allTopicsPublic.filter((topic) =>
-          topic?.content?.toLowerCase().includes(searchText.toLowerCase()),
+        allLessonPublic.filter((lesson) =>
+          lesson?.lessonName?.toLowerCase().includes(searchText.toLowerCase()),
         ),
       );
     }
-    if (allTopicsPrivate) {
-      setTopicPrivates(
-        allTopicsPrivate.filter((topic) =>
-          topic?.content?.toLowerCase().includes(searchText.toLowerCase()),
-        ),
-      );
-    }
-  }, [searchText, allTopicsPublic, allTopicsPrivate]);
+  }, [searchText, allLessonPublic]);
 
   return (
     <Spin spinning={isFetchingVocabulary}>
@@ -280,30 +285,6 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
           size="large"
           allowClear
           placeholder="Nhập từ vựng"
-        />
-        <Select
-          allowClear
-          className="w-1/4"
-          style={{ width: 400, height: 40, borderRadius: 20 }}
-          placeholder="Loại từ vựng"
-          size="large"
-          options={[
-            {
-              label: "Từ",
-              value: "WORD",
-            },
-            {
-              label: "Câu",
-              value: "SENTENCE",
-            },
-            {
-              label: "Đoạn",
-              value: "PARAGRAPH",
-            },
-          ]}
-          onChange={(value) =>
-            setFilterParams({ ...filterParams, vocabularyType: value })
-          }
         />
       </div>
       <ButtonSecondary
@@ -329,13 +310,15 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
         tabBarGutter={16}
         tabBarStyle={{ marginBottom: "20px" }}
       >
-        {sections.map((section) => (
+        {allPart?.map((section: any) => (
           <Tabs.TabPane
-            key={section.key}
-            tab={<div className="text-base font-semibold">{section.title}</div>}
+            key={section.partId}
+            tab={
+              <div className="text-base font-semibold">{section.partName}</div>
+            }
           >
             <div className="p-4">
-              <StudyComponent allVocabulary={allVocabulary} />
+              <StudyComponent allVocabulary={lstVocabularyPart} />
             </div>
           </Tabs.TabPane>
         ))}
@@ -357,12 +340,7 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
         />
-        <div className="flex w-full gap-4">
-          <div className="mt-2  flex-1 text-base font-bold">Bài học chung</div>
-          {user && user?.role === "USER" ? null : (
-            <div className="mt-2 w-1/2 text-base font-bold ">Bài học riêng</div>
-          )}
-        </div>
+        <div className="flex w-full gap-4"></div>
         <div className="flex w-full items-center gap-4">
           <div className="flex-1">
             <List
@@ -371,14 +349,14 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
               itemLayout="horizontal"
               dataSource={filteredTopics}
               bordered
-              renderItem={(topic) => (
+              renderItem={(lesson) => (
                 <List.Item
-                  className={`${showModal.topicId === topic.topicId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
+                  className={`${showModal.lessonId === lesson.lessonId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
                   onClick={() => {
-                    setShowModal({ topicId: topic.topicId, open: false });
+                    setShowModal({ lessonId: lesson.lessonId, open: false });
                     setFilterParams({
                       ...filterParams,
-                      topicId: topic.topicId,
+                      lessonId: lesson.lessonId,
                     });
                   }}
                 >
@@ -388,12 +366,12 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
                         <Avatar
                           className="mt-1"
                           size={50}
-                          src={topic?.imageLocation}
+                          src={lesson?.imageLocation}
                         />
                       }
                       title={
                         <div className="mt-3 text-base font-semibold">
-                          {topic?.content}
+                          {lesson?.lessonName}
                         </div>
                       }
                     />
@@ -403,52 +381,6 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
               locale={{ emptyText: "Không có kết quả tìm kiếm" }}
             />
           </div>
-          {user.role === "USER" ? null : (
-            <div className="w-1/2">
-              <List
-                className="custom-scrollbar mt-4 max-h-[450px] overflow-y-auto pb-4"
-                loading={isFetchingPrivate}
-                itemLayout="horizontal"
-                dataSource={topicPrivates}
-                bordered
-                renderItem={(topic) => (
-                  <List.Item
-                    className={`${showModal.topicId === topic.topicId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
-                    onClick={() => {
-                      setShowModal({ topicId: topic.topicId, open: false });
-                      setFilterParams({
-                        ...filterParams,
-                        topicId: topic.topicId,
-                      });
-                    }}
-                  >
-                    <Skeleton
-                      avatar
-                      title={false}
-                      loading={isFetchingPrivate}
-                      active
-                    >
-                      <List.Item.Meta
-                        avatar={
-                          <Avatar
-                            className="mt-1"
-                            size={50}
-                            src={topic?.imageLocation}
-                          />
-                        }
-                        title={
-                          <div className="mt-3 text-base font-semibold">
-                            {topic?.content}
-                          </div>
-                        }
-                      />
-                    </Skeleton>
-                  </List.Item>
-                )}
-                locale={{ emptyText: "Không có kết quả tìm kiếm" }}
-              />
-            </div>
-          )}
         </div>
       </Modal>
     </Spin>

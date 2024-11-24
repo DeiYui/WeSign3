@@ -44,25 +44,32 @@ export const AdminSystem = (admin: any) => {
             {
               key: "/learning-management/lesson",
               label: "Bài học",
-              path: "/learning-management/lesson",
+              path: "/learning-management/lesson/public",
               icon: <DotIcon color="white" size={20} />,
-              children: [
-                {
-                  key: "/learning-management/lesson/public",
-                  label: "Chung",
-                  path: "/learning-management/lesson/public",
-                  hidden: false,
-                  icon: <DotIcon color="white" size={20} />,
-                },
-                {
-                  key: "/learning-management/lesson/private",
-                  label: "Riêng",
-                  path: "/learning-management/lesson/private",
-                  hidden: false,
-                  icon: <DotIcon color="white" size={20} />,
-                },
-              ],
+              // children: [
+              //   {
+              //     key: "/learning-management/lesson/public",
+              //     label: "Chung",
+              //     path: "/learning-management/lesson/public",
+              //     hidden: false,
+              //     icon: <DotIcon color="white" size={20} />,
+              //   },
+              //   {
+              //     key: "/learning-management/lesson/private",
+              //     label: "Riêng",
+              //     path: "/learning-management/lesson/private",
+              //     hidden: false,
+              //     icon: <DotIcon color="white" size={20} />,
+              //   },
+              // ],
               hidden: false,
+            },
+            {
+              key: "/learning-management/part/public",
+              label: "Phần",
+              path: "/learning-management/part/public",
+              hidden: false,
+              icon: <DotIcon color="white" size={20} />,
             },
             {
               key: "/learning-management/vocabulary",

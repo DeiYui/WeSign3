@@ -1,11 +1,11 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
 import React from "react";
-import VocabularyList from "../VocabularyList";
+import VocabularyList from "../PartList";
 
 export const metadata: Metadata = {
-  title: "Management-Part-We_sign",
-  description: "Management-Part page for We_sign",
+  title: "Management-vocabulary- We_sign",
+  description: "Management-vocabulary page for We_sign",
   icons: {
     icon: [
       {

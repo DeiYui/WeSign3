@@ -15,7 +15,6 @@ import { useSelector } from "react-redux";
 export const MenuSystem = () => {
   const admin = useSelector((state: RootState) => state.admin);
   const token = localStorage.getItem("access_token");
-  console.log("token", token);
 
   return [
     {

@@ -202,7 +202,6 @@ class Learning extends Base {
   };
 
   editLinkMobile = async (body?: any) => {
-    debugger;
     const res = await this.apiPut(`/mobiles/${body?.id}`, {
       mobileLocation: body?.mobileLocation,
     });
@@ -227,6 +226,28 @@ class Learning extends Base {
 
   getIntroduction = async () => {
     const res = await this.apiGet(`/introductions`);
+    return res.data;
+  };
+
+  // part
+  getPartAll = async (body?: any) => {
+    const res = await this.apiGet(`/parts/all`, body);
+    return res.data;
+  };
+  addPart = async (body?: any) => {
+    const res = await this.apiPost(`/parts`, body);
+    return res.data;
+  };
+  addListPart = async (body?: any) => {
+    const res = await this.apiPost(`/parts/sdd-list`, body);
+    return res.data;
+  };
+  editPart = async (body?: any) => {
+    const res = await this.apiPut(`/parts`, body);
+    return res.data;
+  };
+  deletePart = async (id?: number) => {
+    const res = await this.apiDelete(`/parts/${id}`);
     return res.data;
   };
 }

@@ -3,6 +3,7 @@ import { CustomTable } from "@/app/(admin)/learning-management/check-list/ExamLi
 import { getNumberFromContent } from "@/app/(admin)/learning-management/class/ClassList";
 import StudyComponent from "@/components/Study/StudyComponent";
 import { default as Learning } from "@/model/Learning";
+import Lesson from "@/model/Lesson";
 import { RootState } from "@/store";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -88,19 +89,18 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
     },
   });
 
-  // API lấy danh sách topics
-  const { data: allTopics, isFetching } = useQuery({
-    queryKey: ["getAllTopics", showModal],
+  // API lấy danh sách bài học
+  const { data: allLesson, isFetching } = useQuery({
+    queryKey: ["getLstLessonByClass", showModal],
     queryFn: async () => {
-      const res = await Learning.getAllTopics({
-        isPrivate: user.role === "USER" ? "false" : showModal.isPrivate,
+      const res = await Lesson.getLstLessonByClass({
         classRoomId: showModal.classRoomId,
       });
       if (!res.data?.length) {
         const className = allCLass?.find(
           (item: { value: any }) => item.value === showModal.classRoomId,
         )?.label;
-        message.error(`Không có chủ đề theo lớp ${className} `);
+        message.error(`Không có bài học theo lớp ${className} `);
         setLstVocabulary([]);
         return [];
       }
@@ -108,6 +108,8 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
     },
     enabled: !!showModal.classRoomId,
   });
+
+  console.log("allLesson", allLesson);
 
   // API lấy danh sách từ theo topics
   const { data: allVocabulary, isFetching: isFetchingVocabulary } = useQuery({
@@ -142,19 +144,19 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
       setLstVocabulary(res.data);
       return (res.data as Vocabulary[]) || [];
     },
-    enabled: !!showModal.topicId && !!allTopics?.length,
+    enabled: !!showModal.topicId && !!allLesson?.length,
   });
 
   // Tìm kiếm
   useEffect(() => {
-    if (allTopics) {
+    if (allLesson) {
       setFilteredTopics(
-        allTopics.filter((topic: any) =>
-          topic?.content?.toLowerCase().includes(searchText.toLowerCase()),
+        allLesson.filter((item: any) =>
+          item?.lessonName?.toLowerCase().includes(searchText.toLowerCase()),
         ),
       );
     }
-  }, [searchText, allTopics]);
+  }, [searchText, allLesson]);
 
   const columns = [
     {
@@ -271,7 +273,7 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
           )}
         </div>
 
-        {/* {allTopics?.length ? (
+        {/* {allLesson?.length ? (
           <ButtonSecondary
             disabled={isFetching}
             className="mb-4 w-1/4 border border-solid border-neutral-700"
@@ -314,17 +316,12 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
           itemLayout="horizontal"
           dataSource={filteredTopics}
           bordered
-          renderItem={(topic) => (
+          renderItem={(lesson) => (
             <List.Item
-              className={`${showModal.topicId === topic.topicId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
+              className={`${showModal.topicId === lesson.lessonId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
               onClick={() => {
-                // setShowModal({
-                //   ...showModal,
-                //   topicId: topic.topicId,
-                //   open: false,
-                // });
                 router.push(
-                  `/study/lessons/?classRoomId=${showModal.classRoomId}&&topicId=${topic.topicId}`,
+                  `/study/lessons/?classRoomId=${showModal.classRoomId}&&lessonId=${lesson.lessonId}`,
                 );
               }}
             >
@@ -334,12 +331,12 @@ const Rooms: FC<SectionHero2Props> = ({ className = "" }) => {
                     <Avatar
                       className="mt-1"
                       size={50}
-                      src={topic?.imageLocation}
+                      src={lesson?.imageLocation}
                     />
                   }
                   title={
                     <div className="mt-3 text-base font-semibold">
-                      {topic?.content}
+                      {lesson?.lessonName}
                     </div>
                   }
                 />
