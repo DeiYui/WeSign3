@@ -94,24 +94,6 @@ const PartList = ({ isPrivate }: any) => {
     fileVideo: "",
   });
 
-  // Chi tiết từ
-  const [detailVocabulary, setDetailVocabulary] = useState<{
-    open: boolean;
-    record: any;
-  }>({
-    open: false,
-    record: "",
-  });
-
-  // Thêm từ vào chủ đề
-  const [modalAddVocabularyTopic, setModalAddVocabularyTopic] = useState<{
-    open: boolean;
-    topicId: number;
-  }>({ open: false, topicId: 0 });
-
-  // lưu những row được chọn
-  const [selectedRowId, setSelectedRowId] = useState<string[]>([]);
-
   const handleTableChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
@@ -379,7 +361,7 @@ const PartList = ({ isPrivate }: any) => {
 
       <CustomTable
         columns={columns as any}
-        dataSource={allPartsSearch}
+        dataSource={filterParams.lessonId ? allPartsSearch : []}
         loading={isLoading}
         rowKey={(record) => record.vocabularyId}
         // scroll={{ x: 600 }}
@@ -470,70 +452,11 @@ const PartList = ({ isPrivate }: any) => {
         </div>
       </Modal>
 
-      {/* Modal chi tiết nội dung từ */}
-      <ModalListMedia
-        showModalLstMedia={detailVocabulary.open}
-        record={detailVocabulary.record}
-        refetch={refetch}
-        onClose={() => {
-          setDetailVocabulary({ open: false, record: "" });
-        }}
-      />
-
-      {/* Modal thêm từ vào chủ đề */}
-      <Modal
-        title="Thêm từ vựng vào chủ đề"
-        open={modalAddVocabularyTopic.open}
-        onCancel={() =>
-          setModalAddVocabularyTopic({
-            ...modalAddVocabularyTopic,
-            open: false,
-          })
-        }
-        onOk={async () => {
-          const req = {
-            ids: selectedRowId,
-            topicId: modalAddVocabularyTopic.topicId,
-          };
-          const res = await Learning.addVocabularyTopic(req);
-          if (res.code === 200) {
-            message.success("Thêm từ vào chủ đề thành công");
-            setModalAddVocabularyTopic({ open: false, topicId: 0 });
-            setSelectedRowId([]);
-            refetch();
-          } else {
-            message.success("Thêm từ vào chủ đề thất bại");
-            setModalAddVocabularyTopic({
-              ...modalAddVocabularyTopic,
-              open: false,
-            });
-            refetch();
-          }
-        }}
-        cancelText="Huỷ"
-        okText="Thêm"
-        destroyOnClose
-      >
-        <Select
-          size="large"
-          className="w-full"
-          allowClear
-          placeholder="Chọn chủ đề"
-          options={allLesson}
-          onChange={(value) =>
-            setModalAddVocabularyTopic({
-              ...modalAddVocabularyTopic,
-              topicId: value,
-            })
-          }
-        />
-      </Modal>
-
       <ConfirmModal
         visible={modalConfirm.open}
         iconType="DELETE"
         title={`Xóa khỏi phần`}
-        content={`Hành động này sẽ xóa phần vĩnh viễn khỏi chủ đề hiện tại`}
+        content={`Hành động này sẽ xóa phần vĩnh viễn khỏi bài học hiện tại`}
         confirmButtonText="Xác nhận"
         onClick={() => {
           mutationDel.mutate(modalConfirm.rowId);

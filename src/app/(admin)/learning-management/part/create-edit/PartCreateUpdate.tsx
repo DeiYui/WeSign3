@@ -353,13 +353,7 @@ const PartCreateUpdate: React.FC = () => {
                   rules={[validateRequireInput("Phần không được bỏ trống")]}
                   className="mb-2"
                 >
-                  <Select
-                    size="large"
-                    className="w-full"
-                    allowClear
-                    placeholder="Chọn phần"
-                    options={allPart}
-                  />
+                  <Input placeholder="Nhập tên phần" />
                 </Form.Item>
 
                 <div className="flex flex-col gap-4">
@@ -460,13 +454,7 @@ const PartCreateUpdate: React.FC = () => {
                   rules={[validateRequireInput("Phần không được bỏ trống")]}
                   className="mb-2"
                 >
-                  <Select
-                    size="large"
-                    className="w-full"
-                    allowClear
-                    placeholder="Chọn phần"
-                    options={allPart}
-                  />
+                  <Input placeholder="Nhập tên phần" />
                 </Form.Item>
 
                 <div className="max-h-[600px] overflow-y-scroll">
