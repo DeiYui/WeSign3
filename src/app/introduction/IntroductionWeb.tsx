@@ -28,12 +28,12 @@ const IntroductionWeb: React.FC = () => {
 
   return (
     <Spin spinning={isFetching}>
-      <div className="bg-gray-100 flex max-h-screen flex-col items-center justify-center overflow-hidden px-4">
+      <div className="bg-gray-100 flex flex-col items-center justify-center px-4">
         <div className="mb-6 flex items-end justify-center">
           <Logo size={80} color={colors.primary400} />
           <div className="mb-1 text-3xl font-bold text-blue-600">eSign</div>
         </div>
-        <div className="max-w-2xl rounded-lg bg-white p-6 text-justify shadow-lg hover:start-11 hover:shadow-1">
+        <div className="m rounded-lg bg-white p-6 text-justify shadow-lg hover:start-11 hover:shadow-1">
           <h1 className="text-gray-800 mb-4 text-2xl font-bold">
             {introductionData?.title}
           </h1>
