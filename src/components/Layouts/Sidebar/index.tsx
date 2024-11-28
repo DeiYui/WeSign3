@@ -10,6 +10,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import SidebarLinkGroup from "./SidebarLinkGroup";
+import { DoubleLeftOutlined, DoubleRightOutlined } from "@ant-design/icons";
+import { useDispatch } from "react-redux";
+import { updateSetting } from "@/store/slices/SettingSlice";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -33,6 +36,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   }, []);
 
   const sidebar = useRef(null);
+  const dispatch = useDispatch();
 
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
@@ -46,6 +50,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const toggleSidebar = () => {
     setSidebarExpanded((prevExpanded) => !prevExpanded);
     localStorage.setItem("sidebarExpanded", `${!sidebarExpanded}`);
+    setSidebarOpen(!sidebarOpen);
+    dispatch(
+      updateSetting({
+        openSideBar: !sidebarOpen,
+      }),
+    );
   };
 
   const renderChildItems = (items: any[], level = 0) => (
@@ -120,10 +130,20 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0 z-99 flex h-screen w-70 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
+      className={`absolute left-0 top-0 z-99 flex h-screen flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark sm:w-20 lg:static lg:w-70 lg:translate-x-0 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
+      <button
+        className="bg-sky-100 p-2 hover:bg-slate-100 sm:block lg:hidden"
+        onClick={toggleSidebar}
+      >
+        {sidebarOpen ? (
+          <DoubleLeftOutlined size={24} />
+        ) : (
+          <DoubleRightOutlined size={24} />
+        )}
+      </button>
       {/* SIDEBAR HEADER */}
       <div className="flex items-center justify-center gap-2 px-6 py-5.5 lg:py-6.5">
         <Link href="/" className="flex items-end justify-center">

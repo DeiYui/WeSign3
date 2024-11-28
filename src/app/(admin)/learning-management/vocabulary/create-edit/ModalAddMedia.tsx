@@ -149,14 +149,6 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
             fileList={fileList}
             onPreview={handlePreview}
             onChange={handleChange}
-            customRequest={({ file }: any) => {
-              const isImageOrVideo =
-                file.type.startsWith("image/") ||
-                file.type.startsWith("video/");
-              if (!isImageOrVideo) {
-                message.error("Chỉ được chọn file video hoặc ảnh.");
-              }
-            }}
             accept="image/*,video/*"
           >
             <Button icon={<UploadOutlined />}>Chọn File</Button>

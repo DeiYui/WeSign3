@@ -43,6 +43,36 @@ class MediaModel extends Base {
     const res = await this.apiPost("/vocabulary-videos/add-list", body);
     return res.data;
   };
+
+  postImagePart = async (body: any) => {
+    const res = await this.apiPost("/part-images", body);
+    return res.data;
+  };
+
+  postVideoPart = async (body: any) => {
+    const res = await this.apiPost("/part-videos", body);
+    return res.data;
+  };
+
+  updateVideoPart = async (body: any) => {
+    const res = await this.apiPut("/part-videos", body);
+    return res.data;
+  };
+
+  updateImagePart = async (body: any) => {
+    const res = await this.apiPut("/part-images", body);
+    return res.data;
+  };
+
+  deleteVideoPart = async (id: any) => {
+    const res = await this.apiDelete(`part-videos/${id}`);
+    return res.data;
+  };
+
+  deleteImagePart = async (id: any) => {
+    const res = await this.apiDelete(`part-images/${id}`);
+    return res.data;
+  };
 }
 
 export default new MediaModel("learning-service");
