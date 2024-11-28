@@ -219,7 +219,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
           <Button
             className="mb-4 ml-4 text-sm font-semibold text-primary-700"
             onClick={() => {
-              window.open(listLinkMobile[0]);
+              window.open(listLinkMobile[0]?.mobileLocation);
             }}
           >
             TẢI ỨNG DỤNG MOBILE
