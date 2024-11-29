@@ -217,13 +217,14 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
 
   // API lấy danh sách phần
   const { data: allPart, isFetching: isFetchingVocabulary } = useQuery({
-    queryKey: ["getPartAll", lessonId],
+    queryKey: ["getPartAll", filterParams.lessonId],
     queryFn: async () => {
       const res = await Learning.getPartAll({
-        lessonId: lessonId,
+        lessonId: filterParams.lessonId,
       });
       if (!res.data?.length) {
         message.error("Bài học chưa có phần nào!");
+        setLstVocabularyPart([]);
         return;
       }
       const data = Array.isArray(res.data)
@@ -315,11 +316,11 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
                 <List.Item
                   className={`${showModal.lessonId === lesson.lessonId ? "bg-green-200" : ""} hover:cursor-pointer hover:bg-neutral-300`}
                   onClick={() => {
-                    setShowModal({ lessonId: lesson.lessonId, open: false });
                     setFilterParams({
                       ...filterParams,
                       lessonId: lesson.lessonId,
                     });
+                    setShowModal({ lessonId: lesson.lessonId, open: false });
                   }}
                 >
                   <Skeleton avatar title={false} loading={isFetching} active>
