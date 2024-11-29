@@ -1,6 +1,21 @@
 "use client";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
-import { Button, Carousel, Empty, Image, Modal, Pagination } from "antd";
+import {
+  CloseOutlined,
+  FullscreenExitOutlined,
+  FullscreenOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
+import {
+  Button,
+  Carousel,
+  Empty,
+  Image,
+  Modal,
+  Pagination,
+  Popover,
+  Tooltip,
+} from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import ButtonPrimary from "../UI/Button/ButtonPrimary";
@@ -33,6 +48,13 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
   const [autoplayEnabled, setAutoplay] = useState(false);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [videoCurrent, setVideoCurrent] = useState<any>();
+
+  // Thu phóng
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  const toggleFullScreen = () => {
+    setIsFullScreen((prev) => !prev);
+  };
 
   useEffect(() => {
     if (showFileDetail && allVocabulary?.length) {
@@ -105,6 +127,7 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
     setAutoplay(false);
     setVideoCurrent(null);
     setShowFileDetail(false);
+    setIsFullScreen(false);
   };
 
   if (allVocabulary?.length === 0) {
@@ -221,8 +244,7 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
         footer={null}
         onCancel={onCloseDetail}
         title={
-          <>
-            {/* Từ */}
+          <div className="flex items-center justify-between">
             {allVocabulary &&
             allVocabulary[fileIndex]?.vocabularyType ===
               TYPE_VOCABULARY.WORD ? (
@@ -244,13 +266,39 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
                 )}
               </div>
             )}
-          </>
+            <div className="flex items-center gap-2">
+              <Tooltip title={!isFullScreen ? "Phóng to" : "Thu nhỏ"}>
+                <Button
+                  icon={
+                    isFullScreen ? (
+                      <FullscreenExitOutlined />
+                    ) : (
+                      <FullscreenOutlined />
+                    )
+                  }
+                  onClick={toggleFullScreen}
+                  type="text"
+                />
+              </Tooltip>
+
+              <Button
+                type="text"
+                icon={<CloseOutlined />}
+                onClick={onCloseDetail}
+              />
+            </div>
+          </div>
         }
-        width={1420}
+        closeIcon={null}
+        width={isFullScreen ? "100%" : 1280}
+        style={{
+          top: isFullScreen ? 0 : "auto",
+          maxWidth: isFullScreen ? "100%" : undefined,
+        }}
         key={allVocabulary?.length && allVocabulary[fileIndex]?.content}
         centered
       >
-        <div className="w-full px-4  ">
+        <div className="w-full px-4">
           <div className="w-full ">
             <div className="grid grid-cols-3 items-center gap-3">
               {/* image */}
@@ -375,13 +423,13 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
         </div>
         <div className="mt-4 flex w-full justify-center gap-3">
           <ButtonPrimary disabled={fileIndex === 0} onClick={handlePrevious}>
-            Previous (Lùi lại)
+            Lùi lại
           </ButtonPrimary>
           <ButtonPrimary
             disabled={fileIndex === allVocabulary?.length - 1}
             onClick={handleNext}
           >
-            Next (Kế tiếp)
+            Kế tiếp
           </ButtonPrimary>
         </div>
       </Modal>
