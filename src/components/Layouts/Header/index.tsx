@@ -37,7 +37,7 @@ const Header = (props: {
   return (
     <header className="sticky top-0  z-[98] flex w-full bg-white  drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div
-        className={`flex flex-grow items-center justify-between  px-4  py-4  shadow-2 ${!pathname.includes("/chat") && admin ? "pr-16" : "pr-4"} `}
+        className={`flex flex-grow items-center justify-between  px-4  py-4  shadow-2 ${!pathname.includes("/chat") && admin ? "sm:pr-4 lg:pr-16" : "pr-4"} `}
       >
         {/* Hiện logo khi ẩn slideBar */}
         <div className="flex items-center gap-4">
