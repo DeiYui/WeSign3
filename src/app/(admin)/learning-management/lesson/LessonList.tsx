@@ -440,12 +440,8 @@ const LessonList = (props: any) => {
               name="classRoomId"
               label="Lớp học"
               className="mb-2"
-              required={isPrivate}
-              rules={
-                isPrivate && [
-                  validateRequireInput("Lớp học không được bỏ trống"),
-                ]
-              }
+              required
+              rules={[validateRequireInput("Lớp học không được bỏ trống")]}
             >
               <Select options={optionClass} placeholder="Lựa chọn lớp học" />
             </Form.Item>
