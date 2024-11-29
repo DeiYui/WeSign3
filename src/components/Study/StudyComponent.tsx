@@ -23,12 +23,11 @@ const TYPE_VOCABULARY = {
   PARAGRAPH: "PARAGRAPH",
 };
 
-const StudyComponent = ({ allVocabulary = [] }: any) => {
+const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showFileDetail, setShowFileDetail] = useState(false);
   const videoRef = useRef<any>(null);
   const [fileIndex, setFileIndex] = useState(0);
-
   // video
   const slider = useRef<any>(null);
   const [autoplayEnabled, setAutoplay] = useState(false);
@@ -120,8 +119,14 @@ const StudyComponent = ({ allVocabulary = [] }: any) => {
 
   return (
     <>
-      <div className="">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="w-full">
+        <div
+          className={
+            isLesson
+              ? ""
+              : "grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
+          }
+        >
           {allVocabulary &&
             allVocabulary?.length > 0 &&
             allVocabulary

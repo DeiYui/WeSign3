@@ -66,8 +66,9 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
 }) => {
   const [fileList, setFileList] = useState<any[]>([]);
   const [previewFile, setPreviewFile] = useState<any>("");
-
+  const [isLoading, setIsLoading] = useState(false);
   const handleUpload = async () => {
+    setIsLoading(true);
     const formData = new FormData();
     fileList.forEach((file) => {
       formData.append("files", file.originFileObj);
@@ -83,21 +84,19 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
 
     const bodyListImage = images?.map((imageLocation: any) => ({
       imageLocation,
-      primary: false,
-      vocabularyId: recordMedia.vocabularyId,
+      // primary: false,
+      partId: recordMedia.partId,
     }));
 
     const bodyListVideo = videos?.map((videoLocation: any) => ({
       videoLocation,
-      primary: false,
-      vocabularyId: recordMedia.vocabularyId,
+      // primary: false,
+      partId: recordMedia.partId,
     }));
 
     if (res.code === 200) {
-      const responseImage =
-        await MediaModel.addListImageVocabulary(bodyListImage);
-      const responseVideo =
-        await MediaModel.addListVideoVocabulary(bodyListVideo);
+      const responseImage = await MediaModel.postImagePart(bodyListImage);
+      const responseVideo = await MediaModel.postVideoPart(bodyListVideo);
 
       if (responseImage.code === 200 && responseVideo.code === 200) {
         message.success("Thêm danh sách hình ảnh/video thành công");
@@ -112,6 +111,7 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
     } else {
       message.error("Lỗi upload files");
     }
+    setIsLoading(false);
   };
 
   const handlePreview = async (file: any) => {
@@ -149,14 +149,6 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
             fileList={fileList}
             onPreview={handlePreview}
             onChange={handleChange}
-            customRequest={({ file }: any) => {
-              const isImageOrVideo =
-                file.type.startsWith("image/") ||
-                file.type.startsWith("video/");
-              if (!isImageOrVideo) {
-                message.error("Chỉ được chọn file video hoặc ảnh.");
-              }
-            }}
             accept="image/*,video/*"
           >
             <Button icon={<UploadOutlined />}>Chọn File</Button>
@@ -172,13 +164,14 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
         width={450}
         onClose={onClose}
         open={isShowModalAddMedia}
-        title={`Bổ sung hình ảnh/video cho ${recordMedia.vocabularyType && TYPE_VOCABULARY[recordMedia?.vocabularyType].toLowerCase()} ${recordMedia?.content}`}
+        title={`Bổ sung hình ảnh/video cho ${recordMedia.partName}`}
         footer={[
           <Button key="back" onClick={onClose}>
             Hủy bỏ
           </Button>,
           <Button
             className="ml-4"
+            loading={isLoading}
             key="submit"
             type="primary"
             disabled={!fileList.length}

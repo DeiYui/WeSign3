@@ -94,6 +94,15 @@ const PartList = ({ isPrivate }: any) => {
     fileVideo: "",
   });
 
+  // Chi tiết part
+  const [detailVocabulary, setDetailVocabulary] = useState<{
+    open: boolean;
+    record: any;
+  }>({
+    open: false,
+    record: "",
+  });
+
   const handleTableChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
@@ -204,8 +213,14 @@ const PartList = ({ isPrivate }: any) => {
       title: "Tên phần",
       dataIndex: "partName",
       key: "partName",
-      render: (content: string) => (
-        <span style={{ fontWeight: 500 }}>{content}</span>
+      render: (content: string, record: any) => (
+        <div
+          className="text-primary-700 hover:cursor-pointer"
+          style={{ fontWeight: 500 }}
+          onClick={() => setDetailVocabulary({ open: true, record: record })}
+        >
+          {content}
+        </div>
       ),
       ellipsis: true,
       width: 100,
@@ -451,6 +466,16 @@ const PartList = ({ isPrivate }: any) => {
           )}
         </div>
       </Modal>
+
+      {/* Modal chi tiết nội dung từ */}
+      <ModalListMedia
+        showModalLstMedia={detailVocabulary.open}
+        record={detailVocabulary.record}
+        refetch={refetch}
+        onClose={() => {
+          setDetailVocabulary({ open: false, record: "" });
+        }}
+      />
 
       <ConfirmModal
         visible={modalConfirm.open}

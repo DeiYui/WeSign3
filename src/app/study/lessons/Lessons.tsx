@@ -148,45 +148,37 @@ const CustomTab = styled(Tabs)`
   }
 `;
 
-function transformData(inputData: any[]) {
-  return inputData?.map(
-    (item: {
-      partId: any;
-      partName: any;
-      partImageResList: any[];
-      partVideoResList: any[];
-      lessonId: any;
-    }) => ({
-      vocabularyId: item.partId || null,
-      content: item.partName || null,
-      note: null,
-      vocabularyType: "WORD",
-      vocabularyImageResList: item.partImageResList.length
-        ? item.partImageResList.map(
-            (image: { partImageId: any; imageLocation: any }) => ({
-              vocabularyImageId: image.partImageId || null,
-              imageLocation: image.imageLocation || null,
-              vocabularyId: item.partId || null,
-              vocabularyContent: item.partName || null,
-              primary: true,
-            }),
-          )
-        : [],
-      vocabularyVideoResList: item.partVideoResList.length
-        ? item.partVideoResList.map(
-            (video: { partVideoId: any; videoLocation: any }) => ({
-              vocabularyVideoId: video.partVideoId || null,
-              videoLocation: video.videoLocation || null,
-              vocabularyId: item.partId || null,
-              vocabularyContent: item.partName || null,
-              primary: true,
-            }),
-          )
-        : [],
-      topicId: item.lessonId || null,
-      topicContent: null,
-    }),
-  );
+function transformData(inputData: any) {
+  return {
+    vocabularyId: inputData.partId || null,
+    content: inputData.partName || null,
+    note: null,
+    vocabularyType: "WORD",
+    vocabularyImageResList: inputData.partImageResList.length
+      ? inputData.partImageResList.map(
+          (image: { partImageId: any; imageLocation: any }) => ({
+            vocabularyImageId: image.partImageId || null,
+            imageLocation: image.imageLocation || null,
+            vocabularyId: inputData.partId || null,
+            vocabularyContent: inputData.partName || null,
+            primary: true,
+          }),
+        )
+      : [],
+    vocabularyVideoResList: inputData.partVideoResList.length
+      ? inputData.partVideoResList.map(
+          (video: { partVideoId: any; videoLocation: any }) => ({
+            vocabularyVideoId: video.partVideoId || null,
+            videoLocation: video.videoLocation || null,
+            vocabularyId: inputData.partId || null,
+            vocabularyContent: inputData.partName || null,
+            primary: true,
+          }),
+        )
+      : [],
+    topicId: inputData.lessonId || null,
+    topicContent: null,
+  };
 }
 
 const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
@@ -209,7 +201,6 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
   });
   const [searchText, setSearchText] = useState<string>("");
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
-  const [activeKey, setActiveKey] = useState<string>("");
   const [lstVocabularyPart, setLstVocabularyPart] = useState<any[]>([]);
 
   // API lấy danh sách bài học
@@ -235,24 +226,15 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
         message.error("Bài học chưa có phần nào!");
         return;
       }
-      const data = res.data?.sort((a: any, b: any) => b.partId - a.partId);
-      setActiveKey(data[0]?.partId.toString());
+      const data = Array.isArray(res.data)
+        ? res?.data?.map((part: any) => transformData(part))
+        : [];
+
+      setLstVocabularyPart(data);
       return data;
     },
     enabled: !!lessonId,
   });
-
-  useEffect(() => {
-    if (activeKey) {
-      setLstVocabularyPart(
-        transformData(
-          allPart?.filter(
-            (item: { partId: number }) => item.partId === Number(activeKey),
-          ),
-        ),
-      );
-    }
-  }, [activeKey, allPart]);
 
   useEffect(() => {
     if (lessonId) {
@@ -274,7 +256,7 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
   return (
     <Spin spinning={isFetchingVocabulary}>
       <div className="mb-4 flex items-center gap-3">
-        <Input
+        {/* <Input
           onChange={(e) => {
             setFilterParams({
               ...filterParams,
@@ -285,7 +267,7 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
           size="large"
           allowClear
           placeholder="Nhập từ vựng"
-        />
+        /> */}
       </div>
       <ButtonSecondary
         className="mb-4 mr-3 border border-solid border-neutral-700"
@@ -302,27 +284,7 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
         Lựa chọn bài học
       </ButtonSecondary>
 
-      <CustomTab
-        defaultActiveKey="1"
-        activeKey={activeKey}
-        onChange={(key) => setActiveKey(key)}
-        className="rounded-lg bg-white px-4 pb-4 shadow"
-        tabBarGutter={16}
-        tabBarStyle={{ marginBottom: "20px" }}
-      >
-        {allPart?.map((section: any) => (
-          <Tabs.TabPane
-            key={section.partId}
-            tab={
-              <div className="text-base font-semibold">{section.partName}</div>
-            }
-          >
-            <div className="p-4">
-              <StudyComponent allVocabulary={lstVocabularyPart} />
-            </div>
-          </Tabs.TabPane>
-        ))}
-      </CustomTab>
+      <StudyComponent allVocabulary={lstVocabularyPart} />
 
       {/* Modal */}
       <Modal

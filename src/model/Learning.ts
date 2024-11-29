@@ -234,6 +234,10 @@ class Learning extends Base {
     const res = await this.apiGet(`/parts/all`, body);
     return res.data;
   };
+  getPartDetail = async (body?: any) => {
+    const res = await this.apiGet(`/parts`, body);
+    return res.data;
+  };
   addPart = async (body?: any) => {
     const res = await this.apiPost(`/parts`, body);
     return res.data;

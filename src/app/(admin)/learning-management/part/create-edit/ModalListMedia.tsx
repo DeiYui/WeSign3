@@ -1,3 +1,4 @@
+"use clent";
 import BasicDrawer from "@/components/UI/draw/BasicDraw";
 import Learning from "@/model/Learning";
 import MediaModel from "@/model/MediaModel";
@@ -31,7 +32,7 @@ interface ModalListMediaProps {
   onClose?: any;
 }
 
-interface DetailVocabulary {
+interface detailPart {
   vocabularyId: number;
   vocabularyImageResList: any[];
   vocabularyVideoResList: any[];
@@ -104,7 +105,6 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
   onClose,
 }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
-
   // Modal thêm media
   const [modalAddMedia, setModalAddMedia] = useState<{
     open: boolean;
@@ -121,41 +121,42 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
   }, [state.recordUpdated]);
 
   const {
-    data: detailVocabulary,
+    data: detailPart,
     isFetching,
     refetch: refetchDetail,
-  } = useQuery<DetailVocabulary>({
-    queryKey: ["getDetailVocabulary", record?.vocabularyId],
+  } = useQuery({
+    queryKey: ["getPartDetail", record?.partId],
     queryFn: async () => {
-      const res = await Learning.getDetailVocabularyById(record?.vocabularyId);
+      const res = await Learning.getPartDetail({
+        partId: record?.partId,
+      });
       return res.data;
     },
     enabled: !!showModalLstMedia,
   });
 
-  const mutationSetPrimaryVideo = useMutation({
-    mutationFn: async (data: any) =>
-      await MediaModel.setPrimaryVideoVocabulary(data),
-    onSuccess: () => {
-      message.success("Cập nhật video hiển thị chính thành công");
-      refetchDetail();
-      refetch();
-    },
-  });
+  // const mutationSetPrimaryVideo = useMutation({
+  //   mutationFn: async (data: any) =>
+  //     await MediaModel.setPrimaryVideoVocabulary(data),
+  //   onSuccess: () => {
+  //     message.success("Cập nhật video hiển thị chính thành công");
+  //     refetchDetail();
+  //     refetch();
+  //   },
+  // });
 
-  const mutationSetPrimaryImage = useMutation({
-    mutationFn: async (data: any) =>
-      await MediaModel.setPrimaryImageVocabulary(data),
-    onSuccess: () => {
-      message.success("Cập nhật hình ảnh hiển thị chính thành công");
-      refetchDetail();
-      refetch();
-    },
-  });
+  // const mutationSetPrimaryImage = useMutation({
+  //   mutationFn: async (data: any) =>
+  //     await MediaModel.setPrimaryImageVocabulary(data),
+  //   onSuccess: () => {
+  //     message.success("Cập nhật hình ảnh hiển thị chính thành công");
+  //     refetchDetail();
+  //     refetch();
+  //   },
+  // });
 
   const mutationUpdateImage = useMutation({
-    mutationFn: async (body: any) =>
-      await MediaModel.updateImageVocabulary(body),
+    mutationFn: async (body: any) => await MediaModel.updateImagePart(body),
     onSuccess: () => {
       message.success("Cập nhật hình ảnh minh hoạ thành công");
       refetchDetail();
@@ -165,8 +166,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
   });
 
   const mutationUpdateVideo = useMutation({
-    mutationFn: async (body: any) =>
-      await MediaModel.updateVideoVocabulary(body),
+    mutationFn: async (body: any) => await MediaModel.updateVideoPart(body),
     onSuccess: () => {
       message.success("Cập nhật video minh hoạ thành công");
       refetchDetail();
@@ -176,8 +176,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
   });
 
   const mutationDelImage = useMutation({
-    mutationFn: async (id: number) =>
-      await MediaModel.deleteImageVocabulary(id),
+    mutationFn: async (id: number) => await MediaModel.deleteImagePart(id),
     onSuccess: () => {
       message.success("Xoá hình ảnh minh hoạ thành công");
       dispatch({ type: "SET_IS_SHOW_MODAL_UPDATE_MEDIA", payload: false });
@@ -187,8 +186,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
   });
 
   const mutationDelVideo = useMutation({
-    mutationFn: async (id: number) =>
-      await MediaModel.deleteVideoVocabulary(id),
+    mutationFn: async (id: number) => await MediaModel.deleteVideoPart(id),
     onSuccess: () => {
       message.success("Xoá video minh hoạ thành công");
       dispatch({ type: "SET_IS_SHOW_MODAL_UPDATE_MEDIA", payload: false });
@@ -260,44 +258,38 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
         width: "30%",
         hidden: hiddenVideo,
       },
-      {
-        title: "Hình ảnh minh hoạ chính",
-        dataIndex: "primary",
-        align: "center",
-        render: (value: boolean, record: any) => (
-          <Switch
-            disabled={value}
-            checked={value}
-            onChange={(item) => {
-              mutationSetPrimaryImage.mutate({
-                vocabularyImageId: record.vocabularyImageId,
-                primary: item,
-              });
-            }}
-          />
-        ),
-        width: 200,
-        hidden: hiddenImage,
-      },
-      {
-        title: "Video minh hoạ chính",
-        dataIndex: "primary",
-        align: "center",
-        render: (value: boolean, record: any) => (
-          <Switch
-            disabled={value}
-            checked={value}
-            onChange={(item) => {
-              mutationSetPrimaryVideo.mutate({
-                vocabularyVideoId: record.vocabularyVideoId,
-                primary: item,
-              });
-            }}
-          />
-        ),
-        width: 200,
-        hidden: hiddenVideo,
-      },
+      // {
+      //   title: "Hình ảnh minh hoạ chính",
+      //   dataIndex: "primary",
+      //   align: "center",
+      //   render: (value: boolean, record: any) => (
+      //     <Switch
+      //       disabled={value}
+      //       checked={value}
+      //     />
+      //   ),
+      //   width: 200,
+      //   hidden: hiddenImage,
+      // },
+      // {
+      //   title: "Video minh hoạ chính",
+      //   dataIndex: "primary",
+      //   align: "center",
+      //   render: (value: boolean, record: any) => (
+      //     <Switch
+      //       disabled={value}
+      //       checked={value}
+      //       onChange={(item) => {
+      //         mutationSetPrimaryVideo.mutate({
+      //           vocabularyVideoId: record.vocabularyVideoId,
+      //           primary: item,
+      //         });
+      //       }}
+      //     />
+      //   ),
+      //   width: 200,
+      //   hidden: hiddenVideo,
+      // },
       {
         title: "Thao tác",
         key: "action",
@@ -334,10 +326,10 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
                   placement="topRight"
                   title={"Bạn có muốn xoá hình ảnh này không?"}
                   onConfirm={() => {
-                    if (record?.vocabularyImageId) {
-                      mutationDelImage.mutate(record?.vocabularyImageId);
+                    if (record?.partImageId) {
+                      mutationDelImage.mutate(record?.partImageId);
                     } else {
-                      mutationDelVideo.mutate(record?.vocabularyVideoId);
+                      mutationDelVideo.mutate(record?.partVideoId);
                     }
                   }}
                   okText="Có"
@@ -359,12 +351,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
     <div>
       <Modal
         title={
-          <div>
-            Danh sách hình ảnh / video minh hoạ của{" "}
-            {record.vocabularyType &&
-              TYPE_VOCABULARY[record?.vocabularyType].toLowerCase()}{" "}
-            <span className="text-xl text-red">{record.content}</span>
-          </div>
+          <div>Danh sách hình ảnh / video minh hoạ của {record.partName}</div>
         }
         open={showModalLstMedia}
         onCancel={onClose}
@@ -380,9 +367,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
               setModalAddMedia({ ...modalAddMedia, open: true });
             }}
           >
-            Thêm video/ hình ảnh cho{" "}
-            {record.vocabularyType &&
-              TYPE_VOCABULARY[record?.vocabularyType].toLowerCase()}
+            Thêm video/ hình ảnh
           </Button>
         </div>
         <div className="flex justify-between gap-4">
@@ -390,7 +375,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
             <h2>Dánh sách ảnh</h2>
             <Table
               columns={columns(true, false).filter((e) => !e.hidden) as any}
-              dataSource={detailVocabulary?.vocabularyImageResList}
+              dataSource={detailPart?.partImageResList}
               pagination={{ pageSize: 4, position: ["bottomCenter"] }}
             />
           </div>
@@ -398,7 +383,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
             <h2>Dánh sách video</h2>
             <Table
               columns={columns(false, true).filter((e) => !e.hidden) as any}
-              dataSource={detailVocabulary?.vocabularyVideoResList}
+              dataSource={detailPart?.partVideoResList}
               pagination={{ pageSize: 6, position: ["bottomCenter"] }}
             />
           </div>
@@ -436,13 +421,13 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
           if (state.recordUpdated.vocabularyImageId) {
             mutationUpdateImage.mutate({
               ...state.recordUpdated,
-              primary: state.primaryMedia,
+              // primary: state.primaryMedia,
               imageLocation: state.imageLocations,
             });
           } else {
             mutationUpdateVideo.mutate({
               ...state.recordUpdated,
-              primary: state.primaryMedia,
+              // primary: state.primaryMedia,
               videoLocation: state.videoLocations,
             });
           }

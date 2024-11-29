@@ -129,7 +129,6 @@ const FileMobile: React.FC = () => {
             <Form
               form={form}
               onFinish={(value) => {
-                debugger;
                 isEdit
                   ? mutationEdit.mutate({
                       id: value.mobileId,

@@ -45,12 +45,12 @@ class MediaModel extends Base {
   };
 
   postImagePart = async (body: any) => {
-    const res = await this.apiPost("/part-images", body);
+    const res = await this.apiPost("/part-images/add-list", body);
     return res.data;
   };
 
   postVideoPart = async (body: any) => {
-    const res = await this.apiPost("/part-videos", body);
+    const res = await this.apiPost("/part-videos/add-list", body);
     return res.data;
   };
 
