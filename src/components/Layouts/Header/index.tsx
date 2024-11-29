@@ -7,16 +7,32 @@ import { Button } from "antd";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import DropdownUser from "./DropdownUser";
+import {
+  DoubleLeftOutlined,
+  DoubleRightOutlined,
+  MenuOutlined,
+} from "@ant-design/icons";
+import { updateSetting } from "@/store/slices/SettingSlice";
+import { useDispatch } from "react-redux";
 
 const Header = (props: {
   sidebarOpen: string | boolean | undefined;
   setSidebarOpen: (arg0: boolean) => void;
 }) => {
-  const { sidebarOpen } = props;
+  const { sidebarOpen, setSidebarOpen } = props;
   const pathname = usePathname();
+  const dispatch = useDispatch();
 
   const state: RootState = store.getState();
   const admin = state.admin;
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+    dispatch(
+      updateSetting({
+        openSideBar: !sidebarOpen,
+      }),
+    );
+  };
 
   return (
     <header className="sticky top-0  z-[98] flex w-full bg-white  drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
@@ -25,6 +41,12 @@ const Header = (props: {
       >
         {/* Hiện logo khi ẩn slideBar */}
         <div className="flex items-center gap-4">
+          <button
+            className="rounded-full bg-white p-2 focus:outline-none dark:bg-boxdark sm:block md:hidden md:px-1"
+            onClick={toggleSidebar}
+          >
+            <MenuOutlined size={24} />
+          </button>
           {!sidebarOpen && (
             <div className="flex items-center gap-2">
               <Link className="flex items-end justify-center" href="/">

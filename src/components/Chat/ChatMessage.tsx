@@ -193,7 +193,7 @@ const ChatMessage = () => {
   return (
     <>
       <div
-        className="fixed bottom-0 right-0 top-0 z-[1000] rounded-md bg-white"
+        className="fixed bottom-0 right-0 top-0 z-[1000] hidden rounded-md bg-white lg:block "
         style={{ width: chatOpen ? "360px" : "60px" }}
       >
         <div className="">

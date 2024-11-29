@@ -48,7 +48,7 @@ export default function DefaultLayout({
 
         {/* <!-- ===== Sidebar End ===== --> */}
         <button
-          className="rounded-full bg-white p-2 focus:outline-none dark:bg-boxdark md:px-1"
+          className="hidden rounded-full bg-white p-2 focus:outline-none dark:bg-boxdark md:px-1 lg:block"
           onClick={toggleSidebar}
         >
           {sidebarOpen ? (
@@ -63,7 +63,9 @@ export default function DefaultLayout({
 
           {/* <!-- ===== Main Content Start ===== --> */}
           <main>
-            <div className="mx-auto mr-14 max-w-full p-4 ">{children}</div>
+            <div className="mx-auto max-w-full p-4 sm:mr-0 lg:mr-14">
+              {children}
+            </div>
           </main>
         </div>
 
