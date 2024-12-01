@@ -285,7 +285,7 @@ const Lessons: FC<SectionHero2Props> = ({ className = "" }) => {
         Lựa chọn bài học
       </ButtonSecondary>
 
-      <StudyComponent allVocabulary={lstVocabularyPart} />
+      <StudyComponent allVocabulary={lstVocabularyPart} isLesson />
 
       {/* Modal */}
       <Modal
