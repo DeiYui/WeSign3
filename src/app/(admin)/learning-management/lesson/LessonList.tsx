@@ -80,12 +80,8 @@ const LessonList = (props: any) => {
         classRoomId: filterParams?.classRoomId,
         isPrivate: `${isPrivate}`,
       });
-      setLstLessons(
-        res?.data?.sort((a: any, b: any) => b.lessonId - a.lessonId),
-      );
-      setLstLessonsSearch(
-        res?.data?.sort((a: any, b: any) => b.lessonId - a.lessonId),
-      );
+      setLstLessons(res?.data);
+      setLstLessonsSearch(res?.data);
       return res?.data as Lessons[];
     },
   });
