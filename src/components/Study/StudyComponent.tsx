@@ -52,6 +52,9 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
   // Thu phóng
   const [isFullScreen, setIsFullScreen] = useState(false);
 
+  const [isImageModalVisible, setIsImageModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
   const toggleFullScreen = () => {
     setIsFullScreen((prev) => !prev);
   };
@@ -128,6 +131,12 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
     setVideoCurrent(null);
     setShowFileDetail(false);
     setIsFullScreen(false);
+  };
+
+  // Function to handle image click
+  const handleImageClick = (imageLocation: string) => {
+    setSelectedImage(imageLocation);
+    setIsImageModalVisible(true);
   };
 
   if (allVocabulary?.length === 0) {
@@ -321,6 +330,7 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
                               src={item.imageLocation}
                               alt="imageLocation"
                               className="flex max-h-[400px] w-[400px] items-center justify-center object-scale-down "
+                              onClick={() => handleImageClick(item.imageLocation)}
                             />
                             {allVocabulary && (
                               <>
@@ -432,6 +442,16 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
             Kế tiếp
           </ButtonPrimary>
         </div>
+      </Modal>
+
+      {/* New modal for displaying the clicked image */}
+      <Modal
+        visible={isImageModalVisible}
+        footer={null}
+        onCancel={() => setIsImageModalVisible(false)}
+        width={800}
+      >
+        <img src={selectedImage || ''} alt="Zoomed" style={{ width: '100%' }} />
       </Modal>
     </>
   );
