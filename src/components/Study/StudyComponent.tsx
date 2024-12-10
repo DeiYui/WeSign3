@@ -330,7 +330,7 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
                               src={item.imageLocation}
                               alt="imageLocation"
                               className="flex max-h-[400px] w-[400px] items-center justify-center object-scale-down "
-                              onClick={() => handleImageClick(item.imageLocation)}
+                              onClick={() => handleImageClick(item.imageLocation!)}
                             />
                             {allVocabulary && (
                               <>
