@@ -1,5 +1,4 @@
 "use client";
-import { colors } from "@/assets/colors";
 import { CloseIcon } from "@/assets/icons";
 import { ConfirmModal } from "@/components/UI/Modal/ConfirmModal";
 import BasicDrawer from "@/components/UI/draw/BasicDraw";
@@ -10,7 +9,6 @@ import {
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
-  FileAddFilled,
   PlusOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
@@ -25,11 +23,11 @@ import {
   Upload,
   UploadProps,
   message,
+  Spin,
 } from "antd";
 import { useForm } from "antd/es/form/Form";
-import TextArea from "antd/es/input/TextArea";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CustomTable } from "../check-list/ExamList";
 import ModalListMedia from "./create-edit/ModalListMedia";
 import { isImageLocation } from "./create-edit/PartCreateUpdate";
@@ -39,6 +37,7 @@ import { RootState } from "@/store";
 import Lesson from "@/model/Lesson";
 
 interface FilterParams {
+  classId: number;
   lessonId: number;
   contentSearch: string;
 }
@@ -50,13 +49,14 @@ export const TYPE_VOCABULARY: { [key: string]: string } = {
 };
 
 const PartList = ({ isPrivate }: any) => {
-  //Hooks
+  // Hooks
   const router = useRouter();
   const [form] = useForm();
   const user: User = useSelector((state: RootState) => state.admin);
 
-  // danh sách topics
+  // State variables
   const [filterParams, setFilterParams] = useState<FilterParams>({
+    classId: 0,
     lessonId: 0,
     contentSearch: "",
   });
@@ -73,8 +73,9 @@ const PartList = ({ isPrivate }: any) => {
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [allParts, setAllParts] = useState([]);
   const [allPartsSearch, setAllPartsSearch] = useState([]);
+  const [editingPartId, setEditingPartId] = useState<number | null>(null);
 
-  // modal xác nhận xoá
+  // Modal confirm delete
   const [modalConfirm, setModalConfirm] = useState<{
     open: boolean;
     rowId: number;
@@ -85,7 +86,7 @@ const PartList = ({ isPrivate }: any) => {
     typeVocabulary: "",
   });
 
-  // Modal thêm mới
+  // Modal add new
   const [preview, setPreview] = useState<{
     fileImage: string;
     fileVideo: string;
@@ -94,7 +95,7 @@ const PartList = ({ isPrivate }: any) => {
     fileVideo: "",
   });
 
-  // Chi tiết part
+  // Part details
   const [detailVocabulary, setDetailVocabulary] = useState<{
     open: boolean;
     record: any;
@@ -107,11 +108,23 @@ const PartList = ({ isPrivate }: any) => {
     setCurrentPage(newPage);
   };
 
-  // API lấy danh sách bài học
-  const { data: allLesson } = useQuery({
-    queryKey: ["getAllLesson"],
+  // Fetch all classes
+  const { data: allClass, isFetching: isFetchingClass } = useQuery({
+    queryKey: ["getListClass"],
     queryFn: async () => {
-      const res = await Lesson.getLstLessonByClass();
+      const res = await Learning.getListClass();
+      return res.data?.map((item: { content: any; classRoomId: any }) => ({
+        label: item.content,
+        value: item.classRoomId,
+      }));
+    },
+  });
+
+  // Fetch all lessons based on selected class
+  const { data: allLesson, isFetching: isFetchingLesson } = useQuery({
+    queryKey: ["getallLesson", filterParams.classId],
+    queryFn: async () => {
+      const res = await Lesson.getLstLessonByClass({ classRoomId: filterParams.classId });
       return res?.data?.map((item: { lessonId: any; lessonName: any }) => ({
         id: item.lessonId,
         value: item.lessonId,
@@ -119,27 +132,26 @@ const PartList = ({ isPrivate }: any) => {
         text: item.lessonName,
       }));
     },
+    enabled: !!filterParams.classId,
   });
 
-  // API lấy danh sách từ vựng
+  // Fetch all parts based on filter parameters
   const { isFetching, refetch } = useQuery({
-    queryKey: ["getAllVocalizations", filterParams],
+    queryKey: ["getAllParts", filterParams],
     queryFn: async () => {
       const res = await Learning.getPartAll({
         ...filterParams,
       });
-      // Sắp xếp priamry lên đầu
+      // Sort primary elements to the top
       res?.data?.forEach(
         (item: { partImageResList: any[]; partVideoResList: any[] }) => {
           item.partImageResList?.sort(
             (a: { primary: any }, b: { primary: any }) => {
-              // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
               return a.primary === b.primary ? 0 : a.primary ? -1 : 1;
             },
           );
           item.partVideoResList?.sort(
             (a: { primary: any }, b: { primary: any }) => {
-              // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
               return a.primary === b.primary ? 0 : a.primary ? -1 : 1;
             },
           );
@@ -151,7 +163,7 @@ const PartList = ({ isPrivate }: any) => {
     },
   });
 
-  // Xoá chủ đề
+  // Delete part
   const mutationDel = useMutation({
     mutationFn: Learning.deletePart,
     onSuccess: () => {
@@ -160,7 +172,7 @@ const PartList = ({ isPrivate }: any) => {
     },
   });
 
-  // Thêm mới / chỉnh sửa  topics
+  // Create or update part
   const mutationCreate = useMutation({
     mutationFn: Learning.editPart,
     onSuccess: () => {
@@ -207,8 +219,24 @@ const PartList = ({ isPrivate }: any) => {
     },
   });
 
-  // Column
+  // Columns for the table
   const columns = [
+    {
+      title: "Lớp học",
+      dataIndex: "className",
+      key: "className",
+      render: (content: string) => <div>{content}</div>,
+      ellipsis: true,
+      width: 100,
+    },
+    {
+      title: "Bài học",
+      dataIndex: "lessonName",
+      key: "lessonName",
+      render: (content: string) => <div>{content}</div>,
+      ellipsis: true,
+      width: 100,
+    },
     {
       title: "Tên phần",
       dataIndex: "partName",
@@ -294,6 +322,7 @@ const PartList = ({ isPrivate }: any) => {
             icon={<EditOutlined />}
             onClick={() => {
               setOpenEdit(true);
+              setEditingPartId(record.partId);
               setPreview({
                 fileImage: record?.partImageResList[0]?.imageLocation,
                 fileVideo: record?.partVideoResList[0]?.videoLocation,
@@ -317,7 +346,7 @@ const PartList = ({ isPrivate }: any) => {
     },
   ];
 
-  // upload
+  // Upload properties
   const props: UploadProps = {
     name: "file",
     onChange(info) {
@@ -347,20 +376,40 @@ const PartList = ({ isPrivate }: any) => {
   return (
     <div className="w-full p-4">
       <h1 className="mb-4 text-2xl font-bold">Danh sách phần</h1>
-      <div className="mb-4 flex  items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         {/* Filter */}
         <div className="flex w-2/3 gap-4">
           <Select
             size="large"
-            className="w-1/2"
+            className="w-1/3"
+            allowClear
+            showSearch
+            placeholder="Chọn lớp học"
+            options={allClass}
+            onChange={(value) =>
+              setFilterParams({ ...filterParams, classId: value })
+            }
+            filterOption={filterOption}
+          />
+          <Select
+            size="large"
+            className="w-1/3"
             allowClear
             showSearch
             placeholder="Chọn bài học"
             options={allLesson}
-            onChange={(value, option: any) =>
+            onChange={(value) =>
               setFilterParams({ ...filterParams, lessonId: value })
             }
             filterOption={filterOption}
+          />
+          <Input
+            size="large"
+            className="w-1/3"
+            placeholder="Nhập tên phần"
+            onChange={(e) =>
+              setFilterParams({ ...filterParams, contentSearch: e.target.value })
+            }
           />
         </div>
         <Button
@@ -376,10 +425,9 @@ const PartList = ({ isPrivate }: any) => {
 
       <CustomTable
         columns={columns as any}
-        dataSource={filterParams.lessonId ? allPartsSearch : []}
+        dataSource={allPartsSearch}
         loading={isLoading}
-        rowKey={(record) => record.vocabularyId}
-        // scroll={{ x: 600 }}
+        rowKey={(record) => record.partId}
         pagination={{
           pageSize: pageSize,
           current: currentPage,
@@ -422,22 +470,118 @@ const PartList = ({ isPrivate }: any) => {
             layout="vertical"
             className="px-4 pb-4"
             onFinish={(value) => {
-              mutationCreate.mutate({ ...value, private: isPrivate });
+              mutationCreate.mutate({ ...value, partId: editingPartId, private: isPrivate });
             }}
           >
             <Form.Item name="partId" noStyle hidden />
 
             <Form.Item
+              name="classId"
+              label="Lớp học"
+              required
+              rules={[validateRequireInput("Lớp học không được bỏ trống")]}
+              className="mb-2"
+            >
+              <Select
+                size="large"
+                className="w-full"
+                allowClear
+                placeholder="Chọn lớp học"
+                options={allClass}
+                loading={isFetchingClass}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="lessonId"
+              label="Bài học liên quan"
+              required
+              rules={[validateRequireInput("Bài học liên quan không được bỏ trống")]}
+              className="mb-2"
+            >
+              <Select
+                size="large"
+                className="w-full"
+                allowClear
+                placeholder="Chọn bài học"
+                options={allLesson}
+                loading={isFetchingLesson}
+                showSearch
+                filterOption={filterOption}
+                notFoundContent={
+                  isFetchingLesson ? <Spin size="small" /> : "Không tìm thấy bài học"
+                }
+              />
+            </Form.Item>
+
+            <Form.Item
               name="partName"
               label="Tên phần"
               required
-              rules={[
-                validateRequireInput("Tên phần liên quan không được bỏ trống"),
-              ]}
+              rules={[validateRequireInput("Tên phần không được bỏ trống")]}
               className="mb-2"
             >
-              <TextArea maxLength={200} showCount placeholder="Nhập mô tả" />
+              <Input placeholder="Nhập tên phần" />
             </Form.Item>
+
+            <div className="flex flex-col gap-4">
+              <Form.Item name="partImageReqs" noStyle />
+              <Form.Item name="partVideoReqs" noStyle />
+
+              <Upload {...props} showUploadList={false} accept="image/*">
+                <Button icon={<UploadOutlined />}>Tải file ảnh</Button>
+              </Upload>
+              <Upload {...props} showUploadList={false} accept="video/*">
+                <Button icon={<UploadOutlined />}>Tải file video</Button>
+              </Upload>
+            </div>
+            <div className="mb-3 flex items-center justify-center gap-4">
+              {preview.fileImage ? (
+                <>
+                  <Image
+                    className=""
+                    src={preview.fileImage}
+                    alt="Ảnh chủ đề"
+                    style={{ width: 300 }}
+                  />
+                  <Button
+                    onClick={() => {
+                      setPreview({
+                        ...preview,
+                        fileImage: "",
+                      });
+                      form.setFieldValue("vocabularyImageReqs", undefined);
+                    }}
+                  >
+                    Xoá ảnh
+                  </Button>
+                </>
+              ) : null}
+              {preview.fileVideo ? (
+                <>
+                  <video controls style={{ width: 400, height: "auto" }}>
+                    <source src={preview.fileVideo} />
+                  </video>
+                  <Button
+                    onClick={() => {
+                      setPreview({
+                        ...preview,
+                        fileVideo: "",
+                      });
+                      form.setFieldValue("vocabularyVideoReqs", undefined);
+                    }}
+                  >
+                    Xoá video
+                  </Button>
+                </>
+              ) : null}
+            </div>
+            <div className="flex w-full items-center justify-center gap-4">
+              <Button onClick={() => setOpenEdit(false)}>Huỷ</Button>
+              <Button type="primary" htmlType="submit">
+                {editingPartId ? "Cập nhật" : "Tạo"}
+              </Button>
+            </div>
           </Form>
         </div>
       </BasicDrawer>
@@ -467,7 +611,6 @@ const PartList = ({ isPrivate }: any) => {
         </div>
       </Modal>
 
-      {/* Modal chi tiết nội dung từ */}
       <ModalListMedia
         showModalLstMedia={detailVocabulary.open}
         record={detailVocabulary.record}
@@ -480,6 +623,7 @@ const PartList = ({ isPrivate }: any) => {
       <ConfirmModal
         visible={modalConfirm.open}
         iconType="DELETE"
+       
         title={`Xóa khỏi phần`}
         content={`Hành động này sẽ xóa phần vĩnh viễn khỏi bài học hiện tại`}
         confirmButtonText="Xác nhận"

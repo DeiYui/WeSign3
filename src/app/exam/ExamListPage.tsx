@@ -119,45 +119,6 @@ const ExamListPage: React.FC = () => {
       title: "Tên bài kiểm tra",
       dataIndex: "name",
       key: "name",
-    },
-
-    {
-      title: "Số câu hỏi",
-      dataIndex: "numberOfQuestions",
-      key: "numberOfQuestions",
-    },
-    {
-      dataIndex: "examId",
-      width: 120,
-      align: "center",
-      render: (value: number, record: any) => {
-        return (
-          <>
-            {allExamUser?.filter(
-              (item: { examId: number }) => item.examId === value,
-            )?.length ? null : (
-              <Button
-                onClick={() => {
-                  mutationAddUser.mutate({
-                    examIds: [value],
-                    userId: user.userId,
-                  });
-                }}
-              >
-                Làm bài
-              </Button>
-            )}
-          </>
-        );
-      },
-    },
-  ];
-
-  const columnsExamUser = [
-    {
-      title: "Tên bài kiểm tra",
-      dataIndex: "name",
-      key: "name",
       render: (text: string, record: any) => (
         <div
           className="hover:cursor-pointer"
@@ -199,26 +160,42 @@ const ExamListPage: React.FC = () => {
     },
     {
       dataIndex: "examId",
-      width: 40,
+      width: 120,
       align: "center",
-      render: (value: number, record: any) => (
-        <div className="flex items-center gap-4">
-          {record?.finish ? (
-            <Button
-              onClick={() => router.push(`/exam/${record?.examId}/?redo=true`)}
-            >
-              Làm lại
-            </Button>
-          ) : null}
-        </div>
-      ),
+      render: (value: number, record: any) => {
+        return (
+          <div className="flex items-center gap-4">
+            {allExamUser?.filter(
+              (item: { examId: number }) => item.examId === value,
+            )?.length ? null : (
+              <Button
+                onClick={() => {
+                  mutationAddUser.mutate({
+                    examIds: [value],
+                    userId: user.userId,
+                  });
+                }}
+              >
+                Làm bài
+              </Button>
+            )}
+            {record?.finish ? (
+              <Button
+                onClick={() => router.push(`/exam/${record?.examId}/?redo=true`)}
+              >
+                Làm lại
+              </Button>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       fixed: "right",
       dataIndex: "examId",
       width: 40,
       align: "center",
-      render: (value: number, record: any) => (
+      render: (value: number) => (
         <div
           className="flex  w-5 items-center justify-center hover:cursor-pointer"
           onClick={() => {
@@ -276,15 +253,6 @@ const ExamListPage: React.FC = () => {
         scroll={{ x: 1100, y: 440 }}
         loading={isFetching}
         pagination={{ ...pagination, showSizeChanger: false }}
-        rowKey="examId"
-      />
-
-      <h1 className="mb-4 text-2xl font-bold">Bài kiểm tra của tôi</h1>
-
-      <CustomTable
-        dataSource={allExamUser}
-        columns={columnsExamUser as any}
-        scroll={{ x: 1100, y: 440 }}
         rowKey="examId"
       />
     </div>

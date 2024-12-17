@@ -66,42 +66,49 @@ const PartCreateUpdate: React.FC = () => {
   const [form] = useForm();
   const [formUpload] = useForm();
   const searchParams = useSearchParams();
+  const { partId } = useParams();
 
-  //state
+  // State variables
   const [tabKey, setTabKey] = useState("1");
-
-  // Modal thêm mới
-  const [preview, setPreview] = useState<{
-    fileImage: string;
-    fileVideo: string;
-  }>({
+  const [preview, setPreview] = useState<{ fileImage: string; fileVideo: string }>({
     fileImage: "",
     fileVideo: "",
   });
-
-  const [fileList, setFileList] = useState([]); // State để lưu trữ danh sách tệp tin đã chọn
-  const [previewFile, setPreviewFile] = useState<{
-    open: boolean;
-    file: any;
-  }>({
+  const [fileList, setFileList] = useState([]);
+  const [previewFile, setPreviewFile] = useState<{ open: boolean; file: any }>({
     open: false,
     file: "",
   });
   const [isLoadingUploadLst, setIsLoadingUploadLst] = useState<boolean>(false);
   const [isLoadingFile, setIsLoadingFile] = useState<boolean>(false);
+  const [classList, setClassList] = useState([]);
 
-  // Loại từ vựng
+  // Watch for changes in lessonId and lessonIdAddList
   const lessonId = Form.useWatch("lessonId", form);
   const lessonIdAddList = Form.useWatch("lessonId", formUpload);
+  const classId = Form.useWatch("classId", form);
+
   useEffect(() => {
     form.resetFields();
   }, [tabKey]);
 
-  // API lấy danh sách Bài học
-  const { data: allLesson, isFetching: isFetchingTopic } = useQuery({
-    queryKey: ["getallLesson"],
+  // Fetch all classes
+  const { data: allClass, isFetching: isFetchingClass } = useQuery({
+    queryKey: ["getListClass"],
     queryFn: async () => {
-      const res = await Lesson.getLstLessonByClass();
+      const res = await Learning.getListClass();
+      return res.data?.map((item: { content: any; classRoomId: any }) => ({
+        label: item.content,
+        value: item.classRoomId,
+      }));
+    },
+  });
+
+  // Fetch all lessons based on selected class
+  const { data: allLesson, isFetching: isFetchingTopic } = useQuery({
+    queryKey: ["getallLesson", classId],
+    queryFn: async () => {
+      const res = await Lesson.getLstLessonByClass({ classRoomId: classId });
       return res?.data?.map((item: { lessonId: any; lessonName: any }) => ({
         id: item.lessonId,
         value: item.lessonId,
@@ -109,9 +116,10 @@ const PartCreateUpdate: React.FC = () => {
         text: item.lessonName,
       }));
     },
+    enabled: !!classId,
   });
 
-  // API lấy danh sách phần
+  // Fetch all parts based on selected lesson
   const { data: allPart, isFetching: isFetchingPart } = useQuery({
     queryKey: ["getPartAll", lessonId, lessonIdAddList],
     queryFn: async () => {
@@ -128,7 +136,33 @@ const PartCreateUpdate: React.FC = () => {
     enabled: !!lessonId || !!lessonIdAddList,
   });
 
-  // Thêm mới / chỉnh sửa  từ vựng
+  // Fetch part details for update
+  const { data: partDetails, isFetching: isFetchingPartDetails } = useQuery({
+    queryKey: ["getPartDetails", partId],
+    queryFn: async () => {
+      const res = await Learning.getPartDetails(partId);
+      return res.data;
+    },
+    enabled: !!partId,
+  });
+
+  useEffect(() => {
+    if (partDetails) {
+      form.setFieldsValue({
+        classId: partDetails.classId,
+        lessonId: partDetails.lessonId,
+        partName: partDetails.partName,
+        partImageReqs: partDetails.partImageReqs,
+        partVideoReqs: partDetails.partVideoReqs,
+      });
+      setPreview({
+        fileImage: partDetails.partImageReqs?.[0]?.imageLocation || "",
+        fileVideo: partDetails.partVideoReqs?.[0]?.videoLocation || "",
+      });
+    }
+  }, [partDetails, form]);
+
+  // Mutation for creating a new part
   const mutationCreate = useMutation({
     mutationFn: Learning.addPart,
     onSuccess: () => {
@@ -145,7 +179,24 @@ const PartCreateUpdate: React.FC = () => {
     },
   });
 
-  // Upload file
+  // Mutation for updating a part
+  const mutationUpdate = useMutation({
+    mutationFn: Learning.updatePart,
+    onSuccess: () => {
+      message.success("Cập nhật phần học thành công");
+      router.push("/learning-management/part/public");
+    },
+    onError: ({ response }: any) => {
+      const { data } = response;
+      if (data.code === 409) {
+        message.error("Phần đã tồn tại");
+        return;
+      }
+      message.error("Cập nhật phần thất bại");
+    },
+  });
+
+  // Mutation for uploading a file
   const uploadFileMutation = useMutation({
     mutationFn: UploadModel.uploadFile,
     onSuccess: async (res: any) => {
@@ -177,7 +228,7 @@ const PartCreateUpdate: React.FC = () => {
     },
   });
 
-  // upload
+  // Upload properties
   const props: UploadProps = {
     name: "file",
     onChange(info) {
@@ -202,10 +253,9 @@ const PartCreateUpdate: React.FC = () => {
     },
   };
 
-  // Hàm xử lý sự kiện khi click vào file để xem trước
+  // Handle file preview
   const handlePreview = async (file: any) => {
     if (!file.url && !file.preview) {
-      // Nếu không có URL hoặc preview, thì tạo một preview từ file
       file.preview = await new Promise((resolve) => {
         const reader = new FileReader();
         reader.readAsDataURL(file.originFileObj);
@@ -216,10 +266,9 @@ const PartCreateUpdate: React.FC = () => {
     }
   };
 
-  // Hàm xử lý sự kiện khi thay đổi danh sách file
+  // Handle file change
   const handleChange = ({ fileList }: any) => {
     setIsLoadingFile(true);
-    // Kiểm tra xem danh sách tệp tin có chứa loại tệp tin khác không
     const containsOtherFileType = fileList.some(
       (file: any) =>
         !file.type.startsWith("image/") && !file.type.startsWith("video/"),
@@ -235,16 +284,14 @@ const PartCreateUpdate: React.FC = () => {
     }, 2000);
   };
 
+  // Handle file upload
   const handleUpload = async (value: any) => {
     setIsLoadingUploadLst(true);
-    // Tạo FormData để truyền danh sách file cho API upload
     const formData = new FormData();
     fileList.forEach((file: any) => {
       formData.append("files", file.originFileObj);
     });
 
-    // Gọi API upload với danh sách file đã chọn
-    // Ví dụ sử dụng Fetch:
     const res = await UploadModel.upLoadList(formData);
 
     if (res.code === 200) {
@@ -267,6 +314,7 @@ const PartCreateUpdate: React.FC = () => {
             },
           ],
           lessonId: value.lessonId,
+          classId: value.classId,
         }),
       );
       const response = await Learning.addListPart(body);
@@ -310,22 +358,48 @@ const PartCreateUpdate: React.FC = () => {
                 layout="vertical"
                 className="px-4 pb-4"
                 onFinish={(value) => {
-                  mutationCreate.mutate({
-                    ...value,
-                    partImageReqs: value?.partImageReqs || undefined,
-                    partVideoReqs: value?.partVideoReqs || undefined,
-                  });
+                  if (partId) {
+                    mutationUpdate.mutate({
+                      ...value,
+                      partId,
+                      partImageReqs: value?.partImageReqs || undefined,
+                      partVideoReqs: value?.partVideoReqs || undefined,
+                    });
+                  } else {
+                    mutationCreate.mutate({
+                      ...value,
+                      partImageReqs: value?.partImageReqs || undefined,
+                      partVideoReqs: value?.partVideoReqs || undefined,
+                      classId: value.classId,
+                    });
+                  }
                 }}
               >
+                <Form.Item
+                  name="classId"
+                  label="Lớp học"
+                  required
+                  rules={[validateRequireInput("Lớp học không được bỏ trống")]}
+                  className="mb-2"
+                >
+                  <Select
+                    size="large"
+                    className="w-full"
+                    allowClear
+                    placeholder="Chọn lớp học"
+                    options={classList.map((classItem) => ({
+                      value: classItem.classRoomId,
+                      label: classItem.content,
+                    }))}
+                    loading={isFetchingClass}
+                  />
+                </Form.Item>
+
                 <Form.Item
                   name="lessonId"
                   label="Bài học liên quan"
                   required
-                  rules={[
-                    validateRequireInput(
-                      "Bài học liên quan không được bỏ trống",
-                    ),
-                  ]}
+                  rules={[validateRequireInput("Bài học liên quan không được bỏ trống")]}
                   className="mb-2"
                 >
                   <Select
@@ -411,7 +485,7 @@ const PartCreateUpdate: React.FC = () => {
                 <div className="flex w-full items-center justify-center gap-4">
                   <Button onClick={() => router.back()}>Huỷ</Button>
                   <Button type="primary" htmlType="submit">
-                    Tạo
+                    {partId ? "Cập nhật" : "Tạo"}
                   </Button>
                 </div>
               </Form>
@@ -427,14 +501,29 @@ const PartCreateUpdate: React.FC = () => {
                 }}
               >
                 <Form.Item
+                  name="classId"
+                  label="Lớp học"
+                  required
+                  rules={[validateRequireInput("Lớp học không được bỏ trống")]}
+                  className="mb-2"
+                >
+                  <Select
+                    size="large"
+                    className="w-full"
+                    allowClear
+                    placeholder="Chọn lớp học"
+                    options={classList.map((classItem) => ({
+                      value: classItem.classRoomId,
+                      label: classItem.content,
+                    }))}
+                    loading={isFetchingClass}
+                  />
+                </Form.Item>
+                <Form.Item
                   name="lessonId"
                   label="Bài học liên quan"
                   required
-                  rules={[
-                    validateRequireInput(
-                      "Bài học liên quan không được bỏ trống",
-                    ),
-                  ]}
+                  rules={[validateRequireInput("Bài học liên quan không được bỏ trống")]}
                   className="mb-2"
                 >
                   <Select
@@ -503,7 +592,7 @@ const PartCreateUpdate: React.FC = () => {
           width={600}
           closeIcon={null}
         >
-          <div className="flex w-full items-center justify-center">
+          <div className="flex w-full items-center justify-center">             
             {previewFile && (
               <>
                 {previewFile.file?.originFileObj?.type?.startsWith("image/") ? (
