@@ -158,56 +158,7 @@ const ExamListPage: React.FC = () => {
         ),
       width: 100,
     },
-    {
-      dataIndex: "examId",
-      width: 120,
-      align: "center",
-      render: (value: number, record: any) => {
-        return (
-          <div className="flex items-center gap-4">
-            {allExamUser?.filter(
-              (item: { examId: number }) => item.examId === value,
-            )?.length ? null : (
-              <Button
-                onClick={() => {
-                  mutationAddUser.mutate({
-                    examIds: [value],
-                    userId: user.userId,
-                  });
-                }}
-              >
-                Làm bài
-              </Button>
-            )}
-            {record?.finish ? (
-              <Button
-                onClick={() => router.push(`/exam/${record?.examId}/?redo=true`)}
-              >
-                Làm lại
-              </Button>
-            ) : null}
-          </div>
-        );
-      },
-    },
-    {
-      fixed: "right",
-      dataIndex: "examId",
-      width: 40,
-      align: "center",
-      render: (value: number) => (
-        <div
-          className="flex  w-5 items-center justify-center hover:cursor-pointer"
-          onClick={() => {
-            mutationDeleteUser.mutate(value);
-          }}
-        >
-          <div>
-            <DeleteOutlined style={{ color: colors.red700, fontSize: 24 }} />
-          </div>
-        </div>
-      ),
-    },
+    
   ];
 
   return (
