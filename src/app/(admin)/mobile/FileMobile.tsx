@@ -125,7 +125,7 @@ const FileMobile: React.FC = () => {
           }}
           destroyOnClose
         >
-          <div className=" w-full  ">
+          <div className="w-full">
             <Form
               form={form}
               onFinish={(value) => {
