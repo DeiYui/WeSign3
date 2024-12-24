@@ -3,6 +3,7 @@ import { CloseIcon } from "@/assets/icons";
 import { ConfirmModal } from "@/components/UI/Modal/ConfirmModal";
 import BasicDrawer from "@/components/UI/draw/BasicDraw";
 import Learning from "@/model/Learning";
+import Lesson from "@/model/Lesson"; 
 import UploadModel from "@/model/UploadModel";
 import { validateRequireInput } from "@/utils/validation/validtor";
 import {
@@ -34,72 +35,48 @@ import { isImageLocation } from "./create-edit/PartCreateUpdate";
 import { filterOption } from "@/components/Dashboard/DashboardApp";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import Lesson from "@/model/Lesson";
 
-interface FilterParams {
-  classId: number;
-  lessonId: number;
-  contentSearch: string;
-}
-
-export const TYPE_VOCABULARY: { [key: string]: string } = {
+// Define and export TYPE_VOCABULARY
+export const TYPE_VOCABULARY = {
   WORD: "Từ",
   SENTENCE: "Câu",
   PARAGRAPH: "Đoạn văn",
 };
 
 const PartList = ({ isPrivate }: any) => {
-  // Hooks
   const router = useRouter();
   const [form] = useForm();
   const user: User = useSelector((state: RootState) => state.admin);
 
-  // State variables
-  const [filterParams, setFilterParams] = useState<FilterParams>({
+  const [filterParams, setFilterParams] = useState({
     classId: 0,
     lessonId: 0,
     contentSearch: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-  const [modalPreview, setModalPreview] = useState<{
-    open: boolean;
-    file: string;
-  }>({
+  const [modalPreview, setModalPreview] = useState({
     open: false,
     file: "",
   });
 
-  const [openEdit, setOpenEdit] = useState<boolean>(false);
+  const [openEdit, setOpenEdit] = useState(false);
   const [allParts, setAllParts] = useState([]);
   const [allPartsSearch, setAllPartsSearch] = useState([]);
   const [editingPartId, setEditingPartId] = useState<number | null>(null);
 
-  // Modal confirm delete
-  const [modalConfirm, setModalConfirm] = useState<{
-    open: boolean;
-    rowId: number;
-    typeVocabulary?: string;
-  }>({
+  const [modalConfirm, setModalConfirm] = useState({
     open: false,
     rowId: 0,
     typeVocabulary: "",
   });
 
-  // Modal add new
-  const [preview, setPreview] = useState<{
-    fileImage: string;
-    fileVideo: string;
-  }>({
+  const [preview, setPreview] = useState({
     fileImage: "",
     fileVideo: "",
   });
 
-  // Part details
-  const [detailVocabulary, setDetailVocabulary] = useState<{
-    open: boolean;
-    record: any;
-  }>({
+  const [detailVocabulary, setDetailVocabulary] = useState({
     open: false,
     record: "",
   });
@@ -108,7 +85,6 @@ const PartList = ({ isPrivate }: any) => {
     setCurrentPage(newPage);
   };
 
-  // Fetch all classes
   const { data: allClass, isFetching: isFetchingClass } = useQuery({
     queryKey: ["getListClass"],
     queryFn: async () => {
@@ -120,7 +96,6 @@ const PartList = ({ isPrivate }: any) => {
     },
   });
 
-  // Fetch all lessons based on selected class
   const { data: allLesson, isFetching: isFetchingLesson } = useQuery({
     queryKey: ["getallLesson", filterParams.classId],
     queryFn: async () => {
@@ -135,14 +110,13 @@ const PartList = ({ isPrivate }: any) => {
     enabled: !!filterParams.classId,
   });
 
-  // Fetch all parts based on filter parameters
   const { isFetching, refetch } = useQuery({
     queryKey: ["getAllParts", filterParams],
     queryFn: async () => {
+      console.log("Parameters passed to getPartAll:", filterParams);
       const res = await Learning.getPartAll({
         ...filterParams,
       });
-      // Sort primary elements to the top
       res?.data?.forEach(
         (item: { partImageResList: any[]; partVideoResList: any[] }) => {
           item.partImageResList?.sort(
@@ -163,7 +137,6 @@ const PartList = ({ isPrivate }: any) => {
     },
   });
 
-  // Delete part
   const mutationDel = useMutation({
     mutationFn: Learning.deletePart,
     onSuccess: () => {
@@ -172,7 +145,6 @@ const PartList = ({ isPrivate }: any) => {
     },
   });
 
-  // Create or update part
   const mutationCreate = useMutation({
     mutationFn: Learning.editPart,
     onSuccess: () => {
@@ -185,7 +157,6 @@ const PartList = ({ isPrivate }: any) => {
     },
   });
 
-  // Upload file
   const uploadFileMutation = useMutation({
     mutationFn: UploadModel.uploadFile,
     onSuccess: async (res: any) => {
@@ -219,20 +190,19 @@ const PartList = ({ isPrivate }: any) => {
     },
   });
 
-  // Columns for the table
   const columns = [
     {
       title: "Lớp học",
-      dataIndex: "className",
-      key: "className",
+      dataIndex: "class_room_name",
+      key: "class_room_name",
       render: (content: string) => <div>{content}</div>,
       ellipsis: true,
       width: 100,
     },
     {
       title: "Bài học",
-      dataIndex: "lessonName",
-      key: "lessonName",
+      dataIndex: "lesson_name",
+      key: "lesson_name",
       render: (content: string) => <div>{content}</div>,
       ellipsis: true,
       width: 100,
@@ -337,6 +307,7 @@ const PartList = ({ isPrivate }: any) => {
               setModalConfirm({
                 open: true,
                 rowId: value,
+                typeVocabulary: "",
               })
             }
           />
@@ -346,7 +317,6 @@ const PartList = ({ isPrivate }: any) => {
     },
   ];
 
-  // Upload properties
   const props: UploadProps = {
     name: "file",
     onChange(info) {
@@ -377,7 +347,6 @@ const PartList = ({ isPrivate }: any) => {
     <div className="w-full p-4">
       <h1 className="mb-4 text-2xl font-bold">Danh sách phần</h1>
       <div className="mb-4 flex items-center justify-between">
-        {/* Filter */}
         <div className="flex w-2/3 gap-4">
           <Select
             size="large"
@@ -437,7 +406,6 @@ const PartList = ({ isPrivate }: any) => {
         }}
       />
 
-      {/* Edit */}
       <BasicDrawer
         width={680}
         title={`Chỉnh sửa`}
@@ -577,7 +545,7 @@ const PartList = ({ isPrivate }: any) => {
               ) : null}
             </div>
             <div className="flex w-full items-center justify-center gap-4">
-              <Button onClick={() => setOpenEdit(false)}>Huỷ</Button>
+              <Button onClick={() => router.back()}>Huỷ</Button>
               <Button type="primary" htmlType="submit">
                 {editingPartId ? "Cập nhật" : "Tạo"}
               </Button>
@@ -586,7 +554,6 @@ const PartList = ({ isPrivate }: any) => {
         </div>
       </BasicDrawer>
 
-      {/* Modal preview */}
       <Modal
         open={modalPreview.open}
         onCancel={() => setModalPreview({ file: "", open: false })}
@@ -623,7 +590,6 @@ const PartList = ({ isPrivate }: any) => {
       <ConfirmModal
         visible={modalConfirm.open}
         iconType="DELETE"
-       
         title={`Xóa khỏi phần`}
         content={`Hành động này sẽ xóa phần vĩnh viễn khỏi bài học hiện tại`}
         confirmButtonText="Xác nhận"

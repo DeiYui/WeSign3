@@ -1,5 +1,6 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { Base } from "./Base";
+import axios from "axios";
 
 class Learning extends Base {
   // Danh sách topic
@@ -250,8 +251,13 @@ class Learning extends Base {
     const res = await this.apiPut(`/parts`, body);
     return res.data;
   };
+  
   deletePart = async (id?: number) => {
     const res = await this.apiDelete(`/parts/${id}`);
+    return res.data;
+  };
+  updatePart = async (partId: string, partData: any) => {
+    const res = await this.apiPut(`/parts/${partId}`, partData);
     return res.data;
   };
 }

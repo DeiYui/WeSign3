@@ -61,6 +61,11 @@ export function isImageLocation(url: string) {
 const { TabPane } = Tabs;
 const { TextArea } = Input;
 
+interface ClassItem {
+  classRoomId: string;
+  content: string;
+}
+
 const PartCreateUpdate: React.FC = () => {
   const router = useRouter();
   const [form] = useForm();
@@ -81,7 +86,7 @@ const PartCreateUpdate: React.FC = () => {
   });
   const [isLoadingUploadLst, setIsLoadingUploadLst] = useState<boolean>(false);
   const [isLoadingFile, setIsLoadingFile] = useState<boolean>(false);
-  const [classList, setClassList] = useState([]);
+  const [classList, setClassList] = useState<ClassItem[]>([]);
 
   // Watch for changes in lessonId and lessonIdAddList
   const lessonId = Form.useWatch("lessonId", form);
@@ -97,10 +102,12 @@ const PartCreateUpdate: React.FC = () => {
     queryKey: ["getListClass"],
     queryFn: async () => {
       const res = await Learning.getListClass();
-      return res.data?.map((item: { content: any; classRoomId: any }) => ({
+      const data = res.data?.map((item: ClassItem) => ({
         label: item.content,
         value: item.classRoomId,
       }));
+      setClassList(data);
+      return data;
     },
   });
 
@@ -140,7 +147,7 @@ const PartCreateUpdate: React.FC = () => {
   const { data: partDetails, isFetching: isFetchingPartDetails } = useQuery({
     queryKey: ["getPartDetails", partId],
     queryFn: async () => {
-      const res = await Learning.getPartDetails(partId);
+      const res = await Learning.getPartDetail(partId);
       return res.data;
     },
     enabled: !!partId,
@@ -181,7 +188,12 @@ const PartCreateUpdate: React.FC = () => {
 
   // Mutation for updating a part
   const mutationUpdate = useMutation({
-    mutationFn: Learning.updatePart,
+    mutationFn: (partData) => {
+      if (typeof partId === 'string') {
+        return Learning.updatePart(partId, partData);
+      }
+      throw new Error('Invalid partId');
+    },
     onSuccess: () => {
       message.success("Cập nhật phần học thành công");
       router.push("/learning-management/part/public");
