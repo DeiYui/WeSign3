@@ -193,16 +193,16 @@ const PartList = ({ isPrivate }: any) => {
   const columns = [
     {
       title: "Lớp học",
-      dataIndex: "class_room_name",
-      key: "class_room_name",
+      dataIndex: "classRoomName",
+      key: "classRoomName",
       render: (content: string) => <div>{content}</div>,
       ellipsis: true,
       width: 100,
     },
     {
       title: "Bài học",
-      dataIndex: "lesson_name",
-      key: "lesson_name",
+      dataIndex: "lessonName",
+      key: "lessonName",
       render: (content: string) => <div>{content}</div>,
       ellipsis: true,
       width: 100,
