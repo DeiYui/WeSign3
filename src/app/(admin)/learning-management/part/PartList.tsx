@@ -31,25 +31,15 @@ import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { CustomTable } from "../check-list/ExamList";
 import ModalListMedia from "./create-edit/ModalListMedia";
-import { isImageLocation } from "./create-edit/PartCreateUpdate";
-import { filterOption } from "@/components/Dashboard/DashboardApp";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
 
-// Define and export TYPE_VOCABULARY
-export const TYPE_VOCABULARY = {
-  WORD: "Từ",
-  SENTENCE: "Câu",
-  PARAGRAPH: "Đoạn văn",
-};
+const filterOption = (input: string, option: any) =>
+  option?.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 
 const PartList = ({ isPrivate }: any) => {
   const router = useRouter();
   const [form] = useForm();
-  const user: User = useSelector((state: RootState) => state.admin);
-
   const [filterParams, setFilterParams] = useState({
-    classId: 0,
+    classRoomId: 0,
     lessonId: 0,
     contentSearch: "",
   });
@@ -97,9 +87,9 @@ const PartList = ({ isPrivate }: any) => {
   });
 
   const { data: allLesson, isFetching: isFetchingLesson } = useQuery({
-    queryKey: ["getallLesson", filterParams.classId],
+    queryKey: ["getLstLessonByClass", filterParams.classRoomId],
     queryFn: async () => {
-      const res = await Lesson.getLstLessonByClass({ classRoomId: filterParams.classId });
+      const res = await Lesson.getLstLessonByClass({ classRoomId: filterParams.classRoomId });
       return res?.data?.map((item: { lessonId: any; lessonName: any }) => ({
         id: item.lessonId,
         value: item.lessonId,
@@ -107,13 +97,12 @@ const PartList = ({ isPrivate }: any) => {
         text: item.lessonName,
       }));
     },
-    enabled: !!filterParams.classId,
+    enabled: !!filterParams.classRoomId,
   });
 
   const { isFetching, refetch } = useQuery({
-    queryKey: ["getAllParts", filterParams],
+    queryKey: ["getPartAll", filterParams],
     queryFn: async () => {
-      console.log("Parameters passed to getPartAll:", filterParams);
       const res = await Learning.getPartAll({
         ...filterParams,
       });
@@ -136,6 +125,17 @@ const PartList = ({ isPrivate }: any) => {
       return res.data;
     },
   });
+
+  useEffect(() => {
+    if (filterParams.contentSearch) {
+      const filteredParts = allParts.filter((part: any) =>
+        part.partName.toLowerCase().includes(filterParams.contentSearch.toLowerCase())
+      );
+      setAllPartsSearch(filteredParts);
+    } else {
+      setAllPartsSearch(allParts);
+    }
+  }, [filterParams.contentSearch, allParts]);
 
   const mutationDel = useMutation({
     mutationFn: Learning.deletePart,
@@ -356,7 +356,7 @@ const PartList = ({ isPrivate }: any) => {
             placeholder="Chọn lớp học"
             options={allClass}
             onChange={(value) =>
-              setFilterParams({ ...filterParams, classId: value })
+              setFilterParams({ ...filterParams, classRoomId: value })
             }
             filterOption={filterOption}
           />
@@ -444,7 +444,7 @@ const PartList = ({ isPrivate }: any) => {
             <Form.Item name="partId" noStyle hidden />
 
             <Form.Item
-              name="classId"
+              name="classRoomId"
               label="Lớp học"
               required
               rules={[validateRequireInput("Lớp học không được bỏ trống")]}
