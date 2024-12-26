@@ -88,10 +88,10 @@ const PartCreateUpdate: React.FC = () => {
   const [isLoadingFile, setIsLoadingFile] = useState<boolean>(false);
   const [classList, setClassList] = useState<ClassItem[]>([]);
 
-  // Watch for changes in lessonId and lessonIdAddList
+  // Watch for changes in lessonId
   const lessonId = Form.useWatch("lessonId", form);
-  const lessonIdAddList = Form.useWatch("lessonId", formUpload);
-  const classId = Form.useWatch("classId", form);
+  const classRoomId = Form.useWatch("classRoomId", form);
+  const classRoomIdUpload = Form.useWatch("classRoomId", formUpload);
 
   useEffect(() => {
     form.resetFields();
@@ -113,9 +113,9 @@ const PartCreateUpdate: React.FC = () => {
 
   // Fetch all lessons based on selected class
   const { data: allLesson, isFetching: isFetchingTopic } = useQuery({
-    queryKey: ["getallLesson", classId],
+    queryKey: ["getLstLessonByClass", classRoomId],
     queryFn: async () => {
-      const res = await Lesson.getLstLessonByClass({ classRoomId: classId });
+      const res = await Lesson.getLstLessonByClass({ classRoomId: classRoomId });
       return res?.data?.map((item: { lessonId: any; lessonName: any }) => ({
         id: item.lessonId,
         value: item.lessonId,
@@ -123,15 +123,30 @@ const PartCreateUpdate: React.FC = () => {
         text: item.lessonName,
       }));
     },
-    enabled: !!classId,
+    enabled: !!classRoomId,
+  });
+
+  // Fetch all lessons based on selected class for formUpload
+  const { data: allLessonUpload, isFetching: isFetchingTopicUpload } = useQuery({
+    queryKey: ["getLstLessonByClass", classRoomIdUpload],
+    queryFn: async () => {
+      const res = await Lesson.getLstLessonByClass({ classRoomId: classRoomIdUpload });
+      return res?.data?.map((item: { lessonId: any; lessonName: any }) => ({
+        id: item.lessonId,
+        value: item.lessonId,
+        label: item.lessonName,
+        text: item.lessonName,
+      }));
+    },
+    enabled: !!classRoomIdUpload,
   });
 
   // Fetch all parts based on selected lesson
   const { data: allPart, isFetching: isFetchingPart } = useQuery({
-    queryKey: ["getPartAll", lessonId, lessonIdAddList],
+    queryKey: ["getPartAll", lessonId],
     queryFn: async () => {
       const res = await Learning.getPartAll({
-        lessonId: lessonId || lessonIdAddList,
+        lessonId: lessonId,
       });
       return res?.data?.map((item: { partId: any; partName: any }) => ({
         id: item.partId,
@@ -140,12 +155,12 @@ const PartCreateUpdate: React.FC = () => {
         text: item.partName,
       }));
     },
-    enabled: !!lessonId || !!lessonIdAddList,
+    enabled: !!lessonId,
   });
 
   // Fetch part details for update
   const { data: partDetails, isFetching: isFetchingPartDetails } = useQuery({
-    queryKey: ["getPartDetails", partId],
+    queryKey: ["getPartDetail", partId],
     queryFn: async () => {
       const res = await Learning.getPartDetail(partId);
       return res.data;
@@ -156,7 +171,7 @@ const PartCreateUpdate: React.FC = () => {
   useEffect(() => {
     if (partDetails) {
       form.setFieldsValue({
-        classId: partDetails.classId,
+        classRoomId: partDetails.classRoomId,
         lessonId: partDetails.lessonId,
         partName: partDetails.partName,
         partImageReqs: partDetails.partImageReqs,
@@ -326,7 +341,7 @@ const PartCreateUpdate: React.FC = () => {
             },
           ],
           lessonId: value.lessonId,
-          classId: value.classId,
+          classRoomId: value.classRoomId,
         }),
       );
       const response = await Learning.addListPart(body);
@@ -382,13 +397,13 @@ const PartCreateUpdate: React.FC = () => {
                       ...value,
                       partImageReqs: value?.partImageReqs || undefined,
                       partVideoReqs: value?.partVideoReqs || undefined,
-                      classId: value.classId,
+                      classRoomId: value.classRoomId,
                     });
                   }
                 }}
               >
                 <Form.Item
-                  name="classId"
+                  name="classRoomId"
                   label="Lớp học"
                   required
                   rules={[validateRequireInput("Lớp học không được bỏ trống")]}
@@ -399,11 +414,17 @@ const PartCreateUpdate: React.FC = () => {
                     className="w-full"
                     allowClear
                     placeholder="Chọn lớp học"
-                    options={classList.map((classItem) => ({
-                      value: classItem.classRoomId,
-                      label: classItem.content,
-                    }))}
+                    options={allClass}
                     loading={isFetchingClass}
+                    showSearch
+                    filterOption={filterOption}
+                    notFoundContent={
+                      isFetchingClass ? (
+                        <Spin size="small" />
+                      ) : (
+                        "Không tìm thấy lớp học"
+                      )
+                    }
                   />
                 </Form.Item>
 
@@ -513,7 +534,7 @@ const PartCreateUpdate: React.FC = () => {
                 }}
               >
                 <Form.Item
-                  name="classId"
+                  name="classRoomId"
                   label="Lớp học"
                   required
                   rules={[validateRequireInput("Lớp học không được bỏ trống")]}
@@ -524,11 +545,17 @@ const PartCreateUpdate: React.FC = () => {
                     className="w-full"
                     allowClear
                     placeholder="Chọn lớp học"
-                    options={classList.map((classItem) => ({
-                      value: classItem.classRoomId,
-                      label: classItem.content,
-                    }))}
+                    options={allClass}
                     loading={isFetchingClass}
+                    showSearch
+                    filterOption={filterOption}
+                    notFoundContent={
+                      isFetchingClass ? (
+                        <Spin size="small" />
+                      ) : (
+                        "Không tìm thấy lớp học"
+                      )
+                    }
                   />
                 </Form.Item>
                 <Form.Item
@@ -543,9 +570,17 @@ const PartCreateUpdate: React.FC = () => {
                     className="w-full"
                     allowClear
                     placeholder="Chọn bài học"
-                    options={allLesson}
+                    options={allLessonUpload}
+                    loading={isFetchingTopicUpload}
                     showSearch
                     filterOption={filterOption}
+                    notFoundContent={
+                      isFetchingTopicUpload ? (
+                        <Spin size="small" />
+                      ) : (
+                        "Không tìm thấy bài học"
+                      )
+                    }
                   />
                 </Form.Item>
                 <Form.Item
