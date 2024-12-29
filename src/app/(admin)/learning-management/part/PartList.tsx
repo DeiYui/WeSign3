@@ -32,9 +32,18 @@ import React, { useState, useEffect } from "react";
 import { CustomTable } from "../check-list/ExamList";
 import ModalListMedia from "./create-edit/ModalListMedia";
 
+export const TYPE_VOCABULARY = {
+  IMAGE: "IMAGE",
+  VIDEO: "VIDEO"
+};
+
 const filterOption = (input: string, option: any) =>
   option?.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
-
+const isImageLocation = (res: any) => {
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+  const fileExtension = res.split('.').pop().toLowerCase();
+  return imageExtensions.includes(fileExtension);
+};
 const PartList = ({ isPrivate }: any) => {
   const router = useRouter();
   const [form] = useForm();
