@@ -1,13 +1,12 @@
 "use client";
 import { filterOption } from "@/components/Dashboard/DashboardApp";
 import Breadcrumb from "@/components/UI/Breadcrumbs/Breadcrumb";
-import { AvatarUpload } from "@/components/UI/Upload/AvatarUpload";
 import Learning from "@/model/Learning";
 import Lesson from "@/model/Lesson";
 import UploadModel from "@/model/UploadModel";
 import { validateRequireInput } from "@/utils/validation/validtor";
 import { UploadOutlined } from "@ant-design/icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Button,
   Form,
@@ -22,13 +21,8 @@ import {
   message,
 } from "antd";
 import { useForm } from "antd/es/form/Form";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { setTimeout } from "timers";
 
@@ -66,16 +60,19 @@ interface ClassItem {
   content: string;
 }
 
-const PartCreateUpdate: React.FC = () => {
+const PartCreateUpdate = ({ setOpenCreateModal }: any) => {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const [form] = useForm();
   const [formUpload] = useForm();
-  const searchParams = useSearchParams();
   const { partId } = useParams();
 
   // State variables
   const [tabKey, setTabKey] = useState("1");
-  const [preview, setPreview] = useState<{ fileImage: string; fileVideo: string }>({
+  const [preview, setPreview] = useState<{
+    fileImage: string;
+    fileVideo: string;
+  }>({
     fileImage: "",
     fileVideo: "",
   });
@@ -115,7 +112,9 @@ const PartCreateUpdate: React.FC = () => {
   const { data: allLesson, isFetching: isFetchingTopic } = useQuery({
     queryKey: ["getLstLessonByClass", classRoomId],
     queryFn: async () => {
-      const res = await Lesson.getLstLessonByClass({ classRoomId: classRoomId });
+      const res = await Lesson.getLstLessonByClass({
+        classRoomId: classRoomId,
+      });
       return res?.data?.map((item: { lessonId: any; lessonName: any }) => ({
         id: item.lessonId,
         value: item.lessonId,
@@ -127,19 +126,23 @@ const PartCreateUpdate: React.FC = () => {
   });
 
   // Fetch all lessons based on selected class for formUpload
-  const { data: allLessonUpload, isFetching: isFetchingTopicUpload } = useQuery({
-    queryKey: ["getLstLessonByClass", classRoomIdUpload],
-    queryFn: async () => {
-      const res = await Lesson.getLstLessonByClass({ classRoomId: classRoomIdUpload });
-      return res?.data?.map((item: { lessonId: any; lessonName: any }) => ({
-        id: item.lessonId,
-        value: item.lessonId,
-        label: item.lessonName,
-        text: item.lessonName,
-      }));
+  const { data: allLessonUpload, isFetching: isFetchingTopicUpload } = useQuery(
+    {
+      queryKey: ["getLstLessonByClass", classRoomIdUpload],
+      queryFn: async () => {
+        const res = await Lesson.getLstLessonByClass({
+          classRoomId: classRoomIdUpload,
+        });
+        return res?.data?.map((item: { lessonId: any; lessonName: any }) => ({
+          id: item.lessonId,
+          value: item.lessonId,
+          label: item.lessonName,
+          text: item.lessonName,
+        }));
+      },
+      enabled: !!classRoomIdUpload,
     },
-    enabled: !!classRoomIdUpload,
-  });
+  );
 
   // Fetch all parts based on selected lesson
   const { data: allPart, isFetching: isFetchingPart } = useQuery({
@@ -189,7 +192,8 @@ const PartCreateUpdate: React.FC = () => {
     mutationFn: Learning.addPart,
     onSuccess: () => {
       message.success("Thêm mới phần học thành công");
-      router.push("/learning-management/part/public");
+      setOpenCreateModal(false);
+      queryClient.invalidateQueries({ queryKey: ["getPartAll"] });
     },
     onError: ({ response }: any) => {
       const { data } = response;
@@ -204,10 +208,10 @@ const PartCreateUpdate: React.FC = () => {
   // Mutation for updating a part
   const mutationUpdate = useMutation({
     mutationFn: (partData) => {
-      if (typeof partId === 'string') {
+      if (typeof partId === "string") {
         return Learning.updatePart(partId, partData);
       }
-      throw new Error('Invalid partId');
+      throw new Error("Invalid partId");
     },
     onSuccess: () => {
       message.success("Cập nhật phần học thành công");
@@ -361,9 +365,9 @@ const PartCreateUpdate: React.FC = () => {
 
   return (
     <Spin spinning={isLoadingUploadLst}>
-      <div className="w-full p-4">
+      <div className="w-full">
         <Breadcrumb
-          pageName="Thêm mới phần"
+          pageName=""
           itemBreadcrumb={[
             { pathName: "/", name: "Trang chủ" },
             {
@@ -432,7 +436,11 @@ const PartCreateUpdate: React.FC = () => {
                   name="lessonId"
                   label="Bài học liên quan"
                   required
-                  rules={[validateRequireInput("Bài học liên quan không được bỏ trống")]}
+                  rules={[
+                    validateRequireInput(
+                      "Bài học liên quan không được bỏ trống",
+                    ),
+                  ]}
                   className="mb-2"
                 >
                   <Select
@@ -516,7 +524,7 @@ const PartCreateUpdate: React.FC = () => {
                   ) : null}
                 </div>
                 <div className="flex w-full items-center justify-center gap-4">
-                  <Button onClick={() => router.back()}>Huỷ</Button>
+                  <Button onClick={() => setOpenCreateModal(false)}>Huỷ</Button>
                   <Button type="primary" htmlType="submit">
                     {partId ? "Cập nhật" : "Tạo"}
                   </Button>
@@ -562,7 +570,11 @@ const PartCreateUpdate: React.FC = () => {
                   name="lessonId"
                   label="Bài học liên quan"
                   required
-                  rules={[validateRequireInput("Bài học liên quan không được bỏ trống")]}
+                  rules={[
+                    validateRequireInput(
+                      "Bài học liên quan không được bỏ trống",
+                    ),
+                  ]}
                   className="mb-2"
                 >
                   <Select
@@ -616,7 +628,7 @@ const PartCreateUpdate: React.FC = () => {
                   </CustomUpload>
                 </div>
                 <div className="flex w-full items-center justify-center gap-4">
-                  <Button onClick={() => router.back()}>Huỷ</Button>
+                  <Button onClick={() => setOpenCreateModal(false)}>Huỷ</Button>
                   <Button
                     type="primary"
                     htmlType="submit"
@@ -639,7 +651,7 @@ const PartCreateUpdate: React.FC = () => {
           width={600}
           closeIcon={null}
         >
-          <div className="flex w-full items-center justify-center">             
+          <div className="flex w-full items-center justify-center">
             {previewFile && (
               <>
                 {previewFile.file?.originFileObj?.type?.startsWith("image/") ? (

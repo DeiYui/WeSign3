@@ -3,7 +3,7 @@ import { CloseIcon } from "@/assets/icons";
 import { ConfirmModal } from "@/components/UI/Modal/ConfirmModal";
 import BasicDrawer from "@/components/UI/draw/BasicDraw";
 import Learning from "@/model/Learning";
-import Lesson from "@/model/Lesson"; 
+import Lesson from "@/model/Lesson";
 import UploadModel from "@/model/UploadModel";
 import { validateRequireInput } from "@/utils/validation/validtor";
 import {
@@ -31,17 +31,18 @@ import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { CustomTable } from "../check-list/ExamList";
 import ModalListMedia from "./create-edit/ModalListMedia";
+import PartCreateUpdate from "./create-edit/PartCreateUpdate";
 
 export const TYPE_VOCABULARY = {
   IMAGE: "IMAGE",
-  VIDEO: "VIDEO"
+  VIDEO: "VIDEO",
 };
 
 const filterOption = (input: string, option: any) =>
   option?.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 const isImageLocation = (res: any) => {
-  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-  const fileExtension = res.split('.').pop().toLowerCase();
+  const imageExtensions = ["jpg", "jpeg", "png", "gif"];
+  const fileExtension = res.split(".").pop().toLowerCase();
   return imageExtensions.includes(fileExtension);
 };
 const PartList = ({ isPrivate }: any) => {
@@ -59,6 +60,7 @@ const PartList = ({ isPrivate }: any) => {
     file: "",
   });
 
+  const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [allParts, setAllParts] = useState([]);
   const [allPartsSearch, setAllPartsSearch] = useState([]);
@@ -98,7 +100,9 @@ const PartList = ({ isPrivate }: any) => {
   const { data: allLesson, isFetching: isFetchingLesson } = useQuery({
     queryKey: ["getLstLessonByClass", filterParams.classRoomId],
     queryFn: async () => {
-      const res = await Lesson.getLstLessonByClass({ classRoomId: filterParams.classRoomId });
+      const res = await Lesson.getLstLessonByClass({
+        classRoomId: filterParams.classRoomId,
+      });
       return res?.data?.map((item: { lessonId: any; lessonName: any }) => ({
         id: item.lessonId,
         value: item.lessonId,
@@ -138,7 +142,9 @@ const PartList = ({ isPrivate }: any) => {
   useEffect(() => {
     if (filterParams.contentSearch) {
       const filteredParts = allParts.filter((part: any) =>
-        part.partName.toLowerCase().includes(filterParams.contentSearch.toLowerCase())
+        part.partName
+          .toLowerCase()
+          .includes(filterParams.contentSearch.toLowerCase()),
       );
       setAllPartsSearch(filteredParts);
     } else {
@@ -306,6 +312,10 @@ const PartList = ({ isPrivate }: any) => {
                 fileImage: record?.partImageResList[0]?.imageLocation,
                 fileVideo: record?.partVideoResList[0]?.videoLocation,
               });
+              setFilterParams({
+                ...filterParams,
+                classRoomId: record.classRoomId,
+              });
               form.setFieldsValue(record);
             }}
           />
@@ -386,7 +396,10 @@ const PartList = ({ isPrivate }: any) => {
             className="w-1/3"
             placeholder="Nhập tên phần"
             onChange={(e) =>
-              setFilterParams({ ...filterParams, contentSearch: e.target.value })
+              setFilterParams({
+                ...filterParams,
+                contentSearch: e.target.value,
+              })
             }
           />
         </div>
@@ -394,7 +407,8 @@ const PartList = ({ isPrivate }: any) => {
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => {
-            router.push(`/learning-management/part/create-edit`);
+            // router.push(`/learning-management/part/create-edit`);
+            setOpenCreateModal(true);
           }}
         >
           Thêm mới
@@ -415,6 +429,7 @@ const PartList = ({ isPrivate }: any) => {
         }}
       />
 
+      {/* Chỉnh sửa */}
       <BasicDrawer
         width={680}
         title={`Chỉnh sửa`}
@@ -447,7 +462,11 @@ const PartList = ({ isPrivate }: any) => {
             layout="vertical"
             className="px-4 pb-4"
             onFinish={(value) => {
-              mutationCreate.mutate({ ...value, partId: editingPartId, private: isPrivate });
+              mutationCreate.mutate({
+                ...value,
+                partId: editingPartId,
+                private: isPrivate,
+              });
             }}
           >
             <Form.Item name="partId" noStyle hidden />
@@ -473,7 +492,9 @@ const PartList = ({ isPrivate }: any) => {
               name="lessonId"
               label="Bài học liên quan"
               required
-              rules={[validateRequireInput("Bài học liên quan không được bỏ trống")]}
+              rules={[
+                validateRequireInput("Bài học liên quan không được bỏ trống"),
+              ]}
               className="mb-2"
             >
               <Select
@@ -486,7 +507,11 @@ const PartList = ({ isPrivate }: any) => {
                 showSearch
                 filterOption={filterOption}
                 notFoundContent={
-                  isFetchingLesson ? <Spin size="small" /> : "Không tìm thấy bài học"
+                  isFetchingLesson ? (
+                    <Spin size="small" />
+                  ) : (
+                    "Không tìm thấy bài học"
+                  )
                 }
               />
             </Form.Item>
@@ -562,6 +587,38 @@ const PartList = ({ isPrivate }: any) => {
           </Form>
         </div>
       </BasicDrawer>
+
+      {/* Tạo mới */}
+      {openCreateModal && (
+        <BasicDrawer
+          width={680}
+          title="Thêm mới phần"
+          onClose={() => setOpenCreateModal(false)}
+          open={openCreateModal}
+          destroyOnClose
+          onOk={() => {
+            form.submit();
+          }}
+          maskClosable={false}
+          footer={null}
+          extra={
+            <div className="flex items-center gap-x-4">
+              <Button
+                className="hover:opacity-60 "
+                onClick={() => {
+                  setOpenCreateModal(false);
+                }}
+                type="link"
+                style={{ padding: 0 }}
+              >
+                <CloseIcon size={20} />
+              </Button>
+            </div>
+          }
+        >
+          <PartCreateUpdate setOpenCreateModal={setOpenCreateModal} />
+        </BasicDrawer>
+      )}
 
       <Modal
         open={modalPreview.open}
