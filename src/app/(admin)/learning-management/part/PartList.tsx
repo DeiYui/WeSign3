@@ -578,12 +578,12 @@ const PartList = ({ isPrivate }: any) => {
                 </>
               ) : null}
             </div>
-            <div className="flex w-full items-center justify-center gap-4">
+            {/* <div className="flex w-full items-center justify-center gap-4">
               <Button onClick={() => router.back()}>Huỷ</Button>
               <Button type="primary" htmlType="submit">
                 {editingPartId ? "Cập nhật" : "Tạo"}
               </Button>
-            </div>
+            </div> */}
           </Form>
         </div>
       </BasicDrawer>

@@ -1,5 +1,4 @@
 import { notification } from "antd";
-import { NotificationPlacement } from "antd/es/notification/interface";
 import { AxiosError } from "axios";
 
 export const API_URL = `https://reqres.in/api`;

@@ -1,0 +1,11 @@
+node_modules
+
+# Ignore yarn error logs
+yarn-error.log
+.env
+Dockerfile
+npm-debug.log
+README.md
+docker
+.git
+data/
