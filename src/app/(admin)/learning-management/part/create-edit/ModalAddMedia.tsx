@@ -69,18 +69,20 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const handleUpload = async () => {
     setIsLoading(true);
-    const formData = new FormData();
-    fileList.forEach((file) => {
-      formData.append("files", file.originFileObj);
-    });
+    try {
+      const formData = new FormData();
+      fileList.forEach((file) => {
+        formData.append("files", file.originFileObj);
+      });
 
-    const res = await UploadModel.upLoadList(formData);
-    const images = res.data
-      ?.filter((item: { imageLocation: null }) => item.imageLocation !== null)
-      .map((item: { imageLocation: any }) => item.imageLocation);
-    const videos = res.data
-      ?.filter((item: { videoLocation: null }) => item.videoLocation !== null)
-      .map((item: { videoLocation: any }) => item.videoLocation);
+      const res = await UploadModel.upLoadList(formData);
+      if (res.code === 200) {
+        const images = res.data
+          ?.filter((item: { imageLocation: null }) => item.imageLocation !== null)
+          .map((item: { imageLocation: any }) => item.imageLocation);
+        const videos = res.data
+          ?.filter((item: { videoLocation: null }) => item.videoLocation !== null)
+          .map((item: { videoLocation: any }) => item.videoLocation);
 
     const bodyListImage = images?.map((imageLocation: any) => ({
       imageLocation,
@@ -92,22 +94,36 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
       partId: recordMedia.partId,
     }));
 
-    if (res.code === 200) {
-      const responseImage = await MediaModel.postImagePart(bodyListImage);
-      const responseVideo = await MediaModel.postVideoPart(bodyListVideo);
+        // Only make API calls if there are items to upload
+        let success = true;
+        if (bodyListImage.length) {
+          const responseImage = await MediaModel.postImagePart(bodyListImage);
+          if (responseImage.code !== 200) {
+            message.error("Lỗi upload images");
+            success = false;
+          }
+        }
+        
+        if (bodyListVideo.length) {
+          const responseVideo = await MediaModel.postVideoPart(bodyListVideo);
+          if (responseVideo.code !== 200) {
+            message.error("Lỗi upload video");
+            success = false;
+          }
+        }
 
-      if (responseImage.code === 200 && responseVideo.code === 200) {
-        message.success("Thêm danh sách hình ảnh/video thành công");
-        setFileList([]);
-        onClose();
-        refetch();
-      } else if (responseImage.code === 200) {
-        message.error("Lỗi upload video");
+        if (success) {
+          message.success("Thêm danh sách hình ảnh/video thành công");
+          setFileList([]);
+          onClose();
+          refetch();
+        }
       } else {
-        message.error("Lỗi upload images");
+        message.error("Lỗi upload files");
       }
-    } else {
-      message.error("Lỗi upload files");
+    } catch (error) {
+      console.error("Upload error:", error);
+      message.error("Có lỗi xảy ra khi tải lên");
     }
     setIsLoading(false);
   };
