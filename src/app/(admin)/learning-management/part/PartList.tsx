@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import { CloseIcon } from "@/assets/icons";
 import { ConfirmModal } from "@/components/UI/Modal/ConfirmModal";
 import BasicDrawer from "@/components/UI/draw/BasicDraw";
@@ -133,6 +133,7 @@ const PartList = ({ isPrivate }: any) => {
           );
         },
       );
+      console.log("Dữ liệu mới sau khi refetch:", res?.data);
       setAllParts(res?.data);
       setAllPartsSearch(res?.data);
       return res.data;
@@ -165,7 +166,7 @@ const PartList = ({ isPrivate }: any) => {
     onSuccess: () => {
       message.success("Cập nhật phần thành công");
       setOpenEdit(false);
-      refetch();
+      refetch(); // Refetch the data to update the table
     },
     onError: () => {
       message.error("Cập nhật phần thất bại");
@@ -462,11 +463,19 @@ const PartList = ({ isPrivate }: any) => {
             layout="vertical"
             className="px-4 pb-4"
             onFinish={(value) => {
-              mutationCreate.mutate({
-                ...value,
-                partId: editingPartId,
-                private: isPrivate,
-              });
+
+              mutationCreate.mutate(
+                {
+                  ...value,
+                  partId: editingPartId,
+                  private: isPrivate,
+                },
+                {
+                  onSuccess: () => {
+                    refetch(); // Refetch the data to update the table
+                  },
+                }
+              );
             }}
           >
             <Form.Item name="partId" noStyle hidden />
@@ -526,64 +535,6 @@ const PartList = ({ isPrivate }: any) => {
               <Input placeholder="Nhập tên phần" />
             </Form.Item>
 
-            <div className="flex flex-col gap-4">
-              <Form.Item name="partImageReqs" noStyle />
-              <Form.Item name="partVideoReqs" noStyle />
-
-              <Upload {...props} showUploadList={false} accept="image/*">
-                <Button icon={<UploadOutlined />}>Tải file ảnh</Button>
-              </Upload>
-              <Upload {...props} showUploadList={false} accept="video/*">
-                <Button icon={<UploadOutlined />}>Tải file video</Button>
-              </Upload>
-            </div>
-            <div className="mb-3 flex items-center justify-center gap-4">
-              {preview.fileImage ? (
-                <>
-                  <Image
-                    className=""
-                    src={preview.fileImage}
-                    alt="Ảnh chủ đề"
-                    style={{ width: 300 }}
-                  />
-                  <Button
-                    onClick={() => {
-                      setPreview({
-                        ...preview,
-                        fileImage: "",
-                      });
-                      form.setFieldValue("vocabularyImageReqs", undefined);
-                    }}
-                  >
-                    Xoá ảnh
-                  </Button>
-                </>
-              ) : null}
-              {preview.fileVideo ? (
-                <>
-                  <video controls style={{ width: 400, height: "auto" }}>
-                    <source src={preview.fileVideo} />
-                  </video>
-                  <Button
-                    onClick={() => {
-                      setPreview({
-                        ...preview,
-                        fileVideo: "",
-                      });
-                      form.setFieldValue("vocabularyVideoReqs", undefined);
-                    }}
-                  >
-                    Xoá video
-                  </Button>
-                </>
-              ) : null}
-            </div>
-            {/* <div className="flex w-full items-center justify-center gap-4">
-              <Button onClick={() => router.back()}>Huỷ</Button>
-              <Button type="primary" htmlType="submit">
-                {editingPartId ? "Cập nhật" : "Tạo"}
-              </Button>
-            </div> */}
           </Form>
         </div>
       </BasicDrawer>

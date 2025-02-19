@@ -1,4 +1,4 @@
-"use clent";
+"use client";
 import BasicDrawer from "@/components/UI/draw/BasicDraw";
 import Learning from "@/model/Learning";
 import MediaModel from "@/model/MediaModel";
@@ -135,26 +135,6 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
     enabled: !!showModalLstMedia,
   });
 
-  // const mutationSetPrimaryVideo = useMutation({
-  //   mutationFn: async (data: any) =>
-  //     await MediaModel.setPrimaryVideoVocabulary(data),
-  //   onSuccess: () => {
-  //     message.success("Cập nhật video hiển thị chính thành công");
-  //     refetchDetail();
-  //     refetch();
-  //   },
-  // });
-
-  // const mutationSetPrimaryImage = useMutation({
-  //   mutationFn: async (data: any) =>
-  //     await MediaModel.setPrimaryImageVocabulary(data),
-  //   onSuccess: () => {
-  //     message.success("Cập nhật hình ảnh hiển thị chính thành công");
-  //     refetchDetail();
-  //     refetch();
-  //   },
-  // });
-
   const mutationUpdateImage = useMutation({
     mutationFn: async (body: any) => await MediaModel.updateImagePart(body),
     onSuccess: () => {
@@ -258,38 +238,6 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
         width: "30%",
         hidden: hiddenVideo,
       },
-      // {
-      //   title: "Hình ảnh minh hoạ chính",
-      //   dataIndex: "primary",
-      //   align: "center",
-      //   render: (value: boolean, record: any) => (
-      //     <Switch
-      //       disabled={value}
-      //       checked={value}
-      //     />
-      //   ),
-      //   width: 200,
-      //   hidden: hiddenImage,
-      // },
-      // {
-      //   title: "Video minh hoạ chính",
-      //   dataIndex: "primary",
-      //   align: "center",
-      //   render: (value: boolean, record: any) => (
-      //     <Switch
-      //       disabled={value}
-      //       checked={value}
-      //       onChange={(item) => {
-      //         mutationSetPrimaryVideo.mutate({
-      //           vocabularyVideoId: record.vocabularyVideoId,
-      //           primary: item,
-      //         });
-      //       }}
-      //     />
-      //   ),
-      //   width: 200,
-      //   hidden: hiddenVideo,
-      // },
       {
         title: "Thao tác",
         key: "action",
@@ -304,14 +252,23 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
                     payload: true,
                   });
                   dispatch({ type: "SET_RECORD_UPDATED", payload: record });
+
                   if (record?.imageLocation) {
                     dispatch({
                       type: "SET_FILE_URL_IMAGE",
                       payload: record?.imageLocation,
                     });
-                  } else {
+                    dispatch({
+                      type: "SET_IMAGE_LOCATIONS",
+                      payload: record?.imageLocation,
+                    });
+                  } else if (record?.videoLocation) {
                     dispatch({
                       type: "SET_FILE_URL_VIDEO",
+                      payload: record?.videoLocation,
+                    });
+                    dispatch({
+                      type: "SET_VIDEO_LOCATIONS",
                       payload: record?.videoLocation,
                     });
                   }
@@ -320,6 +277,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
                 <EditOutlined />
               </Button>
             </Popover>
+
             {record?.primary ? null : (
               <Popover content="Xóa" placement="left">
                 <Popconfirm
@@ -418,16 +376,16 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
           dispatch({ type: "SET_IS_SHOW_MODAL_UPDATE_MEDIA", payload: false })
         }
         onOk={() => {
-          if (state.recordUpdated.vocabularyImageId) {
+          if (state.fileUrlImage) {
+            // Nếu có ảnh, cập nhật ảnh
             mutationUpdateImage.mutate({
               ...state.recordUpdated,
-              // primary: state.primaryMedia,
               imageLocation: state.imageLocations,
             });
-          } else {
+          } else if (state.fileUrlVideo) {
+            // Nếu có video, cập nhật video
             mutationUpdateVideo.mutate({
               ...state.recordUpdated,
-              // primary: state.primaryMedia,
               videoLocation: state.videoLocations,
             });
           }
@@ -447,7 +405,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
                   }}
                 />
               </div>
-              {state.recordUpdated?.vocabularyImageId ? (
+              {state.recordUpdated?.imageLocation ? (
                 <div className="w-full">
                   <p
                     className="ant-upload-text"
@@ -489,21 +447,7 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
                         className="flex items-center justify-center"
                         style={{ width: 300 }}
                       />
-                      <Button
-                        className="mt-2"
-                        onClick={() => {
-                          dispatch({
-                            type: "SET_FILE_URL_IMAGE",
-                            payload: "",
-                          });
-                          dispatch({
-                            type: "SET_IMAGE_LOCATIONS",
-                            payload: undefined,
-                          });
-                        }}
-                      >
-                        Xoá ảnh
-                      </Button>
+
                     </div>
                   )}
                 </div>
