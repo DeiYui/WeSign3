@@ -590,7 +590,10 @@ const ModalListMedia: React.FC<ModalListMediaProps> = ({
       <ModalAddMedia
         isShowModalAddMedia={modalAddMedia.open}
         onClose={() => setModalAddMedia({ open: false, record: "" })}
-        refetch={refetchDetail}
+        refetch={() => {
+          refetch();       
+          refetchDetail();
+        }}
         recordMedia={record}
       />
     </div>

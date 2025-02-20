@@ -84,13 +84,11 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
 
     const bodyListImage = images?.map((imageLocation: any) => ({
       imageLocation,
-      // primary: false,
       partId: recordMedia.partId,
     }));
 
     const bodyListVideo = videos?.map((videoLocation: any) => ({
       videoLocation,
-      // primary: false,
       partId: recordMedia.partId,
     }));
 
