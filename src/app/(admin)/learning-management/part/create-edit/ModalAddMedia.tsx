@@ -78,21 +78,25 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
       const res = await UploadModel.upLoadList(formData);
       if (res.code === 200) {
         const images = res.data
-          ?.filter((item: { imageLocation: null }) => item.imageLocation !== null)
+          ?.filter(
+            (item: { imageLocation: null }) => item.imageLocation !== null,
+          )
           .map((item: { imageLocation: any }) => item.imageLocation);
         const videos = res.data
-          ?.filter((item: { videoLocation: null }) => item.videoLocation !== null)
+          ?.filter(
+            (item: { videoLocation: null }) => item.videoLocation !== null,
+          )
           .map((item: { videoLocation: any }) => item.videoLocation);
 
-    const bodyListImage = images?.map((imageLocation: any) => ({
-      imageLocation,
-      partId: recordMedia.partId,
-    }));
+        const bodyListImage = images?.map((imageLocation: any) => ({
+          imageLocation,
+          partId: recordMedia.partId,
+        }));
 
-    const bodyListVideo = videos?.map((videoLocation: any) => ({
-      videoLocation,
-      partId: recordMedia.partId,
-    }));
+        const bodyListVideo = videos?.map((videoLocation: any) => ({
+          videoLocation,
+          partId: recordMedia.partId,
+        }));
 
         // Only make API calls if there are items to upload
         let success = true;
@@ -103,7 +107,7 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
             success = false;
           }
         }
-        
+
         if (bodyListVideo.length) {
           const responseVideo = await MediaModel.postVideoPart(bodyListVideo);
           if (responseVideo.code !== 200) {
@@ -145,10 +149,19 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
         !file.type.startsWith("image/") && !file.type.startsWith("video/"),
     );
     if (containsOtherFileType) {
-      message.error("Chỉ chấp nhận tệp ảnh và video!");
       return;
     }
     setFileList(fileList);
+  };
+
+  const beforeUpload = (file: any) => {
+    const isImageOrVideo =
+      file.type.startsWith("image/") || file.type.startsWith("video/");
+    if (!isImageOrVideo) {
+      message.error(`"${file.name}" không phải là tệp hình ảnh hoặc video!`);
+    }
+    // Return false to stop auto upload
+    return false;
   };
 
   const items = [
@@ -164,6 +177,10 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
             onPreview={handlePreview}
             onChange={handleChange}
             accept="image/*,video/*"
+            beforeUpload={beforeUpload}
+            customRequest={({ onSuccess }) => {
+              if (onSuccess) onSuccess("ok");
+            }}
           >
             <Button icon={<UploadOutlined />}>Chọn File</Button>
           </Upload>

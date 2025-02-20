@@ -131,10 +131,18 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
         !file.type.startsWith("image/") && !file.type.startsWith("video/"),
     );
     if (containsOtherFileType) {
-      message.error("Chỉ chấp nhận tệp ảnh và video!");
       return;
     }
     setFileList(fileList);
+  };
+  const beforeUpload = (file: any) => {
+    const isImageOrVideo =
+      file.type.startsWith("image/") || file.type.startsWith("video/");
+    if (!isImageOrVideo) {
+      message.error(`"${file.name}" không phải là tệp hình ảnh hoặc video!`);
+    }
+    // Return false to stop auto upload
+    return false;
   };
 
   const items = [
@@ -150,6 +158,10 @@ const ModalAddMedia: React.FC<ModalAddMediaProps> = ({
             onPreview={handlePreview}
             onChange={handleChange}
             accept="image/*,video/*"
+            beforeUpload={beforeUpload}
+            customRequest={({ onSuccess }) => {
+              if (onSuccess) onSuccess("ok");
+            }}
           >
             <Button icon={<UploadOutlined />}>Chọn File</Button>
           </Upload>
