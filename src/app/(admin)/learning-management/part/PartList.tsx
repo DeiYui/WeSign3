@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { CloseIcon } from "@/assets/icons";
 import { ConfirmModal } from "@/components/UI/Modal/ConfirmModal";
 import BasicDrawer from "@/components/UI/draw/BasicDraw";
@@ -133,7 +133,6 @@ const PartList = ({ isPrivate }: any) => {
           );
         },
       );
-      console.log("Dữ liệu mới sau khi refetch:", res?.data);
       setAllParts(res?.data);
       setAllPartsSearch(res?.data);
       return res.data;
@@ -463,7 +462,6 @@ const PartList = ({ isPrivate }: any) => {
             layout="vertical"
             className="px-4 pb-4"
             onFinish={(value) => {
-
               mutationCreate.mutate(
                 {
                   ...value,
@@ -474,7 +472,7 @@ const PartList = ({ isPrivate }: any) => {
                   onSuccess: () => {
                     refetch(); // Refetch the data to update the table
                   },
-                }
+                },
               );
             }}
           >
@@ -534,7 +532,6 @@ const PartList = ({ isPrivate }: any) => {
             >
               <Input placeholder="Nhập tên phần" />
             </Form.Item>
-
           </Form>
         </div>
       </BasicDrawer>
