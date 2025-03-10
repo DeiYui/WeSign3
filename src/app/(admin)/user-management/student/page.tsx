@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React from "react";
-import ChatCard from "@/components/Chat/ChatCard";
+import StudentList from "./StudentList";
 
 export const metadata: Metadata = {
-  title: "Chat- We_sign",
-  description: "Chat page for We_sign",
+  title: "Management-student  - Dictionary",
+  description: "Management-student page for Dictionary",
   icons: {
     icon: [
       {
@@ -22,12 +22,12 @@ export const metadata: Metadata = {
   },
 };
 
-const ChatPage: React.FC = () => {
+const ManagementClassPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <ChatCard />
+      <StudentList />
     </DefaultLayout>
   );
 };
 
-export default ChatPage;
+export default ManagementClassPage;

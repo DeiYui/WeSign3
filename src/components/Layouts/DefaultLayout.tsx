@@ -7,7 +7,6 @@ import { DoubleLeftOutlined, DoubleRightOutlined } from "@ant-design/icons";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import ChatMessage from "../Chat/ChatMessage";
 
 export default function DefaultLayout({
   children,
@@ -69,8 +68,6 @@ export default function DefaultLayout({
           </main>
         </div>
 
-        {/* Chat */}
-        {user && !pathname.includes("/chat") && <ChatMessage />}
       </div>
     </>
   );

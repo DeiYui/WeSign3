@@ -127,6 +127,30 @@ export const AdminSystem = (admin: any) => {
           ],
           hidden: false,
         },
+
+        {
+          key: "/user-management",
+          label: "Quản lý người dùng",
+          path: "/user-management",
+          icon: <AdminIcon color="white" size={20} />,
+          children: [
+            {
+              key: "/user-management/teacher",
+              label: "Giáo viên",
+              path: "/user-management/teacher",
+              hidden: !(admin?.role === "ADMIN"),
+              icon: <DotIcon color="white" size={20} />,
+            },
+            {
+              key: "/user-management/student",
+              label: "Học sinh",
+              path: "/user-management/student",
+              icon: <DotIcon color="white" size={20} />,
+            },
+          ],
+
+        },
+
         {
           key: "/approve-request",
           label: "Phê duyệt yêu cầu",

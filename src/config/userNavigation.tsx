@@ -9,7 +9,7 @@ import {
 } from "@/assets/icons";
 import { Introduction } from "@/assets/icons/Introduction";
 import { RootState, store } from "@/store";
-import { UserOutlined } from "@ant-design/icons";
+import { BarChartOutlined, UserOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 
 export const MenuSystem = () => {
@@ -32,11 +32,11 @@ export const MenuSystem = () => {
       hidden: !token,
     },
     {
-      key: "/friend",
-      label: "Bạn bè",
-      path: "/friend",
-      icon: <UserOutlined color="white" size={20} />,
-      hidden: !token && !admin,
+      key: "/student",
+      label: "Học sinh",
+      path: "/student",
+      hidden: false,
+      icon: <DashboardIcon />,
     },
     {
       key: "/study",
@@ -97,13 +97,6 @@ export const MenuSystem = () => {
       hidden: false,
     },
     {
-      key: "/chat",
-      label: "Trò chuyện",
-      path: "/chat",
-      icon: <ChatIcon size={20} color="white" />,
-      hidden: true,
-    },
-    {
       key: "/exam",
       label: "Kiểm tra",
       path: "/exam",
@@ -117,6 +110,15 @@ export const MenuSystem = () => {
       icon: <CollectDataIcon color="white" size={20} />,
       hidden: !token && !admin,
     },
+
+    {
+      key: "/learning-progress",
+      label: "Tiến độ học tập",
+      path: "/learning-progress",
+      icon: <BarChartOutlined />,
+      hidden: false,
+    },
+    
     {
       key: "/practice-data",
       label: "Luyện tập",

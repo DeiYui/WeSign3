@@ -1,4 +1,3 @@
-import CallModalSocket from "@/components/Chat/components/CallModalSocket";
 import { RootState } from "@/store";
 import {
   Dispatch,
@@ -529,22 +528,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
     >
       {children}
 
-      <CallModalSocket
-        isOpen={isModalOpen}
-        setIsModalOpen={setIsModalOpen}
-        acceptCall={acceptCall}
-        endCall={endCall}
-        localStream={state?.localStream}
-        remoteStream={state?.remoteStream}
-        incoming={state.incoming}
-        selectedContact={selectedContact}
-        isAudioMuted={isAudioMuted}
-        toggleAudio={toggleAudio}
-        isVideoOff={isVideoOff}
-        toggleVideo={toggleVideo}
-        users={state.users}
-        callAccepted={callAccepted}
-      />
+      
     </SocketVideoCallContext.Provider>
   );
 };

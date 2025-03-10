@@ -12,7 +12,10 @@ const RequestPage: React.FC = () => {
   const { page, pageSize, content, isFetching, pagination, refetch } = usePage(
     ["getAllAccount"],
     User.getAllAccount,
-    {},
+    {
+      status: "PENDING",
+      roleCode: "TEACHER",
+    },
   );
 
   // Chấp nhận

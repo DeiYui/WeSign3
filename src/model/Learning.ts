@@ -260,6 +260,49 @@ class Learning extends Base {
     const res = await this.apiPut(`/parts/${partId}`, partData);
     return res.data;
   };
+
+  // New method to get the list of teachers
+  getListTeachers = async (params?: any) => {
+    const res = await this.apiGet(`/teachers/all`, params); // Adjust the endpoint as necessary
+    return res.data;
+  };
+
+  // join student to class
+  joinClass = async (body?: any) => {
+    console.log("body", body);
+    const res = await this.apiPostWithoutPrefix(
+      `/classroom-auth/join/${body?.id}`,
+      body,
+    );
+    return res.data;
+  };
+
+  // leave student from class
+  leaveClass = async (body?: any) => {
+    const res = await this.apiPostWithoutPrefix(
+      `/classroom-auth/leave/${body?.id}`,
+      body,
+    );
+    return res.data;
+  };
+
+  leaningProcess = async (id: number) => {
+    const res = await this.apiGetWithoutPrefix(`/user/statistics/${id}`);
+    return res.data;
+  };
+
+  classJoined = async () => {
+    const res = await this.apiGetWithoutPrefix(`/user-auth/class-joined`);
+    return res.data;
+  };
+
+  updateStudentClass = async (body: any) => {
+    const res = await this.apiPutWithoutPrefix(
+      `/classroom-auth/update-student-in-class/${body.id}`,
+      body,
+    );
+    return res.data;
+  };
 }
 
 export default new Learning("learning-service");
