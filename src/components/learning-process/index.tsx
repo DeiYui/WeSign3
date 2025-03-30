@@ -23,7 +23,7 @@ const LearningProcess: React.FC = () => {
   const { data: userStatistic, isFetching: isFetchingProcess } = useQuery({
     queryKey: ["getLearningProcess"],
     queryFn: async () => {
-      const res = await Learning.leaningProcess(user.id as number);
+      const res = await Learning.leaningProcess(user.userId as number);
       return res;
     },
   });

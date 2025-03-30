@@ -34,7 +34,7 @@ const Students: FC = () => {
     queryKey: ["getListStudents"],
     queryFn: async () => {
       const res = await User.getAllAccount({
-        roleCode: "STUDENT",
+        code: "STUDENT",
         name: searchText,
       });
       setLstStudents(res.content);

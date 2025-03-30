@@ -191,28 +191,28 @@ class Learning extends Base {
     return res.data;
   };
 
-  // Link mobile
-  getLinkMobile = async (params?: any) => {
-    const res = await this.apiGet(`/mobiles/all`, params);
-    return res.data;
-  };
+  // // Link mobile
+  // getLinkMobile = async (params?: any) => {
+  //   const res = await this.apiGet(`/mobiles/all`, params);
+  //   return res.data;
+  // };
 
-  addLinkMobile = async (body?: any) => {
-    const res = await this.apiPost(`/mobiles`, body);
-    return res.data;
-  };
+  // addLinkMobile = async (body?: any) => {
+  //   const res = await this.apiPost(`/mobiles`, body);
+  //   return res.data;
+  // };
 
-  editLinkMobile = async (body?: any) => {
-    const res = await this.apiPut(`/mobiles/${body?.id}`, {
-      mobileLocation: body?.mobileLocation,
-    });
-    return res.data;
-  };
+  // editLinkMobile = async (body?: any) => {
+  //   const res = await this.apiPut(`/mobiles/${body?.id}`, {
+  //     mobileLocation: body?.mobileLocation,
+  //   });
+  //   return res.data;
+  // };
 
-  deleteLinkMobile = async (id?: number) => {
-    const res = await this.apiDelete(`/mobiles/${id}`);
-    return res.data;
-  };
+  // deleteLinkMobile = async (id?: number) => {
+  //   const res = await this.apiDelete(`/mobiles/${id}`);
+  //   return res.data;
+  // };
 
   // GIới thiệu
   addIntroduction = async (body?: any) => {
@@ -263,14 +263,14 @@ class Learning extends Base {
 
   // New method to get the list of teachers
   getListTeachers = async (params?: any) => {
-    const res = await this.apiGet(`/teachers/all`, params); // Adjust the endpoint as necessary
+    const res = await this.apiGetNode(`/teachers/all`, params); // Adjust the endpoint as necessary
     return res.data;
   };
 
   // join student to class
   joinClass = async (body?: any) => {
     console.log("body", body);
-    const res = await this.apiPostWithoutPrefix(
+    const res = await this.apiPostWithoutPrefixNode(
       `/classroom-auth/join/${body?.id}`,
       body,
     );
@@ -279,26 +279,27 @@ class Learning extends Base {
 
   // leave student from class
   leaveClass = async (body?: any) => {
-    const res = await this.apiPostWithoutPrefix(
+    const res = await this.apiPostWithoutPrefixNode(
       `/classroom-auth/leave/${body?.id}`,
       body,
     );
     return res.data;
   };
 
-  leaningProcess = async (id: number) => {
-    const res = await this.apiGetWithoutPrefix(`/user/statistics/${id}`);
+  leaningProcess = async (userId: number) => {
+    const res = await this.apiGetWithoutPrefixNode(`/user/statistics/${userId}`);
     return res.data;
   };
 
   classJoined = async () => {
-    const res = await this.apiGetWithoutPrefix(`/user-auth/class-joined`);
+    const res = await this.apiGetWithoutPrefixNode(`/user-auth/class-joined`);
+    console.log(res.data);
     return res.data;
   };
 
   updateStudentClass = async (body: any) => {
-    const res = await this.apiPutWithoutPrefix(
-      `/classroom-auth/update-student-in-class/${body.id}`,
+    const res = await this.apiPutWithoutPrefixNode(
+      `/classroom-auth/update-student-in-class/${body.userId}`,
       body,
     );
     return res.data;

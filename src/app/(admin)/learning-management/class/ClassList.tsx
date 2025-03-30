@@ -230,7 +230,8 @@ const ClassList: React.FC = () => {
   };
 
   // search
-  const handleSearch = useCallback(
+ // eslint-disable-next-line react-hooks/exhaustive-deps 
+const handleSearch = useCallback(
     debounce((searchText: string) => {
       if (searchText) {
         setFilteredLstClass(
