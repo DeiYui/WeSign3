@@ -19,6 +19,10 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import ButtonPrimary from "../UI/Button/ButtonPrimary";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
 
 const PAGE_SIZE = 12;
 
@@ -39,6 +43,14 @@ const TYPE_VOCABULARY = {
 };
 
 const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
+  const userId = useSelector((state: RootState) => state.admin.userId);
+
+  const { mutate: incrementVocabularyView } = useMutation({
+    mutationFn: async () => {
+      await axios.post("/api/vocabulary/view", { userId });
+    },
+  });
+
   const [currentPage, setCurrentPage] = useState(1);
   const [showFileDetail, setShowFileDetail] = useState(false);
   const videoRef = useRef<any>(null);
@@ -120,6 +132,9 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
   const handleViewDetail = (index: number) => {
     setFileIndex(PAGE_SIZE * (currentPage - 1) + index);
     setShowFileDetail(true);
+
+    // Increment vocabulary view count
+    incrementVocabularyView();
   };
 
   const onCloseDetail = () => {

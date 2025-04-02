@@ -1,6 +1,6 @@
 "use client";
 import { AlphabetIcon, ClassIcon, ExamIcon, TopicIcon } from "@/assets/icons";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CardDataStats from "../CardDataStats";
 import { useQuery } from "@tanstack/react-query";
 import Learning from "@/model/Learning";
@@ -20,13 +20,25 @@ const LearningProcess: React.FC = () => {
   const user: User = useSelector((state: RootState) => state.admin);
 
   // Danh sách topic
-  const { data: userStatistic, isFetching: isFetchingProcess } = useQuery({
+  const { data: userStatistic, isFetching: isFetchingProcess, refetch } = useQuery({
     queryKey: ["getLearningProcess"],
     queryFn: async () => {
       const res = await Learning.leaningProcess(user.userId as number);
       return res;
     },
   });
+
+  // Add a useEffect to refetch data when the user navigates back
+  useEffect(() => {
+    const handleFocus = () => {
+      refetch();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [refetch]);
 
   // API lấy danh sách từ theo topics
   const { data: classJoined, isFetching } = useQuery({
