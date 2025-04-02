@@ -93,12 +93,22 @@ class User extends Base {
     return res.data;
   };
 
-  viewVocabulary = async (body?: any) => {
+  // viewVocabulary = async (body?: any) => {
+  //   const res = await this.apiPostWithoutPrefixNode(
+  //     `/user-auth/vocabulary/view/${body.vocabularyId}`,
+  //     body,
+  //   );
+  //   console.log(body.vocabularyId)
+  //   return res.data;
+  // };
+    viewVocabulary = async (vocabularyId: number, userId: number) => {
+      console.log('📌 Sending request with:');
+    console.log('📌 vocabularyId:', vocabularyId);
+    console.log('📌 userId:', userId);
     const res = await this.apiPostWithoutPrefixNode(
-      `/user/vocabulary/view/${body.userId}`,
-      body,
-    );
-    console.log(body.userId)
+      `/user/vocabulary/view/${vocabularyId}`, {
+      userId,  
+    });
     return res.data;
   };
 }
