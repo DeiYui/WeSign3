@@ -19,8 +19,10 @@ const LessonsList: FC<SectionHero2Props> = ({ className = "" }) => {
   const { data: allLessonPublic, isFetching } = useQuery({
     queryKey: ["getLstLessonByClass", classRoomId],
     queryFn: async () => {
+      console.log("Fetching lessons for classRoomId:", classRoomId);
       const res = await fetch(`/api/lessons?classRoomId=${classRoomId}`);
       const data = await res.json();
+      console.log("Lessons fetched:", data);
       return data;
     },
     onError: () => {
