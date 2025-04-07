@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import {
   CloseOutlined,
@@ -19,6 +20,10 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import ButtonPrimary from "../UI/Button/ButtonPrimary";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
 
 const PAGE_SIZE = 12;
 
@@ -41,8 +46,6 @@ const TYPE_VOCABULARY = {
 };
 
 const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
-<<<<<<< Updated upstream
-=======
   const userId = useSelector((state: RootState) => state.admin.userId);
   console.log('Calling API with userId:', userId);
   // const { mutate: incrementVocabularyView } = useMutation({
@@ -57,7 +60,6 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
     },
   });
 
->>>>>>> Stashed changes
   const [currentPage, setCurrentPage] = useState(1);
   const [showFileDetail, setShowFileDetail] = useState(false);
   const videoRef = useRef<any>(null);
@@ -147,22 +149,21 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
     setCurrentPage(pageNumber);
   };
 
-<<<<<<< Updated upstream
-  const handleViewDetail = (index: number) => {
-    setFileIndex(PAGE_SIZE * (currentPage - 1) + index);
-    setShowFileDetail(true);
-=======
-  // const handleViewDetail = (index: number) => {
-  //   setFileIndex(PAGE_SIZE * (currentPage - 1) + index);
-  //   setShowFileDetail(true);
+//   const handleViewDetail = (index: number) => {
+//     setFileIndex(PAGE_SIZE * (currentPage - 1) + index);
+//     setShowFileDetail(true);
 
-  //   // Increment vocabulary view count
-  //   // incrementVocabularyView();
-  //   const vocabularyId = allVocabulary[index]?.id; // Lấy vocabularyId từ danh sách từ vựng
-  //   if (vocabularyId) {
-  //     incrementVocabularyView(vocabularyId); // Gửi request với vocabularyId
-  //   }
-  // };
+//   // const handleViewDetail = (index: number) => {
+//   //   setFileIndex(PAGE_SIZE * (currentPage - 1) + index);
+//   //   setShowFileDetail(true);
+
+//   //   // Increment vocabulary view count
+//   //   // incrementVocabularyView();
+//   //   const vocabularyId = allVocabulary[index]?.id; // Lấy vocabularyId từ danh sách từ vựng
+//   //   if (vocabularyId) {
+//   //     incrementVocabularyView(vocabularyId); // Gửi request với vocabularyId
+//   //   }
+//   // };
   const handleViewDetail = (index: number) => {
     const globalIndex = PAGE_SIZE * (currentPage - 1) + index; // Chuyển index của trang hiện tại sang index toàn cục
     setFileIndex(globalIndex);
@@ -187,7 +188,7 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
         console.error("Vocabulary ID is missing for index:", index, allVocabulary[index]);
       }
     }
->>>>>>> Stashed changes
+
   };
 
   const onCloseDetail = () => {
