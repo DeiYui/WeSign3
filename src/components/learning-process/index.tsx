@@ -29,10 +29,21 @@ const LearningProcess: React.FC = () => {
   });
 
   // API lấy danh sách từ theo topics
+  // const { data: classJoined, isFetching } = useQuery({
+  //   queryKey: ["userClasslist"],
+  //   queryFn: async () => {
+  //     const res = await Learning.classJoined();
+  //     return res;
+  //   },
+  // });
+  const userId = useSelector((state: RootState) => state.admin.userId);
+  console.log("classJoin", userId);
+  console.log("Type of userId:", typeof userId);
+
   const { data: classJoined, isFetching } = useQuery({
-    queryKey: ["userClasslist"],
+    queryKey: ["userClasslist", userId], // Include userId in the query key
     queryFn: async () => {
-      const res = await Learning.classJoined();
+      const res = await Learning.classJoined(userId);
       return res;
     },
   });
@@ -76,18 +87,18 @@ const LearningProcess: React.FC = () => {
           {React.Children.toArray(
             classJoined?.map((item: any) => (
               <div
-                key={item.id}
+                key={item.classroomId}
                 className="cursor-pointer rounded-lg border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark"
               >
                 <div className="items-between flex h-full flex-col justify-between gap-3">
                   <Image
-                    src={GenerateUtils.genUrlImage(item?.thumbnailPath)}
+                    src={GenerateUtils.genUrlImage(item?.imageLocation)}
                     alt=""
                   />
                   <div
                     className="text-start font-bold text-blue-500"
                     onClick={() => {
-                      router.push(`/class/${item.id}`);
+                      router.push(`/class/${item.classroomId}`);
                     }}
                   >
                     {`${item.name}`}

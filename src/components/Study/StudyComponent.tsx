@@ -22,6 +22,8 @@ import ButtonPrimary from "../UI/Button/ButtonPrimary";
 
 const PAGE_SIZE = 12;
 
+const API_BASE_URL = 'http://localhost:8088';
+
 const CustomSlider = styled(Carousel)`
   &.ant-carousel {
     width: 100%;
@@ -39,6 +41,23 @@ const TYPE_VOCABULARY = {
 };
 
 const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
+<<<<<<< Updated upstream
+=======
+  const userId = useSelector((state: RootState) => state.admin.userId);
+  console.log('Calling API with userId:', userId);
+  // const { mutate: incrementVocabularyView } = useMutation({
+  //   mutationFn: async () => {
+  //     await axios.post("/api/user/vocabulary/view", { userId});
+  //   },
+  // });
+  const { mutate: incrementVocabularyView } = useMutation({
+    mutationFn: async (vocabularyId: number) => {
+      console.log('Calling API with vocabularyId:', vocabularyId);
+      await axios.post(`${API_BASE_URL}/api/user/vocabulary/view`, { userId, vocabularyId });
+    },
+  });
+
+>>>>>>> Stashed changes
   const [currentPage, setCurrentPage] = useState(1);
   const [showFileDetail, setShowFileDetail] = useState(false);
   const videoRef = useRef<any>(null);
@@ -94,14 +113,25 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
   };
 
   //  next allVocabulary
-  const handleNext = () => {
-    setFileIndex((prevIndex) =>
-      Math.min(prevIndex + 1, allVocabulary?.length - 1),
-    );
-  };
+  // const handleNext = () => {
+  //   setFileIndex((prevIndex) =>
+  //     Math.min(prevIndex + 1, allVocabulary?.length - 1),
+  //   );
+  // };
 
+  // const handlePrevious = () => {
+  //   setFileIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+  // };
+  const handleNext = () => {
+    const nextIndex = Math.min(fileIndex + 1, allVocabulary?.length - 1);
+    setFileIndex(nextIndex);
+    trackVocabularyView(nextIndex);
+  };
+  
   const handlePrevious = () => {
-    setFileIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+    const prevIndex = Math.max(fileIndex - 1, 0);
+    setFileIndex(prevIndex);
+    trackVocabularyView(prevIndex);
   };
 
   // Pagination
@@ -117,9 +147,47 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
     setCurrentPage(pageNumber);
   };
 
+<<<<<<< Updated upstream
   const handleViewDetail = (index: number) => {
     setFileIndex(PAGE_SIZE * (currentPage - 1) + index);
     setShowFileDetail(true);
+=======
+  // const handleViewDetail = (index: number) => {
+  //   setFileIndex(PAGE_SIZE * (currentPage - 1) + index);
+  //   setShowFileDetail(true);
+
+  //   // Increment vocabulary view count
+  //   // incrementVocabularyView();
+  //   const vocabularyId = allVocabulary[index]?.id; // Lấy vocabularyId từ danh sách từ vựng
+  //   if (vocabularyId) {
+  //     incrementVocabularyView(vocabularyId); // Gửi request với vocabularyId
+  //   }
+  // };
+  const handleViewDetail = (index: number) => {
+    const globalIndex = PAGE_SIZE * (currentPage - 1) + index; // Chuyển index của trang hiện tại sang index toàn cục
+    setFileIndex(globalIndex);
+    setShowFileDetail(true);
+  
+    // const vocabularyId = allVocabulary[globalIndex].vocabularyId; // Lấy ID từ vị trí toàn cục
+    // if (vocabularyId) {
+    //   incrementVocabularyView(vocabularyId);
+    // } else {
+    //   console.error("Vocabulary ID is missing.", allVocabulary[globalIndex].vocabularyId);
+    // }
+    trackVocabularyView(globalIndex);
+  };
+
+  const trackVocabularyView = (index: number) => {
+    if (allVocabulary && allVocabulary[index]) {
+      const vocabularyId = allVocabulary[index].vocabularyId;
+      if (vocabularyId) {
+        console.log('Tracking view for vocabulary ID:', vocabularyId);
+        incrementVocabularyView(vocabularyId);
+      } else {
+        console.error("Vocabulary ID is missing for index:", index, allVocabulary[index]);
+      }
+    }
+>>>>>>> Stashed changes
   };
 
   const onCloseDetail = () => {

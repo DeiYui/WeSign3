@@ -291,10 +291,28 @@ class Learning extends Base {
     return res.data;
   };
 
-  classJoined = async () => {
-    const res = await this.apiGetWithoutPrefixNode(`/user-auth/class-joined`);
-    console.log(res.data);
-    return res.data;
+  // classJoined = async () => {
+  //   const res = await this.apiGetWithoutPrefixNode(`/user-auth/class-joined`);
+  //   console.log(res.data);
+  //   return res.data;
+  // };
+  classJoined = async (userId: number) => {
+    // // Send userId in the request body or as a query parameter
+    // const res = await this.apiGetWithoutPrefixNode(`/user/class-joined?userId=${userId}`);
+    // // Or alternatively, if your API expects it in a different format:
+    // // const res = await this.apiPostWithoutPrefixNode(`/user-auth/class-joined`, { userId });
+    
+    // console.log(res.data);
+    // return res.data;
+    try {
+      const res = await this.apiGetWithoutPrefixNode(`/user/class-joined?userId=${userId}`);
+      console.log("test", res.data);
+      return res.data;
+    } catch (error) {
+      console.error('API call failed:', error);
+      throw error;
+    }
+    
   };
 
   updateStudentClass = async (body: any) => {

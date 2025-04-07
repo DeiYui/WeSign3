@@ -13,7 +13,9 @@ export class Base {
     this.apiRoot = API_ROOT;
     this.apiRootNode = API_ROOT_NODE + "/api";
     this.apiPrefix = `${API_ROOT}/${apiPrefix}`;
-    this.apiPrefixNode = `${API_ROOT_NODE}/api/${apiPrefix}`;
+    // this.apiPrefixNode = `${API_ROOT_NODE}/api/${apiPrefix}`;
+    // this.apiPrefix = apiPrefix || '';
+    this.apiPrefixNode = apiPrefix ? `/${apiPrefix}` : '';
   }
 
   normalizeQuery = (query: { [x: string]: any }) => {
@@ -85,7 +87,7 @@ export class Base {
   apiPutWithoutPrefix = (url: any, body?: any, signal?: any) =>
     http.put(`${this.apiRoot}${url}`, body, { signal });
 
-  apiPutWithoutPrefixNode = (url: any, body?: any, signal?: any) =>
+  apiPutWithoutPrefixNode = (url: string, body?: any, signal?: any) =>
     http.put(`${this.apiRootNode}${url}`, body, { signal });
 
 // DELETE
