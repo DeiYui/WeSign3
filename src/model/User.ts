@@ -92,8 +92,6 @@ class User extends Base {
     const res = await this.apiGetWithoutPrefixNode(`/user/student-list`, param);
     return res.data;
   };
-
-<<<<<<< Updated upstream
   // viewVocabulary = async (body?: any) => {
   //   const res = await this.apiPostWithoutPrefixNode(
   //     `/user-auth/vocabulary/view/${body.vocabularyId}`,
@@ -110,19 +108,18 @@ class User extends Base {
       `/user/vocabulary/view/${vocabularyId}`, {
       userId,  
     });
-=======
-  viewVocabulary = async (vocabularyId?: number, userId?: number) => {
-    // const res = await this.apiPostWithoutPrefixNode(
-    //   `/user/vocabulary/view/${userId}`,
-    //   userId,
-    // );
-    const res = await this.apiPostWithoutPrefixNode(
-      `user/vocabulary/view`,
-      { vocabularyId: vocabularyId, userId: userId }
-    );
-    console.log(userId)
-    console.log(vocabularyId)
->>>>>>> Stashed changes
+//   viewVocabulary = async (vocabularyId?: number, userId?: number) => {
+//     // const res = await this.apiPostWithoutPrefixNode(
+//     //   `/user/vocabulary/view/${userId}`,
+//     //   userId,
+//     // );
+//     const res = await this.apiPostWithoutPrefixNode(
+//       `user/vocabulary/view`,
+//       { vocabularyId: vocabularyId, userId: userId }
+//     );
+//     console.log(userId)
+//     console.log(vocabularyId)
+// >>>>>>> Stashed changes
     return res.data;
   };
 }
