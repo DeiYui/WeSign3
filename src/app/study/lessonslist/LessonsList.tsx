@@ -3,12 +3,13 @@ import { Table, Input, Spin, Image, message } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
+import Lesson from "@/model/Lesson"; 
 
 export interface SectionHero2Props {
   className?: string;
 }
 
-const LessonsList: FC<SectionHero2Props> = ({ className = "" }) => {
+const LessonsList: FC<SectionHero2Props> = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const classRoomId = Number(searchParams.get("classRoomId"));
@@ -22,9 +23,12 @@ const LessonsList: FC<SectionHero2Props> = ({ className = "" }) => {
   const { data: allLessonPublic, isFetching: lessonsIsFetching } = useQuery({
     queryKey: ["getLstLessonByClass", classRoomId],
     queryFn: async () => {
-      const res = await fetch(`/api/lessons?classRoomId=${classRoomId}`);
-      const data = await res.json();
-      return data;
+      const res = await Lesson.getLstLessonByClass({ classRoomId });
+      if (!res?.data || res?.data?.length === 0) {
+        message.warning("Không có bài học cho lớp học này.");
+        return [];
+      }
+      return res.data;
     },
     onError: () => {
       message.error("Đã xảy ra lỗi khi tải danh sách bài học.");
@@ -95,7 +99,7 @@ const LessonsList: FC<SectionHero2Props> = ({ className = "" }) => {
         />
       </div>
       <div className="flex gap-4 h-[700px]">
-        {/* Bảng bên trái: tối đa 40 bài, scroll nếu nhiều */}
+        {/* Bảng bên trái: tối đa 40 bài */}
         <div className="w-1/2 overflow-y-auto border rounded-md">
           <Table
             columns={getColumns(0)}
@@ -104,7 +108,7 @@ const LessonsList: FC<SectionHero2Props> = ({ className = "" }) => {
             pagination={false}
           />
         </div>
-        {/* Bảng bên phải: phần còn lại, STT từ 41 trở đi */}
+        {/* Bảng bên phải: phần còn lại */}
         <div className="w-1/2 overflow-y-auto border rounded-md">
           <Table
             columns={getColumns(40)}
