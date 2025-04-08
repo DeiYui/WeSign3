@@ -4,31 +4,27 @@ import { usePage } from "@/hooks/usePage";
 import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
 import { RootState } from "@/store";
-import {
-  DeleteFilled,
-  DeleteOutlined,
-  EditFilled,
-  MenuFoldOutlined,
-  MoreOutlined,
-} from "@ant-design/icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Dropdown, Input, Select, Table, message } from "antd";
+import { Button, Input, Select, Table, message, Modal } from "antd";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
+import { useQuery } from "@tanstack/react-query";
 
-interface Exam {
+interface ExamData {
   examId: number;
   name: string;
-  questionCount: number;
-  status: number;
+  numberOfQuestions: number;
+  score?: number;
+  // Trường finish không còn được trả về từ backend,
+  // nên ta dựa vào score: nếu có score (kể cả bằng 0) thì coi như bài thi đã nộp.
 }
 
 const ExamListPage: React.FC = () => {
   const router = useRouter();
-  const user: User = useSelector((state: RootState) => state.admin);
-  // xử lý khi hover vào row
+  const user: any = useSelector((state: RootState) => state.admin);
+
+  // Tham số lọc: lớp, tìm kiếm theo tên, và loại bài kiểm tra (chung hay riêng)
   const [filterParams, setFilterParams] = useState<{
     classRoomId: number;
     nameSearch: string;
@@ -39,64 +35,20 @@ const ExamListPage: React.FC = () => {
     isPrivate: "false",
   });
 
-  // API lấy danh sách  bài kiểm tra
-  const { page, pageSize, content, isFetching, pagination } = usePage(
+  // Lấy danh sách bài thi qua hook usePage
+  const { page, pageSize, content, isFetching, pagination, refetch } = usePage(
     ["getLstExam", filterParams],
     Exam.getLstExam,
-    {
-      ...filterParams,
-    },
+    { ...filterParams }
   );
 
-  // API lấy danh sách  bài kiểm tra của user
-  const { data: allExamUser, refetch } = useQuery({
-    queryKey: ["getLstExamUser"],
-    queryFn: async () => {
-      const res = await Exam.getLstExamUser();
-      return res?.data?.content;
-    },
-  });
+  // Khi trang được hiển thị lại, gọi lại API (nếu cần)
+  useEffect(() => {
+    refetch();
+  }, []);
 
-  // Thêm bài kiểm tra cho user
-  const mutationAddUser = useMutation({
-    mutationFn: Exam.addExamForUser,
-    onSuccess: () => {
-      message.success("Thêm bài kiểm tra thành công");
-      refetch();
-    },
-    onError: () => {
-      message.error("Thêm bài kiểm tra thất bại");
-    },
-  });
-
-  // Xoá bài kiểm tra user
-  const mutationDeleteUser = useMutation({
-    mutationFn: Exam.deleteExamUser,
-    onSuccess: () => {
-      message.success("Xoá bài kiểm tra thành công");
-      refetch();
-    },
-    onError: () => {
-      message.error("Xoá bài kiểm tra thất bại");
-    },
-  });
-
-  // API lấy danh sách  topics
-  const { data: allTopics } = useQuery({
-    queryKey: ["getAllTopics"],
-    queryFn: async () => {
-      const res = await Learning.getAllTopics();
-      return res?.data?.map((item: { topicId: any; content: any }) => ({
-        id: item.topicId,
-        value: item.topicId,
-        label: item.content,
-        text: item.content,
-      }));
-    },
-  });
-
-  // Dánh sách lớp
-  const { data: allClass, isFetching: isFetchingClass } = useQuery({
+  // Lấy danh sách lớp học
+  const { data: allClass } = useQuery({
     queryKey: ["getListClass"],
     queryFn: async () => {
       const res = await Learning.getListClass();
@@ -107,11 +59,31 @@ const ExamListPage: React.FC = () => {
     },
   });
 
+  // Hàm xử lý "Làm lại"
+  const handleRedoExam = (examId: number) => {
+    Modal.confirm({
+      title: "Xác nhận",
+      content: "Bạn có chắc chắn muốn làm lại bài kiểm tra này không?",
+      okText: "Đồng ý",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          await Exam.resetExam(examId); // Gọi API reset exam
+          message.success("Bài kiểm tra đã được làm lại thành công.");
+          router.push(`/exam/${examId}?redo=true`); // Chuyển đến trang làm bài với chế độ redo
+        } catch (error) {
+          message.error("Có lỗi xảy ra khi làm lại bài kiểm tra.");
+        }
+      },
+    });
+  };
+
+  // Các cột bảng
   const columns = [
     {
       title: "STT",
       dataIndex: "stt",
-      render: (value: any, record: any, index: number) =>
+      render: (value: any, record: ExamData, index: number) =>
         (page - 1) * pageSize + index + 1,
       width: 80,
     },
@@ -119,10 +91,10 @@ const ExamListPage: React.FC = () => {
       title: "Tên bài kiểm tra",
       dataIndex: "name",
       key: "name",
-      render: (text: string, record: any) => (
+      render: (text: string, record: ExamData) => (
         <div
           className="hover:cursor-pointer"
-          onClick={() => router.push(`/exam/${record?.examId}`)}
+          onClick={() => router.push(`/exam/${record.examId}`)}
         >
           <div className="text-blue-500">{text}</div>
         </div>
@@ -136,18 +108,19 @@ const ExamListPage: React.FC = () => {
       width: 100,
     },
     {
-      title: "Điểm số (Thang điểm 10 )",
+      title: "Điểm số (Thang điểm 10)",
       dataIndex: "score",
       key: "score",
       width: 100,
-      render: (value: number) => <div className="font-bold">{value}</div>,
+      render: (value: number) =>
+        value !== undefined ? <div className="font-bold">{value}</div> : "-",
     },
     {
       title: "Trạng thái",
-      dataIndex: "finish",
+      dataIndex: "score",
       key: "finish",
-      render: (status: boolean) =>
-        status ? (
+      render: (score: number) =>
+        score !== undefined ? (
           <div className="caption-12-medium flex w-[120px] items-center justify-center rounded bg-green-100 px-4 py-2 text-green-700">
             Đã hoàn thành
           </div>
@@ -158,20 +131,36 @@ const ExamListPage: React.FC = () => {
         ),
       width: 100,
     },
-    
+    {
+      title: "Hành động",
+      key: "actions",
+      render: (record: ExamData) =>
+        record.score !== undefined ? (
+          <Button type="primary" danger onClick={() => handleRedoExam(record.examId)}>
+            Làm lại
+          </Button>
+        ) : null,
+      width: 150,
+    },
   ];
 
   return (
     <div className="container mx-auto py-4">
       <h1 className="mb-4 text-2xl font-bold">Danh sách bài kiểm tra</h1>
       <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Input className="w-full" placeholder="Tên bài kiểm tra" />
+        <Input
+          className="w-full"
+          placeholder="Tên bài kiểm tra"
+          onChange={(e) =>
+            setFilterParams({ ...filterParams, nameSearch: e.target.value })
+          }
+        />
         <Select
           className="w-full"
           allowClear
           placeholder="Lớp"
           options={allClass}
-          onChange={(value, option: any) =>
+          onChange={(value) =>
             setFilterParams({ ...filterParams, classRoomId: value })
           }
         />
@@ -182,16 +171,10 @@ const ExamListPage: React.FC = () => {
             placeholder="Loại bài kiểm tra"
             defaultValue={"false"}
             options={[
-              {
-                label: "Chung",
-                value: "false",
-              },
-              {
-                label: "Riêng",
-                value: "true",
-              },
+              { label: "Chung", value: "false" },
+              { label: "Riêng", value: "true" },
             ]}
-            onChange={(value, option: any) =>
+            onChange={(value) =>
               setFilterParams({ ...filterParams, isPrivate: value })
             }
           />
@@ -214,48 +197,38 @@ export default ExamListPage;
 
 export const CustomTable = styled(Table)`
   .ant-table-tbody {
-    padding: 10px 16px 10px 16px;
+    padding: 10px 16px;
   }
   .ant-table-tbody > tr > td {
-    padding: 10px 16px 10px 16px;
+    padding: 10px 16px;
     background-color: white;
   }
   .ant-table-cell.ant-table-cell-with-append {
     display: flex;
     padding-left: 0;
   }
-
   .ant-table-tbody > tr:hover {
     background-color: #f6f7f9;
   }
-
   .ant-table-thead .ant-table-cell {
     background-color: ${colors.neutral200};
     color: ${colors.neutral800};
     font-size: 14px;
-    font-style: normal;
     font-weight: 600;
     line-height: 16px;
-    letter-spacing: 0.09px;
   }
   .ant-table-row {
     color: ${colors.neutral1100};
     font-size: 14px;
-    font-style: normal;
     font-weight: 400;
     line-height: 20px;
-    letter-spacing: 0.07px;
   }
-
-  /* Hover */
   .ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover > th,
   .ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover > td,
   .ant-table-wrapper .ant-table-tbody > tr > th.ant-table-cell-row-hover,
   .ant-table-wrapper .ant-table-tbody > tr > td.ant-table-cell-row-hover {
     background: ${colors.neutral100};
   }
-
-  /* panigation */
   .ant-pagination.ant-table-pagination.ant-table-pagination-right {
     display: flex;
     justify-content: center;
@@ -271,33 +244,21 @@ export const CustomTable = styled(Table)`
   .ant-pagination-item.ant-pagination-item-active {
     background-color: ${colors.neutral200} !important;
   }
-  .ant-pagination .ant-pagination-item-active:hover {
-    border-color: ${colors.neutral200} !important;
-  }
   .ant-pagination .ant-pagination-item-active a {
     color: ${colors.neutral1100} !important;
-    text-align: center;
     font-size: 14px;
-    font-style: normal;
-    font-weight: 400;
-    letter-spacing: 0.07px;
   }
-
   .ant-table-body {
     scrollbar-width: auto;
     scrollbar-color: auto;
   }
-
-  // custom scrollbar
   .ant-table-body::-webkit-scrollbar {
     width: 4px;
     height: 4px;
   }
-
   .ant-table-body::-webkit-scrollbar-track {
     background-color: transparent;
   }
-
   .ant-table-body::-webkit-scrollbar-thumb {
     border-radius: 6px;
     background-color: #babac0;

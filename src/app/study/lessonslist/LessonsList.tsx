@@ -13,16 +13,17 @@ const LessonsList: FC<SectionHero2Props> = ({ className = "" }) => {
   const searchParams = useSearchParams();
   const classRoomId = Number(searchParams.get("classRoomId"));
   const [searchText, setSearchText] = useState<string>("");
-  const [filteredTopics, setFilteredTopics] = useState<any[]>([]);
+  const [filteredLessons, setFilteredLessons] = useState<any[]>([]);
 
-  // API to fetch lessons by class
-  const { data: allLessonPublic, isFetching } = useQuery({
+  if (!classRoomId) {
+    return <div>Không xác định lớp học. Vui lòng quay lại và chọn lại lớp.</div>;
+  }
+
+  const { data: allLessonPublic, isFetching: lessonsIsFetching } = useQuery({
     queryKey: ["getLstLessonByClass", classRoomId],
     queryFn: async () => {
-      console.log("Fetching lessons for classRoomId:", classRoomId);
       const res = await fetch(`/api/lessons?classRoomId=${classRoomId}`);
       const data = await res.json();
-      console.log("Lessons fetched:", data);
       return data;
     },
     onError: () => {
@@ -30,10 +31,9 @@ const LessonsList: FC<SectionHero2Props> = ({ className = "" }) => {
     },
   });
 
-  // Filter lessons based on search text
   useEffect(() => {
     if (allLessonPublic) {
-      setFilteredTopics(
+      setFilteredLessons(
         allLessonPublic.filter((lesson: any) =>
           lesson?.lessonName?.toLowerCase().includes(searchText.toLowerCase())
         )
@@ -41,15 +41,14 @@ const LessonsList: FC<SectionHero2Props> = ({ className = "" }) => {
     }
   }, [searchText, allLessonPublic]);
 
-  // Split lessons into two groups for two tables
-  const leftTableData = filteredTopics.slice(0, Math.ceil(filteredTopics.length / 2));
-  const rightTableData = filteredTopics.slice(Math.ceil(filteredTopics.length / 2));
+  const leftTableData = filteredLessons.slice(0, 40);
+  const rightTableData = filteredLessons.slice(40);
 
-  const columns = [
+  const getColumns = (offset = 0) => [
     {
       title: "STT",
       key: "index",
-      render: (_: any, __: any, index: number) => index + 1,
+      render: (_: any, __: any, index: number) => index + 1 + offset,
       width: 50,
     },
     {
@@ -85,7 +84,7 @@ const LessonsList: FC<SectionHero2Props> = ({ className = "" }) => {
   ];
 
   return (
-    <Spin spinning={isFetching}>
+    <Spin spinning={lessonsIsFetching}>
       <div className="mb-4 flex justify-between">
         <Input
           size="middle"
@@ -95,23 +94,23 @@ const LessonsList: FC<SectionHero2Props> = ({ className = "" }) => {
           style={{ width: "300px" }}
         />
       </div>
-      <div className="flex gap-4">
-        {/* Left Table */}
-        <div className="w-1/2">
+      <div className="flex gap-4 h-[700px]">
+        {/* Bảng bên trái: tối đa 40 bài, scroll nếu nhiều */}
+        <div className="w-1/2 overflow-y-auto border rounded-md">
           <Table
-            columns={columns}
+            columns={getColumns(0)}
             dataSource={leftTableData}
             rowKey="lessonId"
-            pagination={{ pageSize: 10 }}
+            pagination={false}
           />
         </div>
-        {/* Right Table */}
-        <div className="w-1/2">
+        {/* Bảng bên phải: phần còn lại, STT từ 41 trở đi */}
+        <div className="w-1/2 overflow-y-auto border rounded-md">
           <Table
-            columns={columns}
+            columns={getColumns(40)}
             dataSource={rightTableData}
             rowKey="lessonId"
-            pagination={{ pageSize: 10 }}
+            pagination={false}
           />
         </div>
       </div>

@@ -24,29 +24,17 @@ const PAGE_SIZE = 20;
 const ExamDetailPage: React.FC = () => {
   const router = useRouter();
   const { id } = useParams();
+  const searchParams = useSearchParams();
+  // Nếu có tham số redo, nghĩa là user đang làm lại bài
+  const isRedo = searchParams.get("redo");
+  const [form] = Form.useForm();
   const [isResultModalVisible, setIsResultModalVisible] = useState(false);
   const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
   const [score, setScore] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const searchParams = useSearchParams();
-  // Làm lại bài kiểm tra
-  const isRedo = searchParams.get("redo");
-  // Xem đáp án
-  const [showResultAnswer, setShowResultAnswer] = useState<{
-    open: boolean;
-    lstAnswer: any;
-  }>({
-    open: false,
-    lstAnswer: [],
-  });
 
-  const [form] = Form.useForm();
-
-  const {
-    data: detailExam,
-    refetch,
-    isFetching,
-  } = useQuery({
+  // Lấy thông tin chi tiết bài kiểm tra, bao gồm thông tin chấm điểm (score)
+  const { data: detailExam, isFetching } = useQuery({
     queryKey: ["detailExamsForUser", id],
     queryFn: async () => {
       const res = await Exam.detailExamsForUser(Number(id));
@@ -55,98 +43,77 @@ const ExamDetailPage: React.FC = () => {
     enabled: !!id,
   });
 
-  // Danh sách câu hỏi theo bài kiểm tra
+  // Xác định exam đã hoàn thành nếu có trường score từ backend
+  const isExamCompleted = detailExam && detailExam.score !== undefined;
+
+  // Lấy danh sách câu hỏi cho bài kiểm tra
   const { data: lstQuestions, isFetching: isFetchingQuestions } = useQuery({
     queryKey: ["getLstQuestionExam", id],
     queryFn: async () => {
-      const responsive = await Questions.getLstQuestionExam(id);
+      const response = await Questions.getLstQuestionExam(id);
       form.setFieldsValue({
-        questionId: responsive?.data?.map(
-          (question: any) => question.questionId,
-        ),
+        questionId: response?.data?.map((question: any) => question.questionId),
       });
-      return responsive?.data;
+      return response?.data;
     },
     enabled: !!id,
   });
 
-  // api lấy chi tiết đáp án của bải kiểm tra
-  const { data: detailExamSave, isFetching: isFetchingDetail } = useQuery({
+  // Lấy dữ liệu đáp án đã lưu (nếu có)
+  const { data: detailExamSave } = useQuery({
     queryKey: ["getDetailSaveExam", id],
     queryFn: async () => {
-      const responsive = await Exam.getDetailSaveExam(id);
-
-      return responsive?.data;
+      const response = await Exam.getDetailSaveExam(id);
+      return response?.data;
     },
     enabled: !!id,
   });
 
+  // Nếu bài thi đã hoàn thành và không ở chế độ redo, prefill form từ dữ liệu đã lưu
   useEffect(() => {
-    if (detailExamSave && lstQuestions && !isRedo) {
-      const initialValues = lstQuestions.reduce(
-        (acc: any, question: any, index: number) => {
-          const savedAnswer = detailExamSave.find(
-            (item: any) => item.questionId === question.questionId,
+    if (detailExamSave && lstQuestions && isExamCompleted && !isRedo) {
+      const initialValues = lstQuestions.reduce((acc: any, question: any, index: number) => {
+        const savedAnswer = detailExamSave.find((item: any) => item.questionId === question.questionId);
+        if (savedAnswer && savedAnswer.selectedAnswers && savedAnswer.selectedAnswers.length > 0) {
+          acc.answerList = acc.answerList || [];
+          acc.answerList[index] =
+            question?.questionType === "ONE_ANSWER"
+              ? { answerId: savedAnswer.selectedAnswers[0] }
+              : { answerId: savedAnswer.selectedAnswers };
+          acc.answer = acc.answer || [];
+          acc.answer[index] = question.answerResList?.some((ans: any) =>
+            savedAnswer.selectedAnswers?.includes(ans.answerId) && ans.correct
           );
-          if (savedAnswer) {
-            const selectedAnswers = savedAnswer.selectedAnswers;
-            acc.answerList = acc.answerList || [];
-            acc.answerList[index] = {
-              answerId:
-                selectedAnswers && question?.questionType === "ONE_ANSWER"
-                  ? selectedAnswers[0]
-                  : selectedAnswers,
-            };
-            acc.answer = acc.answer || [];
-            acc.answer[index] = question.answerResList?.some(
-              (ans: any) =>
-                selectedAnswers?.includes(ans.answerId) && ans.correct,
-            );
-          }
-          return acc;
-        },
-        {},
-      );
-
+        }
+        return acc;
+      }, {});
       form.setFieldsValue(initialValues);
     }
-  }, [detailExamSave, lstQuestions]);
+  }, [detailExamSave, lstQuestions, isExamCompleted, isRedo, form]);
 
-  // Chấm điểm
   const markExam = useMutation({
     mutationFn: Exam.markExam,
-    onSuccess: () => {},
   });
 
-  // Lưu đáp án
-  const saveExam = useMutation({
-    mutationFn: Exam.saveExam,
-    onSuccess: () => {
-      message.success("Chấm điểm thành công");
-    },
-  });
-
+  // Khi nộp bài: lưu đáp án, chấm điểm và chuyển hướng về trang danh sách
   const submitExam = (values: any) => {
-    // Data truyền cho api
-    const req = lstQuestions.map(
-      (question: { questionId: any }, index: string | number) => {
-        const correctAnswer = values?.answerList[index];
-        const selectedAnswers =
-          typeof correctAnswer.answerId === "number"
-            ? [correctAnswer?.answerId]
-            : correctAnswer?.answerId;
+    const req = lstQuestions.map((question: any, index: number) => {
+      const correctAnswer = values?.answerList[index];
+      const selectedAnswers =
+        typeof correctAnswer.answerId === "number"
+          ? [correctAnswer?.answerId]
+          : correctAnswer?.answerId;
+      return {
+        questionId: question.questionId,
+        examId: Number(id),
+        selectedAnswers,
+      };
+    });
 
-        return {
-          questionId: question.questionId,
-          examId: Number(id),
-          selectedAnswers,
-        };
-      },
-    );
-
+    // Nếu chưa trả lời hết các câu hỏi, hiển thị modal xác nhận
     const unansweredQuestions = lstQuestions.filter(
       (q: any, index: number) =>
-        !values.answer || values.answer[index] === undefined,
+        !values.answer || values.answer[index] === undefined
     );
 
     if (unansweredQuestions.length > 0) {
@@ -154,11 +121,15 @@ const ExamDetailPage: React.FC = () => {
     } else {
       calculateScore(values);
     }
-    saveExam.mutate(req);
+
+    // Gọi API lưu đáp án
+    Exam.saveExam(req).then(() => {
+      message.success("Bài kiểm tra đã được lưu.");
+    });
   };
 
   const calculateScore = (values: any) => {
-    const calculatedScore = values.answer?.filter((item: any) => item)?.length;
+    const calculatedScore = values.answer?.filter((item: any) => item)?.length || 0;
     markExam.mutate({
       examId: Number(id),
       score: (calculatedScore / lstQuestions?.length) * 10,
@@ -179,12 +150,9 @@ const ExamDetailPage: React.FC = () => {
   };
 
   const startIndex = (currentPage - 1) * PAGE_SIZE;
-  const currentQuestions = lstQuestions?.slice(
-    startIndex,
-    startIndex + PAGE_SIZE,
-  );
+  const currentQuestions = lstQuestions?.slice(startIndex, startIndex + PAGE_SIZE);
 
-  // Hiển thị icon biểu cảm
+  // Hàm tính icon biểu cảm dựa trên điểm
   const calculateRating = () => {
     if (score >= 7) {
       return <SmileOutlined style={{ fontSize: "140px", color: "#53d100" }} />;
@@ -199,9 +167,9 @@ const ExamDetailPage: React.FC = () => {
     <Spin spinning={isFetching || isFetchingQuestions}>
       {lstQuestions ? (
         <div className="container mx-auto py-4">
-          <div className="">
+          <div>
             <Breadcrumb
-              pageName={`Bài kiểm tra:  ${detailExam?.name}`}
+              pageName={`Bài kiểm tra: ${detailExam?.name}`}
               itemBreadcrumb={[
                 { pathName: "/", name: "Trang chủ" },
                 { pathName: "/exam", name: "Danh sách bài kiểm tra" },
@@ -209,31 +177,13 @@ const ExamDetailPage: React.FC = () => {
               ]}
             />
           </div>
-          {!isRedo && (
-            <Button
-              className="mb-2"
-              onClick={() =>
-                setShowResultAnswer({
-                  open: true,
-                  lstAnswer: [],
-                })
-              }
-            >
-              Xem đáp án
-            </Button>
-          )}
+          {/* Phần "Xem đáp án" đã bị loại bỏ */}
           <Form form={form} layout="vertical" onFinish={submitExam}>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {currentQuestions?.map((q: any, index: number) => (
-                <div
-                  key={q.key}
-                  className="rounded-md border bg-white p-4 shadow-md"
-                >
+                <div key={q.key} className="rounded-md border bg-white p-4 shadow-md">
                   <div className="text-base">
-                    <span className="text-base font-bold">
-                      Câu {`${index + 1}`} :
-                    </span>{" "}
-                    {q.content}
+                    <span className="text-base font-bold">Câu {index + 1}:</span> {q.content}
                   </div>
                   {(q.imageLocation || q.videoLocation) && (
                     <div className="mb-4 flex justify-center">
@@ -255,44 +205,32 @@ const ExamDetailPage: React.FC = () => {
                   )}
                   <Form.Item name={["answer", index]} hidden />
                   <Form.Item name={["questionId", index]} hidden />
-
                   <Form.Item name={["answerList", index, "answerId"]}>
-                    {q.answerResList?.filter(
-                      (item: { correct: boolean }) => item.correct,
-                    )?.length > 1 ? (
+                    {q.answerResList?.filter((item: { correct: boolean }) => item.correct)?.length > 1 ? (
                       <Checkbox.Group
+                        disabled={isExamCompleted && !isRedo}
                         onChange={(value) => {
                           const correct = q.answerResList
-                            ?.filter((item: any) =>
-                              value.includes(item.answerId),
-                            )
-                            ?.every(
-                              (item: { correct: boolean }) => item.correct,
-                            );
+                            ?.filter((item: any) => value.includes(item.answerId))
+                            ?.every((item: { correct: boolean }) => item.correct);
                           form.setFieldValue(["answer", index], correct);
                         }}
                       >
                         {q.answerResList.map((answer: any) => (
-                          <Checkbox
-                            key={answer.answerId}
-                            value={answer.answerId}
-                          >
+                          <Checkbox key={answer.answerId} value={answer.answerId}>
                             {answer.content}
                           </Checkbox>
                         ))}
                       </Checkbox.Group>
                     ) : (
-                      <Radio.Group>
+                      <Radio.Group disabled={isExamCompleted && !isRedo}>
                         {q.answerResList.map((answer: any) => (
                           <Radio
                             key={answer.answerId}
                             value={answer.answerId}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                form.setFieldValue(
-                                  ["answer", index],
-                                  answer.correct,
-                                );
+                                form.setFieldValue(["answer", index], answer.correct);
                               }
                             }}
                           >
@@ -324,21 +262,20 @@ const ExamDetailPage: React.FC = () => {
             open={isResultModalVisible}
             onOk={() => {
               setIsResultModalVisible(false);
+              router.push("/exam");
             }}
             maskClosable={false}
             onCancel={() => setIsResultModalVisible(false)}
             footer={
-              <>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    setIsResultModalVisible(false);
-                    router.back();
-                  }}
-                >
-                  Đóng
-                </Button>
-              </>
+              <Button
+                type="primary"
+                onClick={() => {
+                  setIsResultModalVisible(false);
+                  router.push("/exam");
+                }}
+              >
+                Đóng
+              </Button>
             }
           >
             <div className="flex w-full justify-center py-4">
@@ -351,16 +288,14 @@ const ExamDetailPage: React.FC = () => {
             open={isConfirmModalVisible}
             onOk={handleConfirmSubmit}
             onCancel={() => setIsConfirmModalVisible(false)}
-            footer={
-              <>
-                <Button onClick={() => setIsConfirmModalVisible(false)}>
-                  Tiếp tục
-                </Button>
-                <Button type="primary" onClick={handleConfirmSubmit}>
-                  Nộp bài
-                </Button>
-              </>
-            }
+            footer={[
+              <Button key="cancel" onClick={() => setIsConfirmModalVisible(false)}>
+                Tiếp tục
+              </Button>,
+              <Button key="submit" type="primary" onClick={handleConfirmSubmit}>
+                Nộp bài
+              </Button>,
+            ]}
           >
             <p>Bạn chưa hoàn thành bài kiểm tra, bạn có muốn tiếp tục?</p>
           </Modal>
@@ -368,101 +303,6 @@ const ExamDetailPage: React.FC = () => {
       ) : (
         <Empty description="Không có câu hỏi nào" />
       )}
-
-      {/* Modal hiển thị đáp án đúng */}
-      <Modal
-        open={showResultAnswer.open}
-        onCancel={() => {
-          setShowResultAnswer({
-            open: false,
-            lstAnswer: [],
-          });
-        }}
-        footer={
-          <>
-            <Button
-              onClick={() =>
-                setShowResultAnswer({
-                  open: false,
-                  lstAnswer: [],
-                })
-              }
-            >
-              Đóng
-            </Button>
-          </>
-        }
-        maskClosable={false}
-        destroyOnClose
-        width={800}
-      >
-        <div className="w-full p-4">
-          {currentQuestions?.map((q: any, index: number) => (
-            <div
-              key={q.key}
-              className="rounded-md border bg-white p-4 shadow-md"
-            >
-              <div className="text-base">
-                <span className="text-base font-bold">
-                  Câu {`${index + 1}`} :
-                </span>{" "}
-                {q.content}
-              </div>
-
-              {(q.imageLocation || q.videoLocation) && (
-                <div className="mb-4 flex justify-center">
-                  {q.imageLocation && (
-                    <Image
-                      style={{ height: "256px" }}
-                      src={q.imageLocation}
-                      alt="question media"
-                      className="h-64 w-full object-cover"
-                    />
-                  )}
-                  {q.videoLocation && (
-                    <video controls className="h-64 w-full object-cover">
-                      <source src={q.videoLocation} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                  )}
-                </div>
-              )}
-
-              {q.answerResList?.filter(
-                (item: { correct: boolean }) => item.correct,
-              )?.length > 1 ? (
-                <Checkbox.Group
-                  disabled
-                  value={q.answerResList
-                    ?.filter((item: { correct: boolean }) => item.correct)
-                    ?.map((item: { answerId: any }) => item.answerId)}
-                  options={q.answerResList?.map(
-                    (e: { content: any; answerId: any }) => ({
-                      label: e.content,
-                      value: e.answerId,
-                    }),
-                  )}
-                />
-              ) : (
-                <Radio.Group
-                  disabled
-                  value={
-                    q.answerResList?.find(
-                      (item: { correct: boolean }) => item.correct,
-                    )?.answerId
-                  }
-                >
-                  {q.answerResList.map((answer: any) => (
-                    <Radio value={answer.answerId} key={answer.answerId}>
-                      {answer.content}
-                    </Radio>
-                  ))}
-                </Radio.Group>
-              )}
-            </div>
-          ))}
-        </div>
-      </Modal>
     </Spin>
   );
 };
