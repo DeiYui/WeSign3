@@ -36,14 +36,20 @@ const LearningProcess: React.FC = () => {
   //     return res;
   //   },
   // });
-  const userId = useSelector((state: RootState) => state.admin.userId);
-  console.log("classJoin", userId);
-  console.log("Type of userId:", typeof userId);
+  // console.log("classJoin", user.userId);
+  // console.log("Type of userId:", typeof user.userId);
 
+  // const { data: classJoined, isFetching } = useQuery({
+  //   queryKey: ["userClasslist", userId], // Include userId in the query key
+  //   queryFn: async () => {
+  //     const res = await Learning.classJoined(userId);
+  //     return res;
+  //   },
+  // });
   const { data: classJoined, isFetching } = useQuery({
-    queryKey: ["userClasslist", userId], // Include userId in the query key
+    queryKey: ["userClasslist"],
     queryFn: async () => {
-      const res = await Learning.classJoined(userId);
+      const res = await Learning.classJoined();
       return res;
     },
   });

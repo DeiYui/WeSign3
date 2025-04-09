@@ -9,6 +9,14 @@ export class Base {
   private readonly apiPrefix: string | undefined;
   private readonly apiPrefixNode: string | undefined;
 
+  // constructor(apiPrefix: string | null = null) {
+  //   this.apiRoot = API_ROOT;
+  //   this.apiRootNode = API_ROOT_NODE + "/api";
+  //   this.apiPrefix = `${API_ROOT}/${apiPrefix}`;
+  //   // this.apiPrefixNode = `${API_ROOT_NODE}/api/${apiPrefix}`;
+  //   // this.apiPrefix = apiPrefix || '';
+  //   this.apiPrefixNode = `${API_ROOT_NODE}/api/${apiPrefix}`;
+  // }
   constructor(apiPrefix: string | null = null) {
     this.apiRoot = API_ROOT;
     this.apiRootNode = API_ROOT_NODE + "/api";
@@ -34,7 +42,6 @@ export class Base {
   };
 
 // GET
-  // Java
   apiGet = (url: string, query = {}, signal?: any) =>
     http.get(`${this.apiPrefix}${url}`, {
       params: this.normalizeQuery(query),
@@ -54,11 +61,23 @@ export class Base {
       signal,
     });
 
-  apiGetWithoutPrefixNode = (url: string, query = {}, signal?: any) =>
-    http.get(`${this.apiRootNode}${url}`, {
+  // apiGetWithoutPrefixNode = (url: string, query = {}, signal?: any) =>
+  //   http.get(`${this.apiRootNode}${url}`, {
+  //     params: this.normalizeQuery(query),
+  //     signal,
+  //   }); 
+  apiGetWithoutPrefixNode = (
+    url: string,
+    query: any = {},
+    signal?: any,
+    headers: any = {}
+  ) => {
+    return http.get(`${this.apiRootNode}${url}`, {
       params: this.normalizeQuery(query),
       signal,
-    }); 
+      headers,
+    });
+  };
 
 // POST
   // Java

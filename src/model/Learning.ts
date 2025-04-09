@@ -296,23 +296,43 @@ class Learning extends Base {
   //   console.log(res.data);
   //   return res.data;
   // };
-  classJoined = async (userId: number) => {
-    // // Send userId in the request body or as a query parameter
-    // const res = await this.apiGetWithoutPrefixNode(`/user/class-joined?userId=${userId}`);
-    // // Or alternatively, if your API expects it in a different format:
-    // // const res = await this.apiPostWithoutPrefixNode(`/user-auth/class-joined`, { userId });
+  // classJoined = async (userId: number) => {
+  //   // // Send userId in the request body or as a query parameter
+  //   // const res = await this.apiGetWithoutPrefixNode(`/user/class-joined?userId=${userId}`);
+  //   // // Or alternatively, if your API expects it in a different format:
+  //   // // const res = await this.apiPostWithoutPrefixNode(`/user-auth/class-joined`, { userId });
     
-    // console.log(res.data);
+  //   // console.log(res.data);
+  //   // return res.data;
+  //   try {
+  //     const res = await this.apiGetWithoutPrefixNode(`/user/class-joined?userId=${userId}`);
+  //     console.log("test", res.data);
+  //     return res.data;
+  //   } catch (error) {
+  //     console.error('API call failed:', error);
+  //     throw error;
+  //   }
+    
+  // };
+  classJoined = async () => {
+    // const res = await this.apiGetWithoutPrefix(`/user-auth/class-joined`);
     // return res.data;
-    try {
-      const res = await this.apiGetWithoutPrefixNode(`/user/class-joined?userId=${userId}`);
-      console.log("test", res.data);
-      return res.data;
-    } catch (error) {
-      console.error('API call failed:', error);
-      throw error;
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("User is not authenticated!");
     }
-    
+
+    // const res = await this.apiGetWithoutPrefixNode(`/user-auth/class-joined`, {
+    //   headers: { Authorization: `Bearer ${token}` },
+    // });
+    const res = await this.apiGetWithoutPrefixNode(
+      `/user/class-joined`,
+      {}, // query
+      undefined, // signal
+      { Authorization: `Bearer ${token}` } // headers
+    );
+    console.log("this",res.data);
+    return res.data;
   };
 
   updateStudentClass = async (body: any) => {
