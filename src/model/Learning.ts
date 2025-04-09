@@ -344,5 +344,4 @@ class Learning extends Base {
   };
 }
 
-
 export default new Learning("learning-service");

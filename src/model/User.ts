@@ -124,5 +124,4 @@ class User extends Base {
   };
 }
 
-
 export default new User("user-service");

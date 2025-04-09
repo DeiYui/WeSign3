@@ -1,470 +1,232 @@
 "use client";
-import Breadcrumb from "@/components/UI/Breadcrumbs/Breadcrumb";
-import Exam from "@/model/Exam";
-import Questions from "@/model/Questions";
-import { FrownOutlined, MehOutlined, SmileOutlined } from "@ant-design/icons";
+
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+  Breadcrumb,
   Button,
+  Card,
   Checkbox,
-  Empty,
   Form,
-  Image,
-  Modal,
   Pagination,
   Radio,
-  Spin,
+  Skeleton,
   message,
 } from "antd";
+import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { ArrowLeftOutlined } from "@ant-design/icons";
+import Questions from "@/model/Questions";
+import Exam from "@/model/Exam";
 
-const PAGE_SIZE = 20;
-
-const ExamDetailPage: React.FC = () => {
+export default function QuestionsPage() {
   const router = useRouter();
-  const { id } = useParams();
-  const [isResultModalVisible, setIsResultModalVisible] = useState(false);
-  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
-  const [score, setScore] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
+  const { id }: any = useParams();
   const searchParams = useSearchParams();
-  // Làm lại bài kiểm tra
-  const isRedo = searchParams.get("redo");
-  // Xem đáp án
-  const [showResultAnswer, setShowResultAnswer] = useState<{
-    open: boolean;
-    lstAnswer: any;
-  }>({
-    open: false,
-    lstAnswer: [],
-  });
+  const isRedo = searchParams.get("redo") === "true";
 
   const [form] = Form.useForm();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [submitted, setSubmitted] = useState(false);
 
-  const {
-    data: detailExam,
-    refetch,
-    isFetching,
-  } = useQuery({
-    queryKey: ["detailExamsForUser", id],
+  const { data: detailExam } = useQuery({
+    queryKey: ["getExamDetail", id],
     queryFn: async () => {
-      const res = await Exam.detailExamsForUser(Number(id));
+      const res = await Exam.getDetailExam(Number(id));
       return res?.data;
     },
-    enabled: !!id,
   });
 
-  // Danh sách câu hỏi theo bài kiểm tra
-  const { data: lstQuestions, isFetching: isFetchingQuestions } = useQuery({
+  const { data: lstQuestions } = useQuery({
     queryKey: ["getLstQuestionExam", id],
     queryFn: async () => {
-      const responsive = await Questions.getLstQuestionExam(id);
-      form.setFieldsValue({
-        questionId: responsive?.data?.map(
-          (question: any) => question.questionId,
-        ),
-      });
-      return responsive?.data;
+      const res = await Questions.getLstQuestionExam(Number(id));
+      return res?.data || [];
     },
-    enabled: !!id,
   });
 
-  // api lấy chi tiết đáp án của bải kiểm tra
-  const { data: detailExamSave, isFetching: isFetchingDetail } = useQuery({
-    queryKey: ["getDetailSaveExam", id],
+  const { data: detailExamSave } = useQuery({
+    queryKey: ["getDetailExamSave", id],
     queryFn: async () => {
-      const responsive = await Exam.getDetailSaveExam(id);
-
-      return responsive?.data;
+      const res = await Exam.getDetailExamSave(Number(id));
+      return res?.data || [];
     },
-    enabled: !!id,
+    enabled: !!detailExam && detailExam.score !== undefined && !isRedo,
   });
+
+  const isCompleted = detailExam?.score !== undefined;
 
   useEffect(() => {
-    if (detailExamSave && lstQuestions && !isRedo) {
-      const initialValues = lstQuestions.reduce(
-        (acc: any, question: any, index: number) => {
-          const savedAnswer = detailExamSave.find(
-            (item: any) => item.questionId === question.questionId,
+    if (!isRedo && detailExamSave && lstQuestions) {
+      const initialValues = lstQuestions.reduce((acc: any, question: any, index: number) => {
+        const savedAnswer = detailExamSave.find(
+          (item: any) => item.questionId === question.questionId
+        );
+        if (savedAnswer) {
+          const selectedAnswers = savedAnswer.selectedAnswers;
+          acc.answerList = acc.answerList || [];
+          acc.answerList[index] = {
+            answerId:
+              selectedAnswers && question?.questionType === "ONE_ANSWER"
+                ? selectedAnswers[0]
+                : selectedAnswers,
+          };
+          acc.answer = acc.answer || [];
+          acc.answer[index] = question.answerResList?.some(
+            (ans: any) =>
+              selectedAnswers?.includes(ans.answerId) && ans.correct
           );
-          if (savedAnswer) {
-            const selectedAnswers = savedAnswer.selectedAnswers;
-            acc.answerList = acc.answerList || [];
-            acc.answerList[index] = {
-              answerId:
-                selectedAnswers && question?.questionType === "ONE_ANSWER"
-                  ? selectedAnswers[0]
-                  : selectedAnswers,
-            };
-            acc.answer = acc.answer || [];
-            acc.answer[index] = question.answerResList?.some(
-              (ans: any) =>
-                selectedAnswers?.includes(ans.answerId) && ans.correct,
-            );
-          }
-          return acc;
-        },
-        {},
-      );
-
+        }
+        return acc;
+      }, {});
       form.setFieldsValue(initialValues);
     }
-  }, [detailExamSave, lstQuestions]);
+  }, [detailExamSave, lstQuestions, isRedo]);
 
-  // Chấm điểm
-  const markExam = useMutation({
-    mutationFn: Exam.markExam,
-    onSuccess: () => {},
-  });
-
-  // Lưu đáp án
   const saveExam = useMutation({
-    mutationFn: Exam.saveExam,
-    onSuccess: () => {
-      message.success("Chấm điểm thành công");
-    },
+    mutationFn: (data: any) => Exam.saveExam(data),
   });
 
-  const submitExam = (values: any) => {
-    // Data truyền cho api
-    const req = lstQuestions.map(
-      (question: { questionId: any }, index: string | number) => {
-        const correctAnswer = values?.answerList[index];
-        const selectedAnswers =
-          typeof correctAnswer.answerId === "number"
-            ? [correctAnswer?.answerId]
-            : correctAnswer?.answerId;
+  const markExam = useMutation({
+    mutationFn: (data: any) => Exam.markExam(data),
+  });
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+
+      const answers = lstQuestions.map((q: any, index: number) => {
+        const selectedRaw = values?.answerList?.[index]?.answerId;
+        const selected =
+          selectedRaw !== undefined && selectedRaw !== null
+            ? selectedRaw
+            : [];
 
         return {
-          questionId: question.questionId,
-          examId: Number(id),
-          selectedAnswers,
+          examId: detailExam.examId,
+          questionId: q.questionId,
+          selectedAnswers: Array.isArray(selected) ? selected : [selected],
         };
-      },
-    );
+      });
 
-    const unansweredQuestions = lstQuestions.filter(
-      (q: any, index: number) =>
-        !values.answer || values.answer[index] === undefined,
-    );
+      await saveExam.mutateAsync(answers);
 
-    if (unansweredQuestions.length > 0) {
-      setIsConfirmModalVisible(true);
-    } else {
-      calculateScore(values);
-    }
-    saveExam.mutate(req);
-  };
+      const correctCount = answers.reduce((count, a) => {
+        const q = lstQuestions.find((q) => q.questionId === a.questionId);
+        const correctAnswers = q.answerResList
+          .filter((ans) => ans.correct)
+          .map((ans) => ans.answerId)
+          .sort()
+          .toString();
+        const selectedAnswers = a.selectedAnswers.sort().toString();
+        return count + (correctAnswers === selectedAnswers ? 1 : 0);
+      }, 0);
 
-  const calculateScore = (values: any) => {
-    const calculatedScore = values.answer?.filter((item: any) => item)?.length;
-    markExam.mutate({
-      examId: Number(id),
-      score: (calculatedScore / lstQuestions?.length) * 10,
-    });
-    setScore((calculatedScore / lstQuestions?.length) * 10);
-    setIsResultModalVisible(true);
-  };
+      const score = (correctCount / lstQuestions.length) * 10;
 
-  const handleConfirmSubmit = () => {
-    form.validateFields().then((values) => {
-      calculateScore(values);
-    });
-    setIsConfirmModalVisible(false);
-  };
+      await markExam.mutateAsync({
+        examId: detailExam.examId,
+        score,
+      });
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const startIndex = (currentPage - 1) * PAGE_SIZE;
-  const currentQuestions = lstQuestions?.slice(
-    startIndex,
-    startIndex + PAGE_SIZE,
-  );
-
-  // Hiển thị icon biểu cảm
-  const calculateRating = () => {
-    if (score >= 7) {
-      return <SmileOutlined style={{ fontSize: "140px", color: "#53d100" }} />;
-    } else if (score >= 4 && score < 7) {
-      return <MehOutlined style={{ fontSize: "140px", color: "orange" }} />;
-    } else {
-      return <FrownOutlined style={{ fontSize: "140px", color: "red" }} />;
+      message.success("Nộp bài thành công!");
+      setSubmitted(true);
+      router.push("/study/examlist");
+    } catch (error) {
+      message.error("Vui lòng hoàn thành tất cả câu hỏi trước khi nộp bài.");
     }
   };
+
+  const questionsPerPage = 1;
+  const currentQuestion = lstQuestions?.[currentPage - 1];
 
   return (
-    <Spin spinning={isFetching || isFetchingQuestions}>
-      {lstQuestions ? (
-        <div className="container mx-auto py-4">
-          <div className="">
-            <Breadcrumb
-              pageName={`Bài kiểm tra:  ${detailExam?.name}`}
-              itemBreadcrumb={[
-                { pathName: "/", name: "Trang chủ" },
-                { pathName: "/exam", name: "Danh sách bài kiểm tra" },
-                { pathName: "#", name: "Bài kiểm tra" },
-              ]}
-            />
-          </div>
-          {!isRedo && (
-            <Button
-              className="mb-2"
-              onClick={() =>
-                setShowResultAnswer({
-                  open: true,
-                  lstAnswer: [],
-                })
-              }
-            >
-              Xem đáp án
-            </Button>
-          )}
-          <Form form={form} layout="vertical" onFinish={submitExam}>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {currentQuestions?.map((q: any, index: number) => (
-                <div
-                  key={q.key}
-                  className="rounded-md border bg-white p-4 shadow-md"
-                >
-                  <div className="text-base">
-                    <span className="text-base font-bold">
-                      Câu {`${index + 1}`} :
-                    </span>{" "}
-                    {q.content}
-                  </div>
-                  {(q.imageLocation || q.videoLocation) && (
-                    <div className="mb-4 flex justify-center">
-                      {q.imageLocation && (
-                        <Image
-                          style={{ height: "256px" }}
-                          src={q.imageLocation}
-                          alt="question media"
-                          className="h-64 w-full object-cover"
-                        />
-                      )}
-                      {q.videoLocation && (
-                        <video controls className="h-64 w-full object-cover">
-                          <source src={q.videoLocation} type="video/mp4" />
-                          Your browser does not support the video tag.
-                        </video>
-                      )}
-                    </div>
-                  )}
-                  <Form.Item name={["answer", index]} hidden />
-                  <Form.Item name={["questionId", index]} hidden />
+    <div className="p-4 md:p-10">
+      <Breadcrumb
+        items={[
+          { title: <ArrowLeftOutlined onClick={() => router.back()} /> },
+          { title: "Danh sách bài kiểm tra" },
+        ]}
+      />
 
-                  <Form.Item name={["answerList", index, "answerId"]}>
-                    {q.answerResList?.filter(
-                      (item: { correct: boolean }) => item.correct,
-                    )?.length > 1 ? (
-                      <Checkbox.Group
-                        onChange={(value) => {
-                          const correct = q.answerResList
-                            ?.filter((item: any) =>
-                              value.includes(item.answerId),
-                            )
-                            ?.every(
-                              (item: { correct: boolean }) => item.correct,
-                            );
-                          form.setFieldValue(["answer", index], correct);
+      <h1 className="text-2xl font-bold mt-4 mb-6">{detailExam?.name}</h1>
+
+      <Form form={form} layout="vertical">
+        <Skeleton loading={!currentQuestion} active>
+          {currentQuestion && (
+            <Card
+              title={`Câu ${currentPage}: ${currentQuestion.content}`}
+              className="mb-6"
+            >
+              {currentQuestion.videoLocation && (
+                <video width="100%" controls className="mb-4">
+                  <source src={currentQuestion.videoLocation} type="video/mp4" />
+                  Trình duyệt không hỗ trợ video.
+                </video>
+              )}
+
+              {currentQuestion.imageLocation && (
+                <img
+                  src={currentQuestion.imageLocation}
+                  alt="Question Media"
+                  className="mb-4 w-full max-w-md"
+                />
+              )}
+
+              <Form.Item name={["answerList", currentPage - 1, "answerId"]}>
+                {currentQuestion.answerResList.filter((a) => a.correct).length > 1 ? (
+                  <Checkbox.Group
+                    disabled={!isRedo && isCompleted}
+                    onChange={(value) => {
+                      const correct = currentQuestion.answerResList
+                        .filter((item: any) => value.includes(item.answerId))
+                        .every((item) => item.correct);
+                      form.setFieldValue(["answer", currentPage - 1], correct);
+                    }}
+                  >
+                    {currentQuestion.answerResList.map((answer: any) => (
+                      <Checkbox key={answer.answerId} value={answer.answerId}>
+                        {answer.content}
+                      </Checkbox>
+                    ))}
+                  </Checkbox.Group>
+                ) : (
+                  <Radio.Group disabled={!isRedo && isCompleted}>
+                    {currentQuestion.answerResList.map((answer: any) => (
+                      <Radio
+                        key={answer.answerId}
+                        value={answer.answerId}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            form.setFieldValue(["answer", currentPage - 1], answer.correct);
+                          }
                         }}
                       >
-                        {q.answerResList.map((answer: any) => (
-                          <Checkbox
-                            key={answer.answerId}
-                            value={answer.answerId}
-                          >
-                            {answer.content}
-                          </Checkbox>
-                        ))}
-                      </Checkbox.Group>
-                    ) : (
-                      <Radio.Group>
-                        {q.answerResList.map((answer: any) => (
-                          <Radio
-                            key={answer.answerId}
-                            value={answer.answerId}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                form.setFieldValue(
-                                  ["answer", index],
-                                  answer.correct,
-                                );
-                              }
-                            }}
-                          >
-                            {answer.content}
-                          </Radio>
-                        ))}
-                      </Radio.Group>
-                    )}
-                  </Form.Item>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Button htmlType="submit" type="primary">
-                Nộp bài
-              </Button>
-            </div>
-          </Form>
-          <div className="mt-4 flex justify-center">
-            <Pagination
-              current={currentPage}
-              pageSize={PAGE_SIZE}
-              total={lstQuestions?.length}
-              onChange={handlePageChange}
-            />
-          </div>
-          <Modal
-            title="Kết quả"
-            open={isResultModalVisible}
-            onOk={() => {
-              setIsResultModalVisible(false);
-            }}
-            maskClosable={false}
-            onCancel={() => setIsResultModalVisible(false)}
-            footer={
-              <>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    setIsResultModalVisible(false);
-                    router.back();
-                  }}
-                >
-                  Đóng
-                </Button>
-              </>
-            }
-          >
-            <div className="flex w-full justify-center py-4">
-              {calculateRating()}
-            </div>
-            <p className="text-xl font-bold">Điểm của bạn là: {score}/10</p>
-          </Modal>
-          <Modal
-            title="Thông báo"
-            open={isConfirmModalVisible}
-            onOk={handleConfirmSubmit}
-            onCancel={() => setIsConfirmModalVisible(false)}
-            footer={
-              <>
-                <Button onClick={() => setIsConfirmModalVisible(false)}>
-                  Tiếp tục
-                </Button>
-                <Button type="primary" onClick={handleConfirmSubmit}>
-                  Nộp bài
-                </Button>
-              </>
-            }
-          >
-            <p>Bạn chưa hoàn thành bài kiểm tra, bạn có muốn tiếp tục?</p>
-          </Modal>
-        </div>
-      ) : (
-        <Empty description="Không có câu hỏi nào" />
-      )}
+                        {answer.content}
+                      </Radio>
+                    ))}
+                  </Radio.Group>
+                )}
+              </Form.Item>
+            </Card>
+          )}
+        </Skeleton>
 
-      {/* Modal hiển thị đáp án đúng */}
-      <Modal
-        open={showResultAnswer.open}
-        onCancel={() => {
-          setShowResultAnswer({
-            open: false,
-            lstAnswer: [],
-          });
-        }}
-        footer={
-          <>
-            <Button
-              onClick={() =>
-                setShowResultAnswer({
-                  open: false,
-                  lstAnswer: [],
-                })
-              }
-            >
-              Đóng
+        <div className="flex justify-between items-center mt-8">
+          <Pagination
+            current={currentPage}
+            total={lstQuestions?.length || 0}
+            pageSize={questionsPerPage}
+            onChange={(page) => setCurrentPage(page)}
+            showSizeChanger={false}
+          />
+
+          {(!isCompleted || isRedo) && (
+            <Button type="primary" onClick={handleSubmit} disabled={submitted}>
+              Nộp bài
             </Button>
-          </>
-        }
-        maskClosable={false}
-        destroyOnClose
-        width={800}
-      >
-        <div className="w-full p-4">
-          {currentQuestions?.map((q: any, index: number) => (
-            <div
-              key={q.key}
-              className="rounded-md border bg-white p-4 shadow-md"
-            >
-              <div className="text-base">
-                <span className="text-base font-bold">
-                  Câu {`${index + 1}`} :
-                </span>{" "}
-                {q.content}
-              </div>
-
-              {(q.imageLocation || q.videoLocation) && (
-                <div className="mb-4 flex justify-center">
-                  {q.imageLocation && (
-                    <Image
-                      style={{ height: "256px" }}
-                      src={q.imageLocation}
-                      alt="question media"
-                      className="h-64 w-full object-cover"
-                    />
-                  )}
-                  {q.videoLocation && (
-                    <video controls className="h-64 w-full object-cover">
-                      <source src={q.videoLocation} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                  )}
-                </div>
-              )}
-
-              {q.answerResList?.filter(
-                (item: { correct: boolean }) => item.correct,
-              )?.length > 1 ? (
-                <Checkbox.Group
-                  disabled
-                  value={q.answerResList
-                    ?.filter((item: { correct: boolean }) => item.correct)
-                    ?.map((item: { answerId: any }) => item.answerId)}
-                  options={q.answerResList?.map(
-                    (e: { content: any; answerId: any }) => ({
-                      label: e.content,
-                      value: e.answerId,
-                    }),
-                  )}
-                />
-              ) : (
-                <Radio.Group
-                  disabled
-                  value={
-                    q.answerResList?.find(
-                      (item: { correct: boolean }) => item.correct,
-                    )?.answerId
-                  }
-                >
-                  {q.answerResList.map((answer: any) => (
-                    <Radio value={answer.answerId} key={answer.answerId}>
-                      {answer.content}
-                    </Radio>
-                  ))}
-                </Radio.Group>
-              )}
-            </div>
-          ))}
+          )}
         </div>
-      </Modal>
-    </Spin>
+      </Form>
+    </div>
   );
-};
-
-export default ExamDetailPage;
+}

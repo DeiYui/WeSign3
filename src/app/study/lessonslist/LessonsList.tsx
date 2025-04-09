@@ -1,3 +1,4 @@
+// <<<<<<< HEAD
 // "use client";
 // import { Table, Input, Spin, Image, message } from "antd";
 // import { useQuery } from "@tanstack/react-query";
@@ -153,6 +154,8 @@
 // };
 
 // export default LessonsList;
+// =======
+// >>>>>>> 861763e8cbc6162e5f3d6e6ba3cc4785ef1abff8
 "use client";
 import { Table, Input, Spin, Image, message } from "antd";
 import { useQuery } from "@tanstack/react-query";
@@ -171,6 +174,7 @@ const LessonsList: FC<SectionHero2Props> = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [filteredLessons, setFilteredLessons] = useState<any[]>([]);
 
+// <<<<<<< HEAD
   // if (!classRoomId) {
   //   return <div>Không xác định lớp học. Vui lòng quay lại và chọn lại lớp.</div>;
   // }
@@ -179,18 +183,34 @@ const LessonsList: FC<SectionHero2Props> = () => {
     queryKey: ["getLstLessonByClass", classRoomId],
     queryFn: async () => {
       try {
+// =======
+//   if (!classRoomId) {
+//     return <div>Không xác định lớp học. Vui lòng quay lại và chọn lại lớp.</div>;
+//   }
+
+//   const { data: allLessonPublic, isFetching: lessonsIsFetching } = useQuery({
+//     queryKey: ["getLstLessonByClass", classRoomId],
+//     queryFn: async () => {
+// >>>>>>> 861763e8cbc6162e5f3d6e6ba3cc4785ef1abff8
       const res = await Lesson.getLstLessonByClass({ classRoomId });
       if (!res?.data || res?.data?.length === 0) {
         message.warning("Không có bài học cho lớp học này.");
         return [];
       }
       return res.data;
+// <<<<<<< HEAD
     } catch (error) {
       message.error("Đã xảy ra lỗi khi tải danh sách bài học.");
       return [];
     }
     },
     enabled: !!classRoomId,
+// =======
+//     },
+//     onError: () => {
+//       message.error("Đã xảy ra lỗi khi tải danh sách bài học.");
+//     },
+// >>>>>>> 861763e8cbc6162e5f3d6e6ba3cc4785ef1abff8
   });
 
   useEffect(() => {
@@ -280,4 +300,8 @@ const LessonsList: FC<SectionHero2Props> = () => {
   );
 };
 
+// <<<<<<< HEAD
 export default LessonsList;
+// =======
+// export default LessonsList;
+// >>>>>>> 861763e8cbc6162e5f3d6e6ba3cc4785ef1abff8

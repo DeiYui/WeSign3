@@ -47,6 +47,7 @@ const TYPE_VOCABULARY = {
 
 const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
   const userId = useSelector((state: RootState) => state.admin.userId);
+// <<<<<<< HEAD
   console.log('Calling API with userId:', userId);
   // const { mutate: incrementVocabularyView } = useMutation({
   //   mutationFn: async () => {
@@ -57,6 +58,12 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
     mutationFn: async (vocabularyId: number) => {
       console.log('Calling API with vocabularyId:', vocabularyId);
       await axios.post(`${API_BASE_URL}/api/user/vocabulary/view`, { userId, vocabularyId });
+// =======
+
+  // const { mutate: incrementVocabularyView } = useMutation({
+  //   mutationFn: async () => {
+  //     await axios.post("/api/vocabulary/view", { userId });
+// >>>>>>> 861763e8cbc6162e5f3d6e6ba3cc4785ef1abff8
     },
   });
 
@@ -168,6 +175,7 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
     const globalIndex = PAGE_SIZE * (currentPage - 1) + index; // Chuyển index của trang hiện tại sang index toàn cục
     setFileIndex(globalIndex);
     setShowFileDetail(true);
+// <<<<<<< HEAD
   
     // const vocabularyId = allVocabulary[globalIndex].vocabularyId; // Lấy ID từ vị trí toàn cục
     // if (vocabularyId) {
@@ -189,6 +197,11 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
       }
     }
 
+// =======
+
+//     // Increment vocabulary view count
+//     incrementVocabularyView();
+// >>>>>>> 861763e8cbc6162e5f3d6e6ba3cc4785ef1abff8
   };
 
   const onCloseDetail = () => {
