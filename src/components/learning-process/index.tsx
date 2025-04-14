@@ -64,10 +64,16 @@ const LearningProcess: React.FC = () => {
       }
       return [];
     },
-    onSuccess: (data) => {
-      setStatisticData(data);
-    },
+    // onSuccess: (data) => {
+    //   setStatisticData(data);
+    // },
   });
+  useEffect(() => {
+    if (statisticDetails) {
+      console.log("📊 Data from API:", statisticDetails);
+      setStatisticData(statisticDetails);
+    }
+  }, [statisticDetails]);
 
   // Add a useEffect to refetch data when the user navigates back
   useEffect(() => {
@@ -82,14 +88,63 @@ const LearningProcess: React.FC = () => {
   }, [refetch]);
 
   // Columns for the statistics table
-  const columns = [
-    {
-      title: selectedStatistic === "vocabulary" ? "Từ vựng" : "Bài học", // Vocabulary or Lesson
-      dataIndex: "name",
-      key: "name",
-      render: (value: string) => <div className="text-lg">{value}</div>,
-    },
-  ];
+  // const columns = [
+  //   {
+  //     title: selectedStatistic === "vocabulary" ? "Từ vựng" : "Bài học", // Vocabulary or Lesson
+  //     dataIndex: "name",
+  //     key: "name",
+  //     render: (value: string) => <div className="text-lg">{value}</div>,
+  //   },
+  // ];
+  // const columns = [
+  //   {
+  //     title: "Từ vựng",
+  //     dataIndex: "name",
+  //     key: "name",
+  //     render: (value: string) => <div className="text-lg">{value}</div>,
+  //   },
+  //   {
+  //     title: "Số lượt xem",
+  //     dataIndex: "viewCount",
+  //     key: "viewCount",
+  //     render: (value: number) => <div className="text-lg">{value}</div>,
+  //   },
+  // ];
+  const getColumns = () => {
+    if (selectedStatistic === "vocabulary") {
+      return [
+        {
+          title: "Từ vựng",
+          dataIndex: "name",
+          key: "name",
+          render: (value: string) => <div className="text-lg">{value}</div>,
+        },
+        {
+          title: "Số lượt xem",
+          dataIndex: "viewCount",
+          key: "viewCount",
+          render: (value: number) => <div className="text-lg">{value}</div>,
+        },
+      ];
+    } else if (selectedStatistic === "lesson") {
+      return [
+        {
+          title: "Bài học",
+          dataIndex: "name",
+          key: "name",
+          render: (value: string) => <div className="text-lg">{value}</div>,
+        },
+        {
+          title: "Số lượt xem",
+          dataIndex: "viewCount",
+          key: "viewCount",
+          render: (value: number) => <div className="text-lg">{value}</div>,
+        },
+      ];
+    }
+    return [];
+  };
+  
 
   return (
     <Spin spinning={isFetchingProcess || isFetchingStatisticDetails}>
@@ -134,33 +189,6 @@ const LearningProcess: React.FC = () => {
         </CardDataStats>
       </div>
       <div className="my-3 flex flex-col justify-between text-xl font-semibold ">
-{/* <<<<<<< HEAD
-        <div className="font-bold uppercase ">Lớp học của tôi</div>
-        <div className="mt-3 grid grid-cols-4 gap-4">
-          {React.Children.toArray(
-            classJoined?.map((item: any) => (
-              <div
-                key={item.classroomId}
-                className="cursor-pointer rounded-lg border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark"
-              >
-                <div className="items-between flex h-full flex-col justify-between gap-3">
-                  <Image
-                    src={GenerateUtils.genUrlImage(item?.imageLocation)}
-                    alt=""
-                  />
-                  <div
-                    className="text-start font-bold text-blue-500"
-                    onClick={() => {
-                      router.push(`/class/${item.classroomId}`);
-                    }}
-                  >
-                    {`${item.name}`}
-                  </div>
-                </div>
-              </div>
-            )),
-          )}
-======= */}
         <div className="font-bold uppercase ">Thống kê</div>
         <div className="mt-2">
           <Select
@@ -179,7 +207,7 @@ const LearningProcess: React.FC = () => {
         </div>
         <div className="mt-4">
           <Table
-            columns={columns}
+            columns={getColumns()}
             dataSource={statisticData}
             pagination={{ pageSize: 10 }}
             rowKey="id"

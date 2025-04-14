@@ -158,9 +158,12 @@
 // >>>>>>> 861763e8cbc6162e5f3d6e6ba3cc4785ef1abff8
 "use client";
 import { Table, Input, Spin, Image, message } from "antd";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import axios from "axios";
 import Lesson from "@/model/Lesson"; 
 
 export interface SectionHero2Props {
@@ -173,11 +176,18 @@ const LessonsList: FC<SectionHero2Props> = () => {
   const classRoomId = Number(searchParams.get("classRoomId"));
   const [searchText, setSearchText] = useState<string>("");
   const [filteredLessons, setFilteredLessons] = useState<any[]>([]);
-
-// <<<<<<< HEAD
+  const userId = useSelector((state: RootState) => state.admin.userId);
+  const API_BASE_URL = 'http://202.191.56.11:8088';
+  // <<<<<<< HEAD
   // if (!classRoomId) {
   //   return <div>Không xác định lớp học. Vui lòng quay lại và chọn lại lớp.</div>;
   // }
+  const { mutate: incrementLessonView } = useMutation({
+    mutationFn: async (lessonId: number) => {
+      console.log('Calling API with vocabularyId:', lessonId);
+      await axios.post(`${API_BASE_URL}/api/user/lesson/view`, { userId, lessonId });
+    },
+  });
 
   const { data: allLessonPublic, isFetching: lessonsIsFetching } = useQuery<any[], Error>({
     queryKey: ["getLstLessonByClass", classRoomId],
@@ -226,6 +236,11 @@ const LessonsList: FC<SectionHero2Props> = () => {
   const leftTableData = filteredLessons.slice(0, 40);
   const rightTableData = filteredLessons.slice(40);
 
+  const handleLessonClick = (lessonId: number) => {
+    incrementLessonView(lessonId);
+    router.push(`/study/lessons/?classRoomId=${classRoomId}&&lessonId=${lessonId}`);
+  };
+
   const getColumns = (offset = 0) => [
     {
       title: "STT",
@@ -241,8 +256,7 @@ const LessonsList: FC<SectionHero2Props> = () => {
         <div
           className="text-blue-600 hover:cursor-pointer"
           onClick={() =>
-            router.push(`/study/lessons/?classRoomId=${classRoomId}&&lessonId=${record.lessonId}`)
-          }
+            handleLessonClick(record.lessonId)}
         >
           {text}
         </div>

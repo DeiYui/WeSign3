@@ -291,6 +291,27 @@ class Learning extends Base {
     return res.data;
   };
 
+  getVocabularyViews = async (userId: number) => {
+    const res = await this.apiGetWithoutPrefixNode(`/user/vocabulary/recent-view/${userId}`);
+    return res.data;
+  };
+
+  getLessonViews = async (userId: number) => {
+    const res = await this.apiGetWithoutPrefixNode(`/user/lesson/recent-view/${userId}`);
+    return res.data;
+  }; // BE chưa có
+
+  viewLesson = async (lessonId: number, userId: number) => {
+    console.log('📌 Sending request with:');
+  console.log('📌 lessonId:', lessonId);
+  console.log('📌 userId:', userId);
+  const res = await this.apiPostWithoutPrefixNode(
+    `/user/lesson/view/${lessonId}`, {
+    userId,  
+  });
+  return res.data;
+};
+
   // classJoined = async () => {
   //   const res = await this.apiGetWithoutPrefixNode(`/user-auth/class-joined`);
   //   console.log(res.data);
