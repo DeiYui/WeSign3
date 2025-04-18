@@ -177,8 +177,8 @@ const LessonsList: FC<SectionHero2Props> = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [filteredLessons, setFilteredLessons] = useState<any[]>([]);
   const userId = useSelector((state: RootState) => state.admin.userId);
-  // const API_BASE_URL = 'http://202.191.56.11:8088';
-  const API_BASE_URL = 'http://localhost:8088';
+  const API_BASE_URL = 'http://202.191.56.11:8088';
+  // const API_BASE_URL = 'http://localhost:8088';
   // <<<<<<< HEAD
   // if (!classRoomId) {
   //   return <div>Không xác định lớp học. Vui lòng quay lại và chọn lại lớp.</div>;
