@@ -173,6 +173,13 @@ class Learning extends Base {
     return res.data;
   };
 
+  
+  getListSchool = async (params?: any) => {
+    const res = await this.apiGetWithoutPrefixNode(`/user/school-list`, params);
+    console.log('list school raw', res)
+    return res.data;
+  };
+  
   // Thêm mới lớp
   createClass = async (body?: any) => {
     const res = await this.apiPost(`/classrooms`, body);
@@ -269,9 +276,9 @@ class Learning extends Base {
 
   // join student to class
   joinClass = async (body?: any) => {
-    console.log("body", body);
+    console.log("joinclass", body);
     const res = await this.apiPostWithoutPrefixNode(
-      `/classroom-auth/join/${body?.id}`,
+      `/classroom/join/${body?.classRoomId}`,
       body,
     );
     return res.data;
@@ -357,8 +364,9 @@ class Learning extends Base {
   };
 
   updateStudentClass = async (body: any) => {
+    console.log("updateStudentClass", body)
     const res = await this.apiPutWithoutPrefixNode(
-      `/classroom-auth/update-student-in-class/${body.userId}`,
+      `/classroom/update-student-in-class/${body.userId}`,
       body,
     );
     return res.data;

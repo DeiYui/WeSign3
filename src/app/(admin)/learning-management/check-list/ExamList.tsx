@@ -176,8 +176,7 @@ const ExamListPage = ({ isPrivate }: any) => {
     <div className="container mx-auto py-4">
       <h1 className="mb-4 text-2xl font-bold">Danh sách bài kiểm tra</h1>
       <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Input className="w-full" placeholder="Tên bài kiểm tra" />
-        <Select
+      <Select
           className="w-full"
           allowClear
           placeholder="Lớp học"
@@ -190,6 +189,7 @@ const ExamListPage = ({ isPrivate }: any) => {
             }
           }}
         />
+        <Input className="w-full" placeholder="Tên bài kiểm tra" />
       </div>
       <div className="mb-3 flex justify-end gap-3">
         {/* <Button type="primary">Thêm user vào bài kiểm tra</Button> */}

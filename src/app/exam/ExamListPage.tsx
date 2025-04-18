@@ -125,15 +125,15 @@ const ExamListPage: React.FC = () => {
     <div className="container mx-auto py-4">
       <h1 className="text-2xl font-bold mb-4">Danh sách bài kiểm tra</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <Input
-          placeholder="Tìm theo tên"
-          onChange={(e) => setFilterParams({ ...filterParams, nameSearch: e.target.value })}
-        />
-        <Select
+      <Select
           placeholder="Chọn lớp"
           allowClear
           options={allClass}
           onChange={(value) => setFilterParams({ ...filterParams, classRoomId: value })}
+        />
+        <Input
+          placeholder="Tìm theo tên"
+          onChange={(e) => setFilterParams({ ...filterParams, nameSearch: e.target.value })}
         />
         {(user?.role === "ADMIN" || user?.role === "TEACHER") && (
           <Select

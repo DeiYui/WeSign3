@@ -92,6 +92,13 @@ class User extends Base {
     const res = await this.apiGetWithoutPrefixNode(`/user/student-list`, param);
     return res.data;
   };
+
+  teacherList = async (param?: any) => {
+    const res = await this.apiGetWithoutPrefixNode(`/user/teacher-list`, param);
+    return res.data;
+  };
+
+
   // viewVocabulary = async (body?: any) => {
   //   const res = await this.apiPostWithoutPrefixNode(
   //     `/user-auth/vocabulary/view/${body.vocabularyId}`,

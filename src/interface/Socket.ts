@@ -3,7 +3,7 @@ interface SocketResponse {
   content: string;
   messageType: string;
   mediaLocation: string;
-  createdAt: Date | string;
+  createdDate: Date | string;
 }
 
 interface SocketResponseSocket {
@@ -12,7 +12,7 @@ interface SocketResponseSocket {
   content: string;
   messageType: string;
   mediaLocation: string;
-  createdAt: Date | string;
+  createdDate: Date | string;
 }
 
 interface Payload {

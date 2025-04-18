@@ -8,7 +8,7 @@ export const useSocket = (conversationId: number, contactId: number) => {
     content: "",
     messageType: "",
     mediaLocation: "",
-    createdAt: "",
+    createdDate: "",
   });
   const [isConnected, setConnected] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState<boolean>(false);
@@ -72,7 +72,7 @@ export const useSocket = (conversationId: number, contactId: number) => {
       });
 
       s.on("get_message", (res: SocketResponse) => {
-        setSocketResponse({ ...res, createdAt: new Date() });
+        setSocketResponse({ ...res, createdDate: new Date() });
       });
 
       s.on("typing", (data: { contactId: number }) => {

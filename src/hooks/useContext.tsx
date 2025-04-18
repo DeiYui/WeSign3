@@ -107,7 +107,7 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     content: "",
     messageType: "",
     mediaLocation: "",
-    createdAt: "",
+    createdDate: "",
   });
   const [isConnected, setConnected] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState<boolean>(false);
@@ -229,7 +229,7 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       s.on("get_message", (res) => {
-        setSocketResponse({ ...res, createdAt: new Date() });
+        setSocketResponse({ ...res, createdDate: new Date() });
       });
 
       s.on("typing", (data) => {

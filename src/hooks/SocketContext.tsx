@@ -178,7 +178,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
     content: "",
     messageType: "",
     mediaLocation: "",
-    createdAt: "",
+    createdDate: "",
   });
   // CALL
   const remoteStreamRef = useRef<MediaStream | null>(null);
@@ -338,7 +338,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
 
       // CHAT
       socket.on("get_message", (res) => {
-        setSocketResponse({ ...res, createdAt: new Date() });
+        setSocketResponse({ ...res, createdDate: new Date() });
         dispatch({ type: "SET_IS_TYPING", payload: false });
       });
 
