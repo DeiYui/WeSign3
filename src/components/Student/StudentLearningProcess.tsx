@@ -32,8 +32,8 @@ const StudentLearningProcess: React.FC<StudentLearningProcessProps> = ({ student
   const [isLoadingTests, setIsLoadingTests] = useState<boolean>(false);
   const [isTestsModalVisible, setIsTestsModalVisible] = useState<boolean>(false);
     
-  // const API_BASE_URL = 'http://202.191.56.11:8088';
-  const API_BASE_URL = 'http://localhost:8088';
+  const API_BASE_URL = 'http://202.191.56.11:8088';
+  // const API_BASE_URL = 'http://localhost:8088';
   
   // Fetch student info
   const { data: studentInfo, isFetching: isFetchingStudentInfo } = useQuery({
