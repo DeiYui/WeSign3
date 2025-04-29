@@ -27,9 +27,14 @@ import { RootState } from "../../store";
 
 const PAGE_SIZE = 12;
 
+<<<<<<< Updated upstream
 const API_BASE_URL = 'http://202.191.56.11:8088';
 // const API_BASE_URL = 'http://localhost:8088';
 
+=======
+// const API_BASE_URL = 'http://202.191.56.11:8088';
+const API_BASE_URL = 'http://localhost:8088';
+>>>>>>> Stashed changes
 const CustomSlider = styled(Carousel)`
   &.ant-carousel {
     width: 100%;

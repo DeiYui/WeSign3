@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 // "use client";
 // import { CloseIcon } from "@/assets/icons";
 // import InputPrimary from "@/components/UI/Input/InputPrimary";
@@ -332,6 +333,9 @@
 // };
 
 // export default TeacherList;
+=======
+/* eslint-disable react-hooks/exhaustive-deps */
+>>>>>>> Stashed changes
 "use client";
 import { CloseIcon } from "@/assets/icons";
 import InputPrimary from "@/components/UI/Input/InputPrimary";
@@ -348,14 +352,18 @@ import { debounce } from "lodash";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import User from "@/model/User";
+<<<<<<< Updated upstream
 
+=======
+import Auth from "@/model/Auth";
+>>>>>>> Stashed changes
 interface Teacher {
   name: string;
   classroom: any;
-  classroomTeacher: any;
   classRoomId: number;
   teacherProfile: any;
   classTeachers: any;
+  teacherId: number;
 }
 
 const TeacherList: React.FC = () => {
@@ -374,42 +382,90 @@ const TeacherList: React.FC = () => {
     open: false,
     typeModal: "create",
   });
+<<<<<<< Updated upstream
+=======
+  const [currentTeacherId, setCurrentTeacherId] = useState<number | null>(null);
+>>>>>>> Stashed changes
 
   const handleTableChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
+  const [selectedClass, setSelectedClass] = useState<number | null>(null);
+  const [selectedSchool, setSelectedSchool] = useState<number | null>(null);
+
+  // Fetching the list of classes
+  const { data: allClasses, isFetching: isFetchingClasses } = useQuery({
+    queryKey: ["getListClass"],
+    queryFn: async () => {
+      const res = await Learning.getListClasses();
+      return res.content.map((item: { name: string; classRoomId: number }) => ({
+        label: item.name,
+        value: Number(item.classRoomId),
+      }));
+    },
+  });
+
+  // Fetching the list of schools
+  const { data: allSchools, isFetching: isFetchingSchools } = useQuery({
+    queryKey: ["getListSchool"],
+    queryFn: async () => {
+      const res = await Learning.getListSchool();
+      return res.content.map((item: { name: string; schoolId: number }) => ({
+        label: item.name,
+        value: Number(item.schoolId),
+      }));
+    },
+  });
+
   // Fetching the list of teachers
   const [total, setTotal] = useState<number>(0);
   const { isFetching, refetch } = useQuery({
+<<<<<<< Updated upstream
     queryKey: ["getListTeacher", searchText, currentPage],
     queryFn: async () => {
       const res = await User.teacherList({
         name: searchText,
         page: currentPage - 1,  // Thêm tham số page
         take: pageSize,  
+=======
+    queryKey: ["getListTeachers", searchText, selectedClass, selectedSchool, currentPage],
+    queryFn: async () => {
+      const res = await User.teacherList({
+        name: searchText,
+        classRoomId: selectedClass,
+        schoolId: selectedSchool,
+        page: currentPage - 1,
+        take: pageSize,
+        orderBy: "userId",  
+        sortBy: "DESC"  
+>>>>>>> Stashed changes
       });
       setTotal(res.meta.itemCount);
+      // Tạo lại dữ liệu với cấu trúc phù hợp
       const mappedData = res.content.map((item: any) => ({
         name: item.name,
         teacherId: item.userId,
         classRoomId: item.classroomId,
         classroom: item.classRoomName,
         teacherProfile: {
-          // Giả sử các thông tin về học sinh, nếu có
+          // Giả sử các thông tin về giáo viên, nếu có
           dateOfBirth: item.birthDay || "Không có",
           schoolId: item.schoolId || "Không có",
           address: item.city || "Không có",
           email: item.email || "Không có",
         },
-        classTeachers: [item], // Mỗi bản ghi là một lớp học sinh tham gia
+        classTeachers: [item], // Mỗi bản ghi là một lớp giáo viên tham gia
       }));
+  
+      // Cập nhật dữ liệu
       setLstTeachers(mappedData);
       setFilteredLstTeachers(mappedData);
       return mappedData;
     },
   });
 
+<<<<<<< Updated upstream
   const { data: allClasses, isFetching: isFetchingClasses } = useQuery({
     queryKey: ["getListClass"],
     queryFn: async () => {
@@ -427,29 +483,53 @@ const TeacherList: React.FC = () => {
       modalCreate.typeModal === "create"
         ? User.createTeacher
         : User.updateTeacher,
+=======
+  // Adding or editing a teacher
+  const mutationCreateUpdate = useMutation({
+    mutationFn: async (data: any) => {
+      if (modalCreate.typeModal === "create") {
+        // Call API to create a teacher
+        return await User.createTeacher(data);
+      } else {
+        // Call API to update a teacher
+        const { teacherId, ...rest } = data;
+        return await User.updateUser(teacherId, rest);
+      }
+    },
+>>>>>>> Stashed changes
     onSuccess: (res, variables) => {
       refetch();
 
       const updatedTeacher = {
         ...variables,
         name: res.name,
+<<<<<<< Updated upstream
         classroomTeacher: res.classroomTeacher,
         schoolName: res.schoolName,
         address: res.address,
+=======
+        classroom: allClasses?.find((cls: { value: any; }) => cls.value === variables.classroom)?.label,
+        teacherProfile: {
+          schoolName: allSchools?.find((sch: { value: any; }) => sch.value === variables.school)?.label,
+          dateOfBirth: variables.dateOfBirth || "Không có",
+          address: variables.address || "Không có",
+          // email: `${variables.name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
+        },
+>>>>>>> Stashed changes
       };
 
       setLstTeachers((prevLst) =>
         modalCreate.typeModal === "create"
           ? [...prevLst, updatedTeacher]
           : prevLst.map((teacher) =>
-              teacher.name === res.name ? updatedTeacher : teacher,
+              teacher.teacherId === updatedTeacher.teacherId ? updatedTeacher : teacher,
             ),
       );
       setFilteredLstTeachers((prevLst) =>
         modalCreate.typeModal === "create"
           ? [...prevLst, updatedTeacher]
           : prevLst.map((teacher) =>
-              teacher.name === res.name ? updatedTeacher : teacher,
+              teacher.teacherId === updatedTeacher.teacherId ? updatedTeacher : teacher,
             ),
       );
 
@@ -491,10 +571,13 @@ const TeacherList: React.FC = () => {
     },
     {
       title: "Lớp", // Class
-      dataIndex: "classroomTeacher",
-      key: "classroomTeacher",
-      render: (value: string, record: any) => (
-        <div className="text-lg">{record?.classroom}</div>
+      dataIndex: "classroom",
+      key: "classroom",
+      render: (value: string, record: Teacher) => (
+        <div className="text-lg">
+          {record?.classTeachers?.length > 0 &&
+            record?.classTeachers[0]?.classRoomName}
+        </div>
       ),
       width: 200,
     },
@@ -525,21 +608,60 @@ const TeacherList: React.FC = () => {
       ),
       width: 200,
     },
+<<<<<<< Updated upstream
   ];
+=======
+    user?.role === "ADMIN"
+      ? {
+          title: "Hành động", // Actions
+          key: "actions",
+          render: (_: any, record: Teacher) => (
+            <div className="flex space-x-2">
+              <Button
+                icon={<EditOutlined />}
+                onClick={() => {
+                  setCurrentTeacherId(record.teacherId);
+                  form.setFieldsValue({
+                    name: record.name,
+                    classroom: record.classRoomId || allClasses?.find((c: { label: any; }) => c.label === record.classroom)?.value,
+                    school: allSchools?.find((s: { label: any; }) => s.label === record.teacherProfile.schoolName)?.value,
+                    dateOfBirth: record.teacherProfile.dateOfBirth,
+                    address: record.teacherProfile.address,
+                    teacherId: record.teacherId,
+                  });
+                  setModalCreate({
+                    open: true,
+                    typeModal: "edit",
+                  });
+                }}
+              />
+              <Button
+                icon={<DeleteOutlined />}
+                danger
+                onClick={async() => {
+                  try {
+                      await User.deleteUser(record.teacherId); // record.id là id của học sinh
+
+                      // Nếu thành công thì mới cập nhật lại danh sách ở FE
+                      setLstTeachers((prev) => prev.filter((teacher) => teacher.teacherId !== record.teacherId));
+                      setFilteredLstTeachers((prev) => prev.filter((teacher) => teacher.teacherId !== record.teacherId));
+
+                      message.success("Xóa giáo viên thành công");
+                    } catch (error) {
+                      console.error(error);
+                      message.error("Xóa giáo viên thất bại");
+                    }
+                }}
+              />
+            </div>
+          ),
+        }
+      : null,
+  ]?.filter((item) => item);
+>>>>>>> Stashed changes
 
   const handleSearch = useCallback(
     debounce((searchText: string) => {
-      // if (searchText) {
-      //   setFilteredLstTeachers(
-      //     lstTeachers.filter((item: any) =>
-      //       (item?.name ?? "")
-      //         .toLowerCase()
-      //         .includes(searchText.toLowerCase()),
-      //     ),
-      //   );
-      // } else {
-      //   setFilteredLstTeachers(lstTeachers);
-      // }
       refetch();
     }, 300),
     [lstTeachers],
@@ -572,6 +694,29 @@ const TeacherList: React.FC = () => {
             }
           }}
         />
+<<<<<<< Updated upstream
+=======
+        <Select
+          options={allClasses}
+          placeholder="Lọc theo lớp"
+          onChange={(value) => {
+            setSelectedClass(value);
+            setCurrentPage(1);
+          }}
+          allowClear
+          style={{ width: 200 }}
+        />
+        <Select
+          options={allSchools}
+          placeholder="Lọc theo trường"
+          onChange={(value) => {
+            setSelectedSchool(value);
+            setCurrentPage(1);
+          }}
+          allowClear
+          style={{ width: 200 }}
+        />
+>>>>>>> Stashed changes
         <Button
           hidden={!(user?.role === "ADMIN")}
           type="primary"
@@ -597,6 +742,8 @@ const TeacherList: React.FC = () => {
           position: ["bottomCenter"],
         }}
       />
+
+      {/* Thêm giáo viên */}
       <BasicDrawer
         width={460}
         title={
@@ -636,10 +783,19 @@ const TeacherList: React.FC = () => {
             layout="vertical"
             onFinish={(value) => {
               mutationCreateUpdate.mutate({
+<<<<<<< Updated upstream
                 name: value.name,
                 classroomTeacher: value.classroomTeacher,
                 schoolName: value.schoolName,
                 address: value.address,
+=======
+                ...value,
+                classroom: value.classroom, 
+                classRoomName: allClasses?.find((cls: { value: number }) => cls.value === value.classroom)?.label || "",
+                school: value.school,
+                schoolName: allSchools?.find((sch: { value: number }) => sch.value === value.school)?.label || "",
+                teacherId: currentTeacherId,
+>>>>>>> Stashed changes
               });
             }}
           >
@@ -653,7 +809,7 @@ const TeacherList: React.FC = () => {
               <Input placeholder="Nhập tên giáo viên" />
             </Form.Item>
             <Form.Item
-              name="classroomTeacher"
+              name="classroom"
               label="Lớp"
               className="mb-2"
               required
@@ -662,7 +818,7 @@ const TeacherList: React.FC = () => {
               <Select options={allClasses} placeholder="Lựa chọn lớp" />
             </Form.Item>
             <Form.Item
-              name="schoolName"
+              name="school"
               label="Trường"
               className="mb-2"
               required

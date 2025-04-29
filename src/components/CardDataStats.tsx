@@ -8,6 +8,7 @@ interface CardDataStatsProps {
   levelDown?: boolean;
   children: ReactNode;
   onClick?: () => void;
+  className?: string;
 }
 
 const CardDataStats: React.FC<CardDataStatsProps> = ({
@@ -17,9 +18,14 @@ const CardDataStats: React.FC<CardDataStatsProps> = ({
   levelUp,
   levelDown,
   children,
+  onClick,
+  className = "",
 }) => {
   return (
-    <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div 
+      className={`rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark ${className}`}
+      onClick={onClick}
+    >
       <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
         {children}
       </div>

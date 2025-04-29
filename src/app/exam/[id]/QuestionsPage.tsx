@@ -11,27 +11,38 @@ import {
   Radio,
   Skeleton,
   message,
+  Modal,
+  Tag,
 } from "antd";
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, TrophyOutlined } from "@ant-design/icons";
 import Questions from "@/model/Questions";
 import Exam from "@/model/Exam";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 export default function QuestionsPage() {
   const router = useRouter();
   const { id }: any = useParams();
   const searchParams = useSearchParams();
   const isRedo = searchParams.get("redo") === "true";
+  const isReview = searchParams.get("review") === "true";
 
   const [form] = Form.useForm();
   const [currentPage, setCurrentPage] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [showResults, setShowResults] = useState(isReview);
+  const [examScore, setExamScore] = useState<number | undefined>(undefined);
+  const userId = useSelector((state: RootState) => state.admin.userId);
 
-  const { data: detailExam } = useQuery({
+  const { data: detailExam, refetch: refetchExam } = useQuery({
     queryKey: ["getExamDetail", id],
     queryFn: async () => {
       const res = await Exam.getDetailExam(Number(id));
+      if (res?.data?.score !== undefined) {
+        setExamScore(res.data.score);
+      }
       return res?.data;
     },
   });
@@ -50,13 +61,13 @@ export default function QuestionsPage() {
       const res = await Exam.getDetailExamSave(Number(id));
       return res?.data || [];
     },
-    enabled: !!detailExam && detailExam.score !== undefined && !isRedo,
+    enabled: !!detailExam && (detailExam.score !== undefined) && (isRedo || isReview),
   });
 
-  const isCompleted = detailExam?.score !== undefined;
+  const isCompleted = detailExam?.score !== undefined && !isRedo;
 
   useEffect(() => {
-    if (!isRedo && detailExamSave && lstQuestions) {
+    if ((isRedo || isReview) && detailExamSave && lstQuestions) {
       const initialValues = lstQuestions.reduce((acc: any, question: any, index: number) => {
         const savedAnswer = detailExamSave.find(
           (item: any) => item.questionId === question.questionId
@@ -80,7 +91,7 @@ export default function QuestionsPage() {
       }, {});
       form.setFieldsValue(initialValues);
     }
-  }, [detailExamSave, lstQuestions, isRedo]);
+  }, [detailExamSave, lstQuestions, isRedo, isReview, form]);
 
   const saveExam = useMutation({
     mutationFn: (data: any) => Exam.saveExam(data),
@@ -110,30 +121,70 @@ export default function QuestionsPage() {
 
       await saveExam.mutateAsync(answers);
 
-      const correctCount = answers.reduce((count, a) => {
-        const q = lstQuestions.find((q) => q.questionId === a.questionId);
+      const correctCount = answers.reduce((count: number, a: { 
+        questionId: any; 
+        selectedAnswers: string[] | number[] 
+      }) => {
+        const q = lstQuestions.find((q: { questionId: any; }) => q.questionId === a.questionId);
         const correctAnswers = q.answerResList
-          .filter((ans) => ans.correct)
-          .map((ans) => ans.answerId)
+          .filter((ans: { correct: any; }) => ans.correct)
+          .map((ans: { answerId: any; }) => ans.answerId)
           .sort()
           .toString();
         const selectedAnswers = a.selectedAnswers.sort().toString();
         return count + (correctAnswers === selectedAnswers ? 1 : 0);
       }, 0);
-
-      const score = (correctCount / lstQuestions.length) * 10;
+  
+      const score = parseFloat(((correctCount / lstQuestions.length) * 10).toFixed(2));
+      setExamScore(score);
 
       await markExam.mutateAsync({
         examId: detailExam.examId,
         score,
+        isFinished: true,
+        userId: userId
       });
 
-      message.success("Nộp bài thành công!");
+      await refetchExam();
       setSubmitted(true);
-      router.push("/study/examlist");
+
+      // Show the result modal
+      Modal.success({
+        title: "Nộp bài thành công!",
+        content: (
+          <div className="text-center py-4">
+            <p className="text-xl font-bold mb-2">Điểm số của bạn</p>
+            <p className="text-3xl font-bold text-blue-600">{score.toFixed(1)}/10</p>
+            <p className="mt-2">
+              Bạn đã trả lời đúng {correctCount}/{lstQuestions.length} câu hỏi
+            </p>
+          </div>
+        ),
+        okText: "Xem kết quả",
+        onOk: () => {
+          setShowResults(true);
+          router.push(`/exam/${id}?review=true`);
+        },
+        cancelText: "Quay lại danh sách",
+        onCancel: () => {
+          router.push("/exam");
+        }
+      });
     } catch (error) {
       message.error("Vui lòng hoàn thành tất cả câu hỏi trước khi nộp bài.");
     }
+  };
+
+  const handleRedoExam = () => {
+    Modal.confirm({
+      title: "Xác nhận",
+      content: "Bạn có chắc chắn muốn làm lại bài kiểm tra này không?",
+      okText: "Đồng ý",
+      cancelText: "Hủy",
+      onOk: () => {
+        router.push(`/exam/${id}?redo=true`);
+      },
+    });
   };
 
   const questionsPerPage = 1;
@@ -147,8 +198,6 @@ export default function QuestionsPage() {
           { title: "Danh sách bài kiểm tra" },
         ]}
       />
-
-      <h1 className="text-2xl font-bold mt-4 mb-6">{detailExam?.name}</h1>
 
       <Form form={form} layout="vertical">
         <Skeleton loading={!currentQuestion} active>
@@ -165,6 +214,7 @@ export default function QuestionsPage() {
               )}
 
               {currentQuestion.imageLocation && (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={currentQuestion.imageLocation}
                   alt="Question Media"
@@ -173,36 +223,59 @@ export default function QuestionsPage() {
               )}
 
               <Form.Item name={["answerList", currentPage - 1, "answerId"]}>
-                {currentQuestion.answerResList.filter((a) => a.correct).length > 1 ? (
+                {currentQuestion.answerResList.filter((a: { correct: any; }) => a.correct).length > 1 ? (
                   <Checkbox.Group
-                    disabled={!isRedo && isCompleted}
+                    disabled={isCompleted || showResults}
                     onChange={(value) => {
                       const correct = currentQuestion.answerResList
                         .filter((item: any) => value.includes(item.answerId))
-                        .every((item) => item.correct);
+                        .every((item: { correct: any; }) => item.correct);
                       form.setFieldValue(["answer", currentPage - 1], correct);
                     }}
                   >
                     {currentQuestion.answerResList.map((answer: any) => (
-                      <Checkbox key={answer.answerId} value={answer.answerId}>
-                        {answer.content}
-                      </Checkbox>
+                      <div 
+                        key={answer.answerId} 
+                        className={`p-2 ${
+                          showResults && answer.correct 
+                            ? "bg-green-50 border border-green-200 rounded mb-2" 
+                            : "mb-2"
+                        }`}
+                      >
+                        <Checkbox value={answer.answerId}>
+                          {answer.content}
+                          {showResults && answer.correct && (
+                            <span className="ml-2 text-green-600">(Đáp án đúng)</span>
+                          )}
+                        </Checkbox>
+                      </div>
                     ))}
                   </Checkbox.Group>
                 ) : (
-                  <Radio.Group disabled={!isRedo && isCompleted}>
+                  <Radio.Group disabled={isCompleted || showResults}>
                     {currentQuestion.answerResList.map((answer: any) => (
-                      <Radio
-                        key={answer.answerId}
-                        value={answer.answerId}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            form.setFieldValue(["answer", currentPage - 1], answer.correct);
-                          }
-                        }}
+                      <div 
+                        key={answer.answerId} 
+                        className={`p-2 ${
+                          showResults && answer.correct 
+                            ? "bg-green-50 border border-green-200 rounded mb-2" 
+                            : "mb-2"
+                        }`}
                       >
-                        {answer.content}
-                      </Radio>
+                        <Radio
+                          value={answer.answerId}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              form.setFieldValue(["answer", currentPage - 1], answer.correct);
+                            }
+                          }}
+                        >
+                          {answer.content}
+                          {showResults && answer.correct && (
+                            <span className="ml-2 text-green-600">(Đáp án đúng)</span>
+                          )}
+                        </Radio>
+                      </div>
                     ))}
                   </Radio.Group>
                 )}
@@ -220,10 +293,21 @@ export default function QuestionsPage() {
             showSizeChanger={false}
           />
 
-          {(!isCompleted || isRedo) && (
+          {!isCompleted && !isReview && (
             <Button type="primary" onClick={handleSubmit} disabled={submitted}>
               Nộp bài
             </Button>
+          )}
+
+          {isReview && (
+            <div className="flex space-x-4">
+              {/* <Button type="primary" onClick={handleRedoExam}>
+                Làm lại
+              </Button> */}
+              <Button onClick={() => router.push("/exam")}>
+                Quay lại danh sách
+              </Button>
+            </div>
           )}
         </div>
       </Form>

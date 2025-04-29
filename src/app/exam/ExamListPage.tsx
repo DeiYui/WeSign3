@@ -4,22 +4,36 @@ import { usePage } from "@/hooks/usePage";
 import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
 import { RootState } from "@/store";
-import { Button, Input, Select, Table, message, Modal } from "antd";
+import { Button, Input, Select, Table, message, Modal, Tag } from "antd";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const ExamListPage: React.FC = () => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const user: any = useSelector((state: RootState) => state.admin);
+
+  // useEffect(() => {
+  //   if (!user?.userId) {
+  //     router.push("/");
+  //   }
+  // }, [user, router]);
 
   const [filterParams, setFilterParams] = useState({
     classRoomId: 0,
     nameSearch: "",
     isPrivate: "false",
+    userId: 0,
   });
+
+  useEffect(() => {
+    if (user?.userId) {
+      setFilterParams((prev) => ({ ...prev, userId: user.userId }));
+    }
+  }, [user]);
 
   const {
     page,
@@ -28,26 +42,27 @@ const ExamListPage: React.FC = () => {
     isFetching,
     pagination,
     refetch,
-  } = usePage(["getLstExam", filterParams], Exam.getLstExam, { ...filterParams });
+  } = usePage(user?.userId ?["getLstExam", filterParams] : [], Exam.getLstExam, { ...filterParams });
 
   // ✅ Refetch lại khi user quay về tab
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         refetch();
+        queryClient.invalidateQueries({ queryKey: ["getLstExam"] });
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [refetch]);
+  }, [refetch, queryClient]);
 
   const { data: allClass } = useQuery({
     queryKey: ["getListClass"],
     queryFn: async () => {
       const res = await Learning.getListClass();
-      return res?.data?.map((item) => ({
+      return res?.data?.map((item: { classRoomId: number; content: string }) => ({
         value: item.classRoomId,
         label: item.content,
       }));
@@ -62,7 +77,7 @@ const ExamListPage: React.FC = () => {
       cancelText: "Hủy",
       onOk: async () => {
         try {
-          await Exam.resetExam(examId);
+          await Exam.resetExam(examId, { userId: user.userId });
           message.success("Đã làm mới bài kiểm tra.");
           router.push(`/exam/${examId}?redo=true`);
         } catch (error) {
@@ -80,44 +95,83 @@ const ExamListPage: React.FC = () => {
     },
     {
       title: "Tên bài kiểm tra",
-      dataIndex: "name",
-      key: "name",
-      render: (text: string, record: any) => (
+      dataIndex: "examName",
+      key: "examName",
+      render: (examName: string, record: any) => (
         <div
           className="hover:cursor-pointer text-blue-500"
-          onClick={() => router.push(`/exam/${record.examId}`)}
+          onClick={() => {
+            if (record.isFinished) {
+              router.push(`/exam/${record.examId}?review=true`);
+            } else {
+              router.push(`/exam/${record.examId}`);
+            }
+          }}
         >
-          {text}
+          {examName}
         </div>
       ),
     },
     {
-      title: "Số câu hỏi",
-      dataIndex: "numberOfQuestions",
+      title: "Số lần đã làm",
+      dataIndex: "attemptCount",
+      render: (attemptCount: number, record: any) => {
+        if (record.isFinished) {
+          return attemptCount;
+        }
+        return "-"; // Hiển thị dấu "-" nếu chưa làm bài
+      },
     },
     {
-      title: "Điểm số (Thang điểm 10)",
+      title: "Điểm cao nhất (Thang điểm 10)",
       dataIndex: "score",
-      render: (value: number) => (value !== undefined ? <b>{value}</b> : "-"),
+      render: (value: number, record: any) => {
+        if (record.isFinished) {
+          return <b>{value !== undefined ? value.toFixed(1) : "0.0"}</b>;
+        }
+        return "-";
+      },
     },
     {
       title: "Trạng thái",
-      dataIndex: "score",
-      render: (score: number) =>
-        score !== undefined ? (
-          <div className="rounded bg-green-100 px-4 py-2 text-green-700 text-center">Đã hoàn thành</div>
+      dataIndex: "isFinished",
+      render: (isFinished: boolean) =>
+        isFinished ? (
+          <Tag color="green" className="px-3 py-1">Đã hoàn thành</Tag>
         ) : (
-          <div className="rounded bg-neutral-200 px-4 py-2 text-neutral-700 text-center">Chưa hoàn thành</div>
+          <Tag color="default" className="px-3 py-1">Chưa hoàn thành</Tag>
         ),
     },
     {
       title: "Hành động",
-      render: (record: any) =>
-        record.score !== undefined ? (
-          <Button type="primary" danger onClick={() => handleRedoExam(record.examId)}>
-            Làm lại
-          </Button>
-        ) : null,
+      render: (record: any) => (
+        <div className="space-x-2">
+          {record.isFinished ? (
+            <>
+              <Button 
+                type="default"
+                onClick={() => router.push(`/exam/${record.examId}?review=true`)}
+              >
+                Xem đáp án
+              </Button>
+              <Button 
+                type="primary" 
+                danger 
+                onClick={() => handleRedoExam(record.examId)}
+              >
+                Làm lại
+              </Button>
+            </>
+          ) : (
+            <Button 
+              type="primary"
+              onClick={() => router.push(`/exam/${record.examId}`)}
+            >
+              Làm bài
+            </Button>
+          )}
+        </div>
+      ),
     },
   ];
 

@@ -98,35 +98,31 @@ class User extends Base {
     return res.data;
   };
 
-
-  // viewVocabulary = async (body?: any) => {
-  //   const res = await this.apiPostWithoutPrefixNode(
-  //     `/user-auth/vocabulary/view/${body.vocabularyId}`,
-  //     body,
-  //   );
-  //   console.log(body.vocabularyId)
-  //   return res.data;
-  // };
     viewVocabulary = async (vocabularyId: number, userId: number) => {
-      console.log('📌 Sending request with:');
-    console.log('📌 vocabularyId:', vocabularyId);
-    console.log('📌 userId:', userId);
     const res = await this.apiPostWithoutPrefixNode(
       `/user/vocabulary/view/${vocabularyId}`, {
       userId,  
     });
-//   viewVocabulary = async (vocabularyId?: number, userId?: number) => {
-//     // const res = await this.apiPostWithoutPrefixNode(
-//     //   `/user/vocabulary/view/${userId}`,
-//     //   userId,
-//     // );
-//     const res = await this.apiPostWithoutPrefixNode(
-//       `user/vocabulary/view`,
-//       { vocabularyId: vocabularyId, userId: userId }
-//     );
-//     console.log(userId)
-//     console.log(vocabularyId)
-// >>>>>>> Stashed changes
+    return res.data;
+  };
+  
+  updateUser = async (id: number, body: any) => {
+    const res = await this.apiPutWithoutPrefixNode(`/user/${id}`, body);
+    return res.data;
+  };
+
+  deleteUser = async (id: number) => {
+    const res = await this.apiPutWithoutPrefixNode(`/user/delete/${id}`);
+    return res.data;
+  };
+
+  createStudent = async (body: any) => {
+    const res = await this.apiPostWithoutPrefixNode(`/user/create-student`, body);
+    return res.data;
+  };
+
+  createTeacher = async (body: any) => {
+    const res = await this.apiPostWithoutPrefixNode(`/user/create-teacher`, body);
     return res.data;
   };
 }

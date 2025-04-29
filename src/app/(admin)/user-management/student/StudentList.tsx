@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+<<<<<<< Updated upstream
 // "use client";
 // import { CloseIcon } from "@/assets/icons";
 // import InputPrimary from "@/components/UI/Input/InputPrimary";
@@ -359,6 +360,8 @@
 // };
 
 // export default StudentList;
+=======
+>>>>>>> Stashed changes
 "use client";
 import { CloseIcon } from "@/assets/icons";
 import InputPrimary from "@/components/UI/Input/InputPrimary";
@@ -375,6 +378,11 @@ import { debounce } from "lodash";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import User from "@/model/User";
+<<<<<<< Updated upstream
+=======
+import Auth from "@/model/Auth";
+import { useRouter } from "next/navigation";
+>>>>>>> Stashed changes
 
 interface Student {
   name: string;
@@ -382,10 +390,12 @@ interface Student {
   classRoomId: number;
   studentProfile: any;
   classStudents: any;
+  studentId: number;
 }
 
 const StudentList: React.FC = () => {
   const user: User = useSelector((state: RootState) => state.admin);
+  const router = useRouter();
 
   const [form] = useForm();
   const [lstStudents, setLstStudents] = useState<Student[]>([]);
@@ -400,19 +410,29 @@ const StudentList: React.FC = () => {
     open: false,
     typeModal: "create",
   });
+  const [currentStudentId, setCurrentStudentId] = useState<number | null>(null);
 
   const handleTableChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
+<<<<<<< Updated upstream
+=======
+  const [selectedClass, setSelectedClass] = useState<number | null>(null);
+  const [selectedSchool, setSelectedSchool] = useState<number | null>(null);
+
+  const navigateToStudentLearningProcess = (studentId: number) => {
+    router.push(`/student-learning-process/${studentId}`);
+  };
+
+>>>>>>> Stashed changes
   // Fetching the list of classes
   const { data: allClasses, isFetching: isFetchingClasses } = useQuery({
     queryKey: ["getListClass"],
     queryFn: async () => {
-      const res = await Learning.getListClass();
-      console.log("classlist", res.data)
-      return res.data.map((item: { content: string; classRoomId: number }) => ({
-        label: item.content,
+      const res = await Learning.getListClasses();
+      return res.content.map((item: { name: string; classRoomId: number }) => ({
+        label: item.name,
         value: Number(item.classRoomId),
       }));
     },
@@ -423,7 +443,6 @@ const StudentList: React.FC = () => {
     queryKey: ["getListSchool"],
     queryFn: async () => {
       const res = await Learning.getListSchool();
-      console.log("schoollist", res.content)
       return res.content.map((item: { name: string; schoolId: number }) => ({
         label: item.name,
         value: Number(item.schoolId),
@@ -433,6 +452,7 @@ const StudentList: React.FC = () => {
 
   // Fetching the list of students
   const [total, setTotal] = useState<number>(0);
+<<<<<<< Updated upstream
     const { isFetching, refetch } = useQuery({
       queryKey: ["getListStudents", searchText, currentPage],
       queryFn: async () => {
@@ -464,34 +484,95 @@ const StudentList: React.FC = () => {
         setFilteredLstStudents(mappedData);
         return mappedData;
       },
+=======
+  const { isFetching, refetch } = useQuery({
+    queryKey: ["getListStudents", searchText, selectedClass, selectedSchool, currentPage],
+    queryFn: async () => {
+      const res = await User.studentList({
+        name: searchText,
+        classRoomId: selectedClass,
+        schoolId: selectedSchool,
+        page: currentPage - 1,  // Thêm tham số page
+        take: pageSize,  
+        orderBy: "userId",  
+        sortBy: "DESC"    
+      });
+      setTotal(res.meta.itemCount);
+      // Tạo lại dữ liệu với cấu trúc phù hợp
+      const mappedData = res.content.map((item: any) => ({
+        name: item.name,
+        studentId: item.userId,
+        classRoomId: item.classroomId|| "Không có",
+        classroom: item.classRoomName|| "Không có",
+        studentProfile: {
+          // Giả sử các thông tin về học sinh, nếu có
+          dateOfBirth: item.birthDay || "Không có",
+          schoolName: item.schoolName || "Không có",
+          address: item.city || "Không có",
+          email: item.email || "Không có",
+        },
+        classStudents: [item], // Mỗi bản ghi là một lớp học sinh tham gia
+      }));
+  
+      // Cập nhật dữ liệu
+      setLstStudents(mappedData);
+      setFilteredLstStudents(mappedData);
+      return mappedData;
+    },
+>>>>>>> Stashed changes
     });
 
   // Adding or editing a student
   const mutationCreateUpdate = useMutation({
+<<<<<<< Updated upstream
     mutationFn:
       modalCreate.typeModal === "create"
         ? Learning.joinClass
         : Learning.updateStudentClass,
+=======
+    mutationFn: async (data: any) => {
+      if (modalCreate.typeModal === "create") {
+        // Call API to create a student
+        return await User.createStudent(data);
+      } else {
+        // Call API to update a student
+        // return await User.updateStudent(data);
+        const { studentId, ...rest } = data;
+        return await User.updateUser(studentId, rest);
+      }
+    },
+>>>>>>> Stashed changes
     onSuccess: (res, variables) => {
       refetch();
 
       const updatedStudent = {
         ...variables,
+<<<<<<< Updated upstream
         studentName: res.studentName,
+=======
+        name: res.name,
+        classroom: allClasses?.find((cls: { value: any; }) => cls.value === variables.classroom)?.label,
+        studentProfile: {
+          schoolName: allSchools?.find((sch: { value: any; }) => sch.value === variables.school)?.label,
+          dateOfBirth: variables.dateOfBirth || "Không có",
+          address: variables.address || "Không có",
+          // email: `${variables.name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
+        },
+>>>>>>> Stashed changes
       };
 
       setLstStudents((prevLst) =>
         modalCreate.typeModal === "create"
           ? [...prevLst, updatedStudent]
           : prevLst.map((student) =>
-              student.name === res.name ? updatedStudent : student,
+              student.studentId === res.userId ? updatedStudent : student,
             ),
       );
       setFilteredLstStudents((prevLst) =>
         modalCreate.typeModal === "create"
           ? [...prevLst, updatedStudent]
           : prevLst.map((student) =>
-              student.name === res.name ? updatedStudent : student,
+              student.studentId === res.userId ? updatedStudent : student,
             ),
       );
 
@@ -519,7 +600,15 @@ const StudentList: React.FC = () => {
       title: "Tên", // Name
       dataIndex: "name",
       key: "name",
-      render: (value: string) => <div className="text-lg">{value}</div>,
+      // render: (value: string) => <div className="text-lg">{value}</div>,
+      render: (value: string, record: Student) => (
+        <div 
+          className="text-lg text-blue-600 cursor-pointer hover:underline"
+          onClick={() => navigateToStudentLearningProcess(record.studentId)}
+        >
+          {value}
+        </div>
+      ),
       width: 300,
     },
     {
@@ -570,7 +659,7 @@ const StudentList: React.FC = () => {
       ),
       width: 200,
     },
-    user?.role === "ADMIN" || "TEACHER"
+    ["ADMIN", "TEACHER"].includes(user?.role)
       ? {
           title: "Hành động",
           key: "name",
@@ -580,9 +669,18 @@ const StudentList: React.FC = () => {
               <Button
                 icon={<EditOutlined />}
                 onClick={() => {
+                  setCurrentStudentId(record.studentId);
                   form.setFieldsValue({
                     name: record.name,
+<<<<<<< Updated upstream
                     classroom: record.classroom,
+=======
+                    classroom: allClasses?.find((c: { label: any; }) => c.label === record.classroom)?.value,
+                    school: record.studentProfile.schoolId || allSchools?.find((s: { label: any; }) => s.label === record.studentProfile.schoolName)?.value,
+                    dateOfBirth: record.studentProfile.dateOfBirth,
+                    address: record.studentProfile.address,
+                    studentId: record.studentId,
+>>>>>>> Stashed changes
                   });
                   setModalCreate({
                     ...modalCreate,
@@ -594,8 +692,26 @@ const StudentList: React.FC = () => {
               {/* <Button
                 icon={<DeleteOutlined />}
                 danger
+<<<<<<< Updated upstream
                 onClick={() => mutationDel.mutate(value)}
               /> */}
+=======
+                onClick={async() => {
+                  try {
+                      await User.deleteUser(record.studentId); // record.id là id của học sinh
+
+                      // Nếu thành công thì mới cập nhật lại danh sách ở FE
+                      setLstStudents((prev) => prev.filter((student) => student.studentId !== record.studentId));
+                      setFilteredLstStudents((prev) => prev.filter((student) => student.studentId !== record.studentId));
+
+                      message.success("Xóa học sinh thành công");
+                    } catch (error) {
+                      console.error(error);
+                      message.error("Xóa học sinh thất bại");
+                    }
+                }}
+              />
+>>>>>>> Stashed changes
             </div>
           ),
         }
@@ -604,17 +720,6 @@ const StudentList: React.FC = () => {
 
   const handleSearch = useCallback(
     debounce((searchText: string) => {
-      // if (searchText) {
-      //   setFilteredLstStudents(
-      //     lstStudents.filter((item: any) =>
-      //       (item?.studentName ?? "")
-      //         .toLowerCase()
-      //         .includes(searchText.toLowerCase()),
-      //     ),
-      //   );
-      // } else {
-      //   setFilteredLstStudents(lstStudents);
-      // }
       refetch();
     }, 300),
     [lstStudents],
@@ -647,7 +752,31 @@ const StudentList: React.FC = () => {
             }
           }}
         />
+<<<<<<< Updated upstream
 
+=======
+        <Select
+          options={allClasses}
+          placeholder="Lọc theo lớp"
+          onChange={(value) => {
+            setSelectedClass(value);
+            setCurrentPage(1);
+            // refetch();
+          }}
+          allowClear
+          style={{ width: 200 }}
+        />
+        <Select
+          options={allSchools}
+          placeholder="Lọc theo trường"
+          onChange={(value) => {
+            setSelectedSchool(value);
+            setCurrentPage(1);
+          }}
+          allowClear
+          style={{ width: 200 }}
+        />
+>>>>>>> Stashed changes
         <Button
           hidden={!(user?.role === "ADMIN" || user?.role === "TEACHER")}
           type="primary"
@@ -715,9 +844,18 @@ const StudentList: React.FC = () => {
             onFinish={(value) => {
               console.log("value", value)
               mutationCreateUpdate.mutate({
+<<<<<<< Updated upstream
                 school: value.schoolName,
                 classroom: value.classroomName,
                 name: value.name, // Add the name field here
+=======
+                ...value,
+                classroom: value.classroom, 
+                classRoomName: allClasses?.find((cls: { value: number }) => cls.value === value.classroom)?.label|| "",
+                school: value.school,
+                schoolName: allSchools?.find((sch: { value: number }) => sch.value === value.school)?.label|| "",
+                studentId: currentStudentId,
+>>>>>>> Stashed changes
               });
             }}
           >
