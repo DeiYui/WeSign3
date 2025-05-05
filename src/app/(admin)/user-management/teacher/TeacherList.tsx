@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { CloseIcon } from "@/assets/icons";
 import InputPrimary from "@/components/UI/Input/InputPrimary";
@@ -15,14 +16,13 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import User from "@/model/User";
 import Auth from "@/model/Auth";
-
 interface Teacher {
   name: string;
   classroom: any;
-  classroomTeacher: any;
   classRoomId: number;
   teacherProfile: any;
   classTeachers: any;
+  teacherId: number;
 }
 
 const TeacherList: React.FC = () => {
@@ -41,6 +41,7 @@ const TeacherList: React.FC = () => {
     open: false,
     typeModal: "create",
   });
+  const [currentTeacherId, setCurrentTeacherId] = useState<number | null>(null);
 
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [selectedSchool, setSelectedSchool] = useState<number | null>(null);
@@ -49,58 +50,67 @@ const TeacherList: React.FC = () => {
     setCurrentPage(newPage);
   };
 
+  const [selectedClass, setSelectedClass] = useState<number | null>(null);
+  const [selectedSchool, setSelectedSchool] = useState<number | null>(null);
+
+  // Fetching the list of classes
+  const { data: allClasses, isFetching: isFetchingClasses } = useQuery({
+    queryKey: ["getListClass"],
+    queryFn: async () => {
+      const res = await Learning.getListClasses();
+      return res.content.map((item: { name: string; classRoomId: number }) => ({
+        label: item.name,
+        value: Number(item.classRoomId),
+      }));
+    },
+  });
+
+  // Fetching the list of schools
+  const { data: allSchools, isFetching: isFetchingSchools } = useQuery({
+    queryKey: ["getListSchool"],
+    queryFn: async () => {
+      const res = await Learning.getListSchool();
+      return res.content.map((item: { name: string; schoolId: number }) => ({
+        label: item.name,
+        value: Number(item.schoolId),
+      }));
+    },
+  });
+
   // Fetching the list of teachers
   const [total, setTotal] = useState<number>(0);
   const { isFetching, refetch } = useQuery({
-    queryKey: ["getListTeacher", searchText, selectedClass, selectedSchool, currentPage],
+    queryKey: ["getListTeachers", searchText, selectedClass, selectedSchool, selectedClass, selectedSchool, currentPage],
     queryFn: async () => {
       const res = await User.teacherList({
         name: searchText,
         classRoomId: selectedClass,
         schoolId: selectedSchool,
-        page: currentPage - 1,  // Thêm tham số page
-        take: pageSize,  
+        page: currentPage - 1,
+        take: pageSize,
+        orderBy: "userId",  
+        sortBy: "DESC"  
       });
       setTotal(res.meta.itemCount);
-      const mappedData = res.content.map((item: any) => ({
+      // Tạo lại dữ liệu với cấu trúc phù hợp
         name: item.name,
         teacherId: item.userId,
         classRoomId: item.classroomId,
         classroom: item.classRoomName,
         teacherProfile: {
-          // Giả sử các thông tin về học sinh, nếu có
+          // Giả sử các thông tin về giáo viên, nếu có
           dateOfBirth: item.birthDay || "Không có",
           schoolName: item.schoolName || "Không có",
           address: item.city || "Không có",
           email: item.email || "Không có",
         },
-        classTeachers: [item], // Mỗi bản ghi là một lớp học sinh tham gia
+        classTeachers: [item], // Mỗi bản ghi là một lớp giáo viên tham gia
       }));
+  
+      // Cập nhật dữ liệu
       setLstTeachers(mappedData);
       setFilteredLstTeachers(mappedData);
       return mappedData;
-    },
-  });
-
-  const { data: allClasses, isFetching: isFetchingClasses } = useQuery({
-    queryKey: ["getListClass"],
-    queryFn: async () => {
-      const res = await Learning.getListClass();
-      return res.map((item: { content: string; classRoomId: number }) => ({
-        label: item.content,
-        value: item.classRoomId,
-      }));
-    },
-  });
-
-  const { data: allSchools, isFetching: isFetchingSchools } = useQuery({
-    queryKey: ["getListSchool"],
-    queryFn: async () => {
-      const res = await Learning.getListSchool();
-      return res.map((item: { name: string; schoolId: number }) => ({
-        label: item.name,
-        value: item.schoolId,
-      }));
     },
   });
 
@@ -108,20 +118,12 @@ const TeacherList: React.FC = () => {
   const mutationCreateUpdate = useMutation({
     mutationFn: async (data: any) => {
       if (modalCreate.typeModal === "create") {
-        // Generate account for the teacher
-        const email = `${data.name.toLowerCase().replace(/\s+/g, "")}@gmail.com`;
-        await Auth.register({
-          name: data.name,
-          email: email,
-          password: "123456",
-          role: "TEACHER",
-        });
-
         // Call API to create a teacher
         return await User.createTeacher(data);
       } else {
         // Call API to update a teacher
-        return await User.updateTeacher(data);
+        const { teacherId, ...rest } = data;
+        return await User.updateUser(teacherId, rest);
       }
     },
     onSuccess: (res, variables) => {
@@ -130,12 +132,12 @@ const TeacherList: React.FC = () => {
       const updatedTeacher = {
         ...variables,
         name: res.name,
-        classroom: allClasses?.find((cls) => cls.value === variables.classroomTeacher)?.label,
+        classroom: allClasses?.find((cls: { value: any; }) => cls.value === variables.classroom)?.label,
         teacherProfile: {
-          schoolName: allSchools?.find((sch) => sch.value === variables.schoolName)?.label,
+          schoolName: allSchools?.find((sch: { value: any; }) => sch.value === variables.school)?.label,
           dateOfBirth: variables.dateOfBirth || "Không có",
           address: variables.address || "Không có",
-          email: `${variables.name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
+          // email: `${variables.name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
         },
       };
 
@@ -143,14 +145,14 @@ const TeacherList: React.FC = () => {
         modalCreate.typeModal === "create"
           ? [...prevLst, updatedTeacher]
           : prevLst.map((teacher) =>
-              teacher.name === res.name ? updatedTeacher : teacher,
+              teacher.teacherId === updatedTeacher.teacherId ? updatedTeacher : teacher,
             ),
       );
       setFilteredLstTeachers((prevLst) =>
         modalCreate.typeModal === "create"
           ? [...prevLst, updatedTeacher]
           : prevLst.map((teacher) =>
-              teacher.name === res.name ? updatedTeacher : teacher,
+              teacher.teacherId === updatedTeacher.teacherId ? updatedTeacher : teacher,
             ),
       );
 
@@ -192,10 +194,13 @@ const TeacherList: React.FC = () => {
     },
     {
       title: "Lớp", // Class
-      dataIndex: "classroomTeacher",
-      key: "classroomTeacher",
-      render: (value: string, record: any) => (
-        <div className="text-lg">{record?.classroom}</div>
+      dataIndex: "classroom",
+      key: "classroom",
+      render: (value: string, record: Teacher) => (
+        <div className="text-lg">
+          {record?.classTeachers?.length > 0 &&
+            record?.classTeachers[0]?.classRoomName}
+        </div>
       ),
       width: 200,
     },
@@ -226,58 +231,56 @@ const TeacherList: React.FC = () => {
       ),
       width: 200,
     },
-    {
-      title: "Hành động", // Actions
-      key: "actions",
-      render: (_: any, record: Teacher) => (
-        <div className="flex space-x-2">
-          <Button
-            icon={<EditOutlined />}
-            onClick={() => {
-              form.setFieldsValue({
-                name: record.name,
-                classroomTeacher: record.classroom,
-                schoolName: record.teacherProfile.schoolId,
-                address: record.teacherProfile.address,
-              });
-              setModalCreate({
-                open: true,
-                typeModal: "edit",
-              });
-            }}
-          />
-          <Button
-            icon={<DeleteOutlined />}
-            danger
-            onClick={() => {
-              // Handle delete logic
-              setLstTeachers((prev) =>
-                prev.filter((teacher) => teacher.name !== record.name)
-              );
-              setFilteredLstTeachers((prev) =>
-                prev.filter((teacher) => teacher.name !== record.name)
-              );
-              message.success("Xóa giáo viên thành công");
-            }}
-          />
-        </div>
-      ),
-    },
-  ];
+    user?.role === "ADMIN"
+      ? {
+          title: "Hành động", // Actions
+          key: "actions",
+          render: (_: any, record: Teacher) => (
+            <div className="flex space-x-2">
+              <Button
+                icon={<EditOutlined />}
+                onClick={() => {
+                  setCurrentTeacherId(record.teacherId);
+                  form.setFieldsValue({
+                    name: record.name,
+                    classroom: record.classRoomId || allClasses?.find((c: { label: any; }) => c.label === record.classroom)?.value,
+                    school: allSchools?.find((s: { label: any; }) => s.label === record.teacherProfile.schoolName)?.value,
+                    dateOfBirth: record.teacherProfile.dateOfBirth,
+                    address: record.teacherProfile.address,
+                    teacherId: record.teacherId,
+                  });
+                  setModalCreate({
+                    open: true,
+                    typeModal: "edit",
+                  });
+                }}
+              />
+              <Button
+                icon={<DeleteOutlined />}
+                danger
+                onClick={async() => {
+                  try {
+                      await User.deleteUser(record.teacherId); // record.id là id của học sinh
+
+                      // Nếu thành công thì mới cập nhật lại danh sách ở FE
+                      setLstTeachers((prev) => prev.filter((teacher) => teacher.teacherId !== record.teacherId));
+                      setFilteredLstTeachers((prev) => prev.filter((teacher) => teacher.teacherId !== record.teacherId));
+
+                      message.success("Xóa giáo viên thành công");
+                    } catch (error) {
+                      console.error(error);
+                      message.error("Xóa giáo viên thất bại");
+                    }
+                }}
+              />
+            </div>
+          ),
+        }
+      : null,
+  ]?.filter((item) => item);
 
   const handleSearch = useCallback(
     debounce((searchText: string) => {
-      // if (searchText) {
-      //   setFilteredLstTeachers(
-      //     lstTeachers.filter((item: any) =>
-      //       (item?.name ?? "")
-      //         .toLowerCase()
-      //         .includes(searchText.toLowerCase()),
-      //     ),
-      //   );
-      // } else {
-      //   setFilteredLstTeachers(lstTeachers);
-      // }
       refetch();
     }, 300),
     [lstTeachers],
@@ -315,7 +318,7 @@ const TeacherList: React.FC = () => {
           placeholder="Lọc theo lớp"
           onChange={(value) => {
             setSelectedClass(value);
-            refetch();
+            setCurrentPage(1);
           }}
           allowClear
           style={{ width: 200 }}
@@ -325,7 +328,7 @@ const TeacherList: React.FC = () => {
           placeholder="Lọc theo trường"
           onChange={(value) => {
             setSelectedSchool(value);
-            refetch();
+            setCurrentPage(1);
           }}
           allowClear
           style={{ width: 200 }}
@@ -355,6 +358,8 @@ const TeacherList: React.FC = () => {
           position: ["bottomCenter"],
         }}
       />
+
+      {/* Thêm giáo viên */}
       <BasicDrawer
         width={460}
         title={
@@ -395,8 +400,11 @@ const TeacherList: React.FC = () => {
             onFinish={(value) => {
               mutationCreateUpdate.mutate({
                 ...value,
-                classroomTeacher: value.classroomTeacher,
-                schoolName: value.schoolName,
+                classroom: value.classroom, 
+                classRoomName: allClasses?.find((cls: { value: number }) => cls.value === value.classroom)?.label || "",
+                school: value.school,
+                schoolName: allSchools?.find((sch: { value: number }) => sch.value === value.school)?.label || "",
+                teacherId: currentTeacherId,
               });
             }}
           >
@@ -410,7 +418,7 @@ const TeacherList: React.FC = () => {
               <Input placeholder="Nhập tên giáo viên" />
             </Form.Item>
             <Form.Item
-              name="classroomTeacher"
+              name="classroom"
               label="Lớp"
               className="mb-2"
               required
@@ -419,7 +427,7 @@ const TeacherList: React.FC = () => {
               <Select options={allClasses} placeholder="Lựa chọn lớp" />
             </Form.Item>
             <Form.Item
-              name="schoolName"
+              name="school"
               label="Trường"
               className="mb-2"
               required

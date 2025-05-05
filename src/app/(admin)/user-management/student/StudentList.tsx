@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { CloseIcon } from "@/assets/icons";
 import InputPrimary from "@/components/UI/Input/InputPrimary";
@@ -15,6 +16,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import User from "@/model/User";
 import Auth from "@/model/Auth";
+import { useRouter } from "next/navigation";
 
 interface Student {
   name: string;
@@ -22,10 +24,12 @@ interface Student {
   classRoomId: number;
   studentProfile: any;
   classStudents: any;
+  studentId: number;
 }
 
 const StudentList: React.FC = () => {
   const user: User = useSelector((state: RootState) => state.admin);
+  const router = useRouter();
 
   const [form] = useForm();
   const [lstStudents, setLstStudents] = useState<Student[]>([]);
@@ -40,6 +44,7 @@ const StudentList: React.FC = () => {
     open: false,
     typeModal: "create",
   });
+  const [currentStudentId, setCurrentStudentId] = useState<number | null>(null);
 
   const handleTableChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -48,14 +53,17 @@ const StudentList: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [selectedSchool, setSelectedSchool] = useState<number | null>(null);
 
+  const navigateToStudentLearningProcess = (studentId: number) => {
+    router.push(`/student-learning-process/${studentId}`);
+  };
+
   // Fetching the list of classes
   const { data: allClasses, isFetching: isFetchingClasses } = useQuery({
     queryKey: ["getListClass"],
     queryFn: async () => {
-      const res = await Learning.getListClass();
-      console.log("classlist", res.data)
-      return res.data.map((item: { content: string; classRoomId: number }) => ({
-        label: item.content,
+      const res = await Learning.getListClasses();
+      return res.content.map((item: { name: string; classRoomId: number }) => ({
+        label: item.name,
         value: Number(item.classRoomId),
       }));
     },
@@ -66,7 +74,6 @@ const StudentList: React.FC = () => {
     queryKey: ["getListSchool"],
     queryFn: async () => {
       const res = await Learning.getListSchool();
-      console.log("schoollist", res.content)
       return res.content.map((item: { name: string; schoolId: number }) => ({
         label: item.name,
         value: Number(item.schoolId),
@@ -76,59 +83,53 @@ const StudentList: React.FC = () => {
 
   // Fetching the list of students
   const [total, setTotal] = useState<number>(0);
-    const { isFetching, refetch } = useQuery({
-      queryKey: ["getListStudents", searchText, selectedClass, selectedSchool, currentPage],
-      queryFn: async () => {
-        const res = await User.studentList({
-          name: searchText,
-          classRoomId: selectedClass,
-          schoolId: selectedSchool,
-          page: currentPage - 1,  // Thêm tham số page
-          take: pageSize,      // Thêm tham số take
-        });
-        console.log("data nhận", res.content)
-        setTotal(res.meta.itemCount);
-        // Tạo lại dữ liệu với cấu trúc phù hợp
-        const mappedData = res.content.map((item: any) => ({
-          name: item.name,
-          studentId: item.userId,
-          classRoomId: item.classroomId,
-          classroom: item.classRoomName,
-          studentProfile: {
-            // Giả sử các thông tin về học sinh, nếu có
-            dateOfBirth: item.birthDay || "Không có",
-            schoolName: item.schoolName || "Không có",
-            address: item.city || "Không có",
-            email: item.email || "Không có",
-          },
-          classStudents: [item], // Mỗi bản ghi là một lớp học sinh tham gia
-        }));
-    
-        // Cập nhật dữ liệu
-        setLstStudents(mappedData);
-        setFilteredLstStudents(mappedData);
-        return mappedData;
-      },
+  const { isFetching, refetch } = useQuery({
+    queryKey: ["getListStudents", searchText, selectedClass, selectedSchool, currentPage],
+    queryFn: async () => {
+      const res = await User.studentList({
+        name: searchText,
+        classRoomId: selectedClass,
+        schoolId: selectedSchool,
+        page: currentPage - 1,  // Thêm tham số page
+        take: pageSize,  
+        orderBy: "userId",  
+        sortBy: "DESC"    
+      });
+      setTotal(res.meta.itemCount);
+      // Tạo lại dữ liệu với cấu trúc phù hợp
+      const mappedData = res.content.map((item: any) => ({
+        name: item.name,
+        studentId: item.userId,
+        classRoomId: item.classroomId|| "Không có",
+        classroom: item.classRoomName|| "Không có",
+        studentProfile: {
+          // Giả sử các thông tin về học sinh, nếu có
+          dateOfBirth: item.birthDay || "Không có",
+          schoolName: item.schoolName || "Không có",
+          address: item.city || "Không có",
+          email: item.email || "Không có",
+        },
+        classStudents: [item], // Mỗi bản ghi là một lớp học sinh tham gia
+      }));
+  
+      // Cập nhật dữ liệu
+      setLstStudents(mappedData);
+      setFilteredLstStudents(mappedData);
+      return mappedData;
+    },
     });
 
   // Adding or editing a student
   const mutationCreateUpdate = useMutation({
     mutationFn: async (data: any) => {
       if (modalCreate.typeModal === "create") {
-        // Generate account for the student
-        const email = `${data.name.toLowerCase().replace(/\s+/g, "")}@gmail.com`;
-        await Auth.register({
-          name: data.name,
-          email: email,
-          password: "123456",
-          role: "STUDENT",
-        });
-
         // Call API to create a student
         return await User.createStudent(data);
       } else {
         // Call API to update a student
-        return await User.updateStudent(data);
+        // return await User.updateStudent(data);
+        const { studentId, ...rest } = data;
+        return await User.updateUser(studentId, rest);
       }
     },
     onSuccess: (res, variables) => {
@@ -137,12 +138,12 @@ const StudentList: React.FC = () => {
       const updatedStudent = {
         ...variables,
         name: res.name,
-        classroom: allClasses?.find((cls) => cls.value === variables.classroom)?.label,
+        classroom: allClasses?.find((cls: { value: any; }) => cls.value === variables.classroom)?.label,
         studentProfile: {
-          schoolName: allSchools?.find((sch) => sch.value === variables.school)?.label,
+          schoolName: allSchools?.find((sch: { value: any; }) => sch.value === variables.school)?.label,
           dateOfBirth: variables.dateOfBirth || "Không có",
           address: variables.address || "Không có",
-          email: `${variables.name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
+          // email: `${variables.name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
         },
       };
 
@@ -150,14 +151,14 @@ const StudentList: React.FC = () => {
         modalCreate.typeModal === "create"
           ? [...prevLst, updatedStudent]
           : prevLst.map((student) =>
-              student.name === res.name ? updatedStudent : student,
+              student.studentId === res.userId ? updatedStudent : student,
             ),
       );
       setFilteredLstStudents((prevLst) =>
         modalCreate.typeModal === "create"
           ? [...prevLst, updatedStudent]
           : prevLst.map((student) =>
-              student.name === res.name ? updatedStudent : student,
+              student.studentId === res.userId ? updatedStudent : student,
             ),
       );
 
@@ -185,7 +186,15 @@ const StudentList: React.FC = () => {
       title: "Tên", // Name
       dataIndex: "name",
       key: "name",
-      render: (value: string) => <div className="text-lg">{value}</div>,
+      // render: (value: string) => <div className="text-lg">{value}</div>,
+      render: (value: string, record: Student) => (
+        <div 
+          className="text-lg text-blue-600 cursor-pointer hover:underline"
+          onClick={() => navigateToStudentLearningProcess(record.studentId)}
+        >
+          {value}
+        </div>
+      ),
       width: 300,
     },
     {
@@ -236,7 +245,7 @@ const StudentList: React.FC = () => {
       ),
       width: 200,
     },
-    user?.role === "ADMIN" || "TEACHER"
+    ["ADMIN", "TEACHER"].includes(user?.role)
       ? {
           title: "Hành động", // Actions
           key: "actions",
@@ -245,10 +254,14 @@ const StudentList: React.FC = () => {
               <Button
                 icon={<EditOutlined />}
                 onClick={() => {
+                  setCurrentStudentId(record.studentId);
                   form.setFieldsValue({
                     name: record.name,
-                    classroom: record.classRoomId,
-                    school: record.studentProfile.schoolName,
+                    classroom: allClasses?.find((c: { label: any; }) => c.label === record.classroom)?.value,
+                    school: record.studentProfile.schoolId || allSchools?.find((s: { label: any; }) => s.label === record.studentProfile.schoolName)?.value,
+                    dateOfBirth: record.studentProfile.dateOfBirth,
+                    address: record.studentProfile.address,
+                    studentId: record.studentId,
                   });
                   setModalCreate({
                     open: true,
@@ -256,114 +269,63 @@ const StudentList: React.FC = () => {
                   });
                 }}
               />
-              <Button
-                icon={<DeleteOutlined />}
-                danger
-                onClick={() => {
-                  // Handle delete logic
-                  setLstStudents((prev) =>
-                    prev.filter((student) => student.name !== record.name)
-                  );
-                  setFilteredLstStudents((prev) =>
-                    prev.filter((student) => student.name !== record.name)
-                  );
-                  message.success("Xóa học sinh thành công");
-                }}
-              />
             </div>
           ),
+          width: 150,
         }
-      : null,
-  ]?.filter((item) => item);
+      : {},
+  ];
 
   const handleSearch = useCallback(
-    debounce((searchText: string) => {
-      // if (searchText) {
-      //   setFilteredLstStudents(
-      //     lstStudents.filter((item: any) =>
-      //       (item?.studentName ?? "")
-      //         .toLowerCase()
-      //         .includes(searchText.toLowerCase()),
-      //     ),
-      //   );
-      // } else {
-      //   setFilteredLstStudents(lstStudents);
-      // }
-      refetch();
+    debounce((value: string) => {
+      setSearchText(value);
     }, 300),
-    [lstStudents],
+    [],
   );
 
-  const isLoading = isFetching || mutationCreateUpdate.isPending;
-
   return (
-    <div className="w-full p-4">
-      <h1 className="mb-4 text-2xl font-bold">Danh sách học sinh</h1>
-      <div className="mb-4 flex items-center justify-between">
-        <InputPrimary
-          allowClear
-          onClear={() => {
-            refetch();
-            setCurrentPage(1);
-            setSearchText("");
-          }}
-          value={searchText}
-          onChange={(e) => {
-            setSearchText(e.target.value);
-            handleSearch(e.target.value);
-          }}
-          className="mb-4"
-          style={{ width: 400 }}
-          placeholder="Tìm kiếm tên học sinh"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleSearch(e.currentTarget.value);
-            }
-          }}
-        />
-        <Select
-          options={allClasses}
-          placeholder="Lọc theo lớp"
-          onChange={(value) => {
-            setSelectedClass(value);
-            refetch();
-          }}
-          allowClear
-          style={{ width: 200 }}
-        />
-        <Select
-          options={allSchools}
-          placeholder="Lọc theo trường"
-          onChange={(value) => {
-            setSelectedSchool(value);
-            refetch();
-          }}
-          allowClear
-          style={{ width: 200 }}
-        />
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex space-x-2">
+          <InputPrimary
+            placeholder="Tìm kiếm học sinh"
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+          <Select
+            options={allClasses || []}
+            placeholder="Lọc theo lớp"
+            loading={isFetchingClasses}
+            allowClear
+            onChange={(value) => setSelectedClass(value)}
+          />
+          <Select
+            options={allSchools || []}
+            placeholder="Lọc theo trường"
+            loading={isFetchingSchools}
+            allowClear
+            onChange={(value) => setSelectedSchool(value)}
+          />
+        </div>
         <Button
-          hidden={!(user?.role === "ADMIN" || user?.role === "TEACHER")}
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => {
-            setModalCreate({ ...modalCreate, open: true, typeModal: "create" });
+            setModalCreate({ open: true, typeModal: "create" });
             form.resetFields();
           }}
         >
-          Thêm mới
+          Thêm học sinh
         </Button>
       </div>
       <CustomTable
-        columns={columns as any}
+        columns={columns}
         dataSource={filteredLstStudents}
-        loading={isLoading}
+        loading={isFetching}
         pagination={{
-          pageSize: pageSize,
           current: currentPage,
+          pageSize: pageSize,
           total: total,
           onChange: handleTableChange,
-          showSizeChanger: false,
-          position: ["bottomCenter"],
         }}
       />
 
@@ -401,15 +363,25 @@ const StudentList: React.FC = () => {
           </div>
         }
       >
-        <div className="">
+        <div>
           <Form
             form={form}
             layout="vertical"
             onFinish={(value) => {
+              console.log("value", value);
               mutationCreateUpdate.mutate({
                 ...value,
                 classroom: value.classroom,
+                classRoomName:
+                  allClasses?.find(
+                    (cls: { value: number }) => cls.value === value.classroom
+                  )?.label || "",
                 school: value.school,
+                schoolName:
+                  allSchools?.find(
+                    (sch: { value: number }) => sch.value === value.school
+                  )?.label || "",
+                studentId: currentStudentId,
               });
             }}
           >
@@ -429,7 +401,14 @@ const StudentList: React.FC = () => {
               required
               rules={[{ required: true, message: "Lớp không được bỏ trống" }]}
             >
-              <Select options={allClasses} placeholder="Lựa chọn lớp" />
+              <Select
+                options={allClasses || []}
+                placeholder="Lựa chọn lớp"
+                loading={isFetchingClasses}
+                allowClear
+                showSearch
+                optionFilterProp="label"
+              />
             </Form.Item>
             <Form.Item
               name="school"
@@ -438,21 +417,14 @@ const StudentList: React.FC = () => {
               required
               rules={[validateRequireInput("Trường không được bỏ trống")]}
             >
-              <Select options={allSchools} placeholder="Lựa chọn trường" />
-            </Form.Item>
-            <Form.Item
-              name="dateOfBirth"
-              label="Ngày sinh"
-              className="mb-2"
-            >
-              <Input placeholder="Nhập ngày sinh" />
-            </Form.Item>
-            <Form.Item
-              name="address"
-              label="Địa chỉ"
-              className="mb-2"
-            >
-              <Input placeholder="Nhập địa chỉ" />
+              <Select
+                options={allSchools || []}
+                placeholder="Lựa chọn trường"
+                loading={isFetchingSchools}
+                allowClear
+                showSearch
+                optionFilterProp="label"
+              />
             </Form.Item>
           </Form>
         </div>

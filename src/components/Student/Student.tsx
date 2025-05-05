@@ -210,20 +210,6 @@ const Students: FC = () => {
   const handleTableChange = (pagination: any) => {
     setCurrentPage(pagination.current);
   };
-
-  // Fetching the list of students
-  // const { isFetching, refetch } = useQuery({
-  //   queryKey: ["getListStudents", searchText],
-  //   queryFn: async () => {
-  //     const res = await User.studentList({
-  //       name: searchText,
-  //     });
-  //     console.log("check",res.content)
-  //     setLstStudents(res.content);
-  //     setFilteredLstStudents(res.content);
-  //     return res as Student[];
-  //   },
-  // });
   const [total, setTotal] = useState<number>(0);
   const { isFetching, refetch } = useQuery({
     queryKey: ["getListStudents", searchText, currentPage],
@@ -231,9 +217,10 @@ const Students: FC = () => {
       const res = await User.studentList({
         name: searchText,
         page: currentPage - 1,  // Thêm tham số page
-        take: pageSize,      // Thêm tham số take
+        take: pageSize,  
+        orderBy: "userId",  
+        sortBy: "DESC"  
       });
-      console.log("data nhận", res.content)
       setTotal(res.meta.itemCount);
       // Tạo lại dữ liệu với cấu trúc phù hợp
       const mappedData = res.content.map((item: any) => ({

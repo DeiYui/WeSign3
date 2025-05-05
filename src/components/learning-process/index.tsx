@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import CardDataStats from "../CardDataStats";
 import { useQuery } from "@tanstack/react-query";
 import Learning from "@/model/Learning";
-import { Select, Spin, Table } from "antd";
+import { Select, Spin, Table, Modal, Button } from "antd";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -18,7 +18,16 @@ const LearningProcess: React.FC = () => {
 
   const [selectedStatistic, setSelectedStatistic] = useState<string>("vocabulary"); // Default to "Theo từ vựng"
   const [statisticData, setStatisticData] = useState<any[]>([]);
-
+  const [isLessonModalVisible, setIsLessonModalVisible] = useState<boolean>(false);
+  const [lessonsList, setLessonsList] = useState<any[]>([]);
+  const [isLoadingLessons, setIsLoadingLessons] = useState<boolean>(false);
+  const [isVocabularyModalVisible, setIsVocabularyModalVisible] = useState<boolean>(false);
+  const [vocabularyList, setVocabularyList] = useState<any[]>([]);
+  const [isLoadingVocabulary, setIsLoadingVocabulary] = useState<boolean>(false);
+  const [testsList, setTestsList] = useState<any[]>([]);
+  const [isLoadingTests, setIsLoadingTests] = useState<boolean>(false);
+  const [isTestsModalVisible, setIsTestsModalVisible] = useState<boolean>(false);
+  
   // Fetch user statistics
   const { data: userStatistic, isFetching: isFetchingProcess, refetch } = useQuery({
     queryKey: ["getLearningProcess"],
@@ -28,32 +37,9 @@ const LearningProcess: React.FC = () => {
     },
   });
 
-// <<<<<<< HEAD
-  // API lấy danh sách từ theo topics
-  // const { data: classJoined, isFetching } = useQuery({
-  //   queryKey: ["userClasslist"],
-  //   queryFn: async () => {
-  //     const res = await Learning.classJoined();
-  //     return res;
-  //   },
-  // });
-  // console.log("classJoin", user.userId);
-  // console.log("Type of userId:", typeof user.userId);
-
-  // const { data: classJoined, isFetching } = useQuery({
-  //   queryKey: ["userClasslist", userId], // Include userId in the query key
-  //   queryFn: async () => {
-  //     const res = await Learning.classJoined(userId);
-  //     return res;
-  //   },
-  // });
-//   const { data: classJoined, isFetching } = useQuery({
-//     queryKey: ["userClasslist"],
-// =======
   // Fetch vocabulary views or lesson views based on the selected statistic
   const { data: statisticDetails, isFetching: isFetchingStatisticDetails } = useQuery({
     queryKey: ["getStatisticDetails", selectedStatistic],
-// >>>>>>> 861763e8cbc6162e5f3d6e6ba3cc4785ef1abff8
     queryFn: async () => {
       if (selectedStatistic === "vocabulary") {
         const res = await Learning.getVocabularyViews(user.userId as number);
@@ -64,13 +50,9 @@ const LearningProcess: React.FC = () => {
       }
       return [];
     },
-    // onSuccess: (data) => {
-    //   setStatisticData(data);
-    // },
   });
   useEffect(() => {
     if (statisticDetails) {
-      console.log("📊 Data from API:", statisticDetails);
       setStatisticData(statisticDetails);
     }
   }, [statisticDetails]);
@@ -87,29 +69,48 @@ const LearningProcess: React.FC = () => {
     };
   }, [refetch]);
 
-  // Columns for the statistics table
-  // const columns = [
-  //   {
-  //     title: selectedStatistic === "vocabulary" ? "Từ vựng" : "Bài học", // Vocabulary or Lesson
-  //     dataIndex: "name",
-  //     key: "name",
-  //     render: (value: string) => <div className="text-lg">{value}</div>,
-  //   },
-  // ];
-  // const columns = [
-  //   {
-  //     title: "Từ vựng",
-  //     dataIndex: "name",
-  //     key: "name",
-  //     render: (value: string) => <div className="text-lg">{value}</div>,
-  //   },
-  //   {
-  //     title: "Số lượt xem",
-  //     dataIndex: "viewCount",
-  //     key: "viewCount",
-  //     render: (value: number) => <div className="text-lg">{value}</div>,
-  //   },
-  // ];
+  const handleShowLessons = async () => {
+      setIsLoadingLessons(true);
+      setIsLessonModalVisible(true);
+      try {
+        // Assuming you have an API endpoint to get all lessons learned by a student
+        const lessons = await Learning.getFullLessonViews(user.userId);
+        setLessonsList(lessons);
+      } catch (error) {
+        console.error("Error fetching lessons:", error);
+      } finally {
+        setIsLoadingLessons(false);
+      }
+    };
+
+    const handleShowTests = async () => {
+      setIsLoadingTests(true);
+      setIsTestsModalVisible(true);
+      try {
+        // Assuming you have an API endpoint to get all lessons learned by a student
+        const tests = await Learning.getFullTestsCompleted(user.userId);
+        setTestsList(tests);
+      } catch (error) {
+        console.error("Error fetching Tests:", error);
+      } finally {
+        setIsLoadingTests(false);
+      }
+    };
+
+    const handleShowVocabulary = async () => {
+      setIsLoadingVocabulary(true);
+      setIsVocabularyModalVisible(true);
+      try {
+        // Assuming you have an API endpoint to get all lessons learned by a student
+        const vocabulary = await Learning.getFullVocabularyViews(user.userId);
+        setVocabularyList(vocabulary);
+      } catch (error) {
+        console.error("Error fetching lessons:", error);
+      } finally {
+        setIsLoadingVocabulary(false);
+      }
+    };
+
   const getColumns = () => {
     if (selectedStatistic === "vocabulary") {
       return [
@@ -144,6 +145,72 @@ const LearningProcess: React.FC = () => {
     }
     return [];
   };
+
+  const lessonColumns = [
+    {
+      title: "Bài học",
+      dataIndex: "name",
+      key: "name",
+      render: (value: string) => <div className="text-lg">{value}</div>,
+    },
+    {
+      title: "Số lượt xem",
+      dataIndex: "viewCount",
+      key: "viewCount",
+      render: (value: number) => <div className="text-lg">{value}</div>,
+    },
+    {
+      title: "Ngày xem gần nhất",
+      dataIndex: "lastViewed",
+      key: "lastViewed",
+      render: (value: string) => <div className="text-lg">{value ? new Date(value).toLocaleDateString("vi-VN") : "N/A"}</div>,
+    }
+  ];
+
+  const vocabularyColumns = [
+    {
+      title: "Từ vựng",
+      dataIndex: "name",
+      key: "name",
+      render: (value: string) => <div className="text-lg">{value}</div>,
+    },
+    {
+      title: "Số lượt xem",
+      dataIndex: "viewCount",
+      key: "viewCount",
+      render: (value: number) => <div className="text-lg">{value}</div>,
+    },
+    {
+      title: "Ngày xem gần nhất",
+      dataIndex: "lastViewed",
+      key: "lastViewed",
+      render: (value: string) => <div className="text-lg">{value ? new Date(value).toLocaleDateString("vi-VN") : "N/A"}</div>,
+    }
+  ];
+
+  const testColumns = [
+    {
+      title: "Tên bài kiểm tra",
+      dataIndex: "examName",
+      key: "examName",
+      render: (value: string) => <div className="text-lg">{value}</div>,
+    },
+    {
+      title: "Số lần đã làm",
+      dataIndex: "attemptCount",
+      key: "attemptCount",
+      render: (value: number) => <div className="text-lg">{value}</div>,
+    },
+    {
+      title: "Điểm số (Thang điểm 10)",
+      dataIndex: "score",
+      key: "score",
+      render: (value: number | string) => {
+        const num = Number(value);
+        return <b>{!isNaN(num) ? num.toFixed(1) : "0.0"}</b>;
+      },
+    }
+  ];
   
 
   return (
@@ -160,23 +227,28 @@ const LearningProcess: React.FC = () => {
         </CardDataStats>
 
         <CardDataStats
-          title="Lượt học từ vựng"
+          title="Số từ vựng đã học"
           total={`${userStatistic?.vocabularyViews}`}
+          onClick={handleShowVocabulary}
+          className="cursor-pointer hover:bg-gray-100 transition-colors"
         >
           <AlphabetIcon size={24} color="#3C50E0" />
         </CardDataStats>
 
         <CardDataStats
-          title="Lượt học bài"
+          title="Số bài đã học"
           total={`${userStatistic?.lessonViews}`}
+          onClick={handleShowLessons}
+          className="cursor-pointer hover:bg-gray-100 transition-colors"
         >
           <TopicIcon size={24} color="#3C50E0" />
         </CardDataStats>
 
         <CardDataStats
-          title="Bài kiểm tra hoàn thành"
+          title="Số bài kiểm tra hoàn thành"
           total={`${userStatistic?.testsCompleted}`}
-          onClick={() => router.push("/exam")}
+          onClick={handleShowTests}
+          className="cursor-pointer hover:bg-gray-100 transition-colors"
         >
           <ExamIcon size={24} color="#3C50E0" />
         </CardDataStats>
@@ -212,9 +284,73 @@ const LearningProcess: React.FC = () => {
             pagination={{ pageSize: 10 }}
             rowKey="id"
           />
-{/* >>>>>>> 861763e8cbc6162e5f3d6e6ba3cc4785ef1abff8 */}
         </div>
       </div>
+
+      {/* Modal for showing lessons learned */}
+      <Modal
+        title={`Danh sách bài học đã học`}
+        open={isLessonModalVisible}
+        onCancel={() => setIsLessonModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setIsLessonModalVisible(false)}>
+            Đóng
+          </Button>
+        ]}
+        width={800}
+      >
+        <Spin spinning={isLoadingLessons}>
+          <Table
+            columns={lessonColumns}
+            dataSource={lessonsList}
+            pagination={{ pageSize: 10 }}
+            rowKey="id"
+          />
+        </Spin>
+      </Modal>
+
+      {/* Modal for showing lessons learned */}
+      <Modal
+        title={`Danh sách từ vựng đã học`}
+        open={isVocabularyModalVisible}
+        onCancel={() => setIsVocabularyModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setIsVocabularyModalVisible(false)}>
+            Đóng
+          </Button>
+        ]}
+        width={800}
+      >
+        <Spin spinning={isLoadingVocabulary}>
+          <Table
+            columns={vocabularyColumns}
+            dataSource={vocabularyList}
+            pagination={{ pageSize: 10 }}
+            rowKey="id"
+          />
+        </Spin>
+      </Modal>
+
+      <Modal
+        title={`Danh sách bài kiểm tra đã làm`}
+        open={isTestsModalVisible}
+        onCancel={() => setIsTestsModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setIsTestsModalVisible(false)}>
+            Đóng
+          </Button>
+        ]}
+        width={800}
+      >
+        <Spin spinning={isLoadingTests}>
+          <Table
+            columns={testColumns}
+            dataSource={testsList}
+            pagination={{ pageSize: 10 }}
+            rowKey="id"
+          />
+        </Spin>
+      </Modal>
     </Spin>
   );
 };

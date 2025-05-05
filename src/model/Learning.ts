@@ -173,7 +173,11 @@ class Learning extends Base {
     return res.data;
   };
 
-  
+  getListClasses = async (params?: any) => {
+    const res = await this.apiGetWithoutPrefixNode(`/user/class-list`, params);
+    return res.data;
+  };
+
   getListSchool = async (params?: any) => {
     const res = await this.apiGetWithoutPrefixNode(`/user/school-list`, params);
     console.log('list school raw', res)
@@ -295,7 +299,7 @@ class Learning extends Base {
 
   leaningProcess = async (userId: number) => {
     const res = await this.apiGetWithoutPrefixNode(`/user/statistics/${userId}`);
-    return res.data;
+    return res.data.statistics;
   };
 
   getVocabularyViews = async (userId: number) => {
@@ -306,12 +310,24 @@ class Learning extends Base {
   getLessonViews = async (userId: number) => {
     const res = await this.apiGetWithoutPrefixNode(`/user/lesson/recent-view/${userId}`);
     return res.data;
-  }; // BE chưa có
+  }; 
+
+  getFullLessonViews = async (userId: number) => {
+    const res = await this.apiGetWithoutPrefixNode(`/user/lesson/full-view/${userId}`);
+    return res.data;
+  }; 
+
+  getFullVocabularyViews = async (userId: number) => {
+    const res = await this.apiGetWithoutPrefixNode(`/user/vocabulary/full-view/${userId}`);
+    return res.data;
+  }; 
+
+  getFullTestsCompleted = async (userId: number) => {
+    const res = await this.apiGetWithoutPrefixNode(`/user/test/full-view/${userId}`);
+    return res.data;
+  }; 
 
   viewLesson = async (lessonId: number, userId: number) => {
-    console.log('📌 Sending request with:');
-  console.log('📌 lessonId:', lessonId);
-  console.log('📌 userId:', userId);
   const res = await this.apiPostWithoutPrefixNode(
     `/user/lesson/view/${lessonId}`, {
     userId,  
@@ -319,29 +335,6 @@ class Learning extends Base {
   return res.data;
 };
 
-  // classJoined = async () => {
-  //   const res = await this.apiGetWithoutPrefixNode(`/user-auth/class-joined`);
-  //   console.log(res.data);
-  //   return res.data;
-  // };
-  // classJoined = async (userId: number) => {
-  //   // // Send userId in the request body or as a query parameter
-  //   // const res = await this.apiGetWithoutPrefixNode(`/user/class-joined?userId=${userId}`);
-  //   // // Or alternatively, if your API expects it in a different format:
-  //   // // const res = await this.apiPostWithoutPrefixNode(`/user-auth/class-joined`, { userId });
-    
-  //   // console.log(res.data);
-  //   // return res.data;
-  //   try {
-  //     const res = await this.apiGetWithoutPrefixNode(`/user/class-joined?userId=${userId}`);
-  //     console.log("test", res.data);
-  //     return res.data;
-  //   } catch (error) {
-  //     console.error('API call failed:', error);
-  //     throw error;
-  //   }
-    
-  // };
   classJoined = async () => {
     // const res = await this.apiGetWithoutPrefix(`/user-auth/class-joined`);
     // return res.data;

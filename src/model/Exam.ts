@@ -3,8 +3,9 @@ import { Base } from "./Base";
 
 class Exam extends Base {
   // Danh sách bài kiểm tra
-  getLstExam = async (body?: any) => {
-    return this.apiPost("/exams/all-exams", body);
+  getLstExam = async (param?: any) => {
+    const res = await this.apiGetWithoutPrefixNode("/exam/all-exams", param);
+    return res;
   };
 
   // Danh sách bài kiểm tra cho user
@@ -32,15 +33,16 @@ class Exam extends Base {
   };
 
   // Chi tiết bài kiểm tra
-  detailExamsForUser = async (id: number) => {
+  getDetailExam = async (id: number) => {
     const res = await this.apiGet(`/exams/${id}`);
     return res.data;
   };
 
   // Chấm điểm bài kiểm tra
   markExam = async (body: any) => {
-    const res = await this.apiPost(`/exams/exam-scoring`, body);
-    return res.data;
+    const res = await this.apiPostWithoutPrefixNode(`/exam/exam-scoring`, body);
+    console.log('score', res)
+    return res.config.data;
   };
 
   // Lưu kết quả câu hỏi bài kiểm tra
@@ -49,11 +51,12 @@ class Exam extends Base {
     return res.data;
   };
 
-  // Chi tiét bài kiểm tra
-  getDetailSaveExam = async (examId: any) => {
+  // Chi tiết bài kiểm tra đã lưu
+  getDetailExamSave = async (examId: any) => {
     const res = await this.apiGet(`/exams/exam-saved/${examId}`);
     return res.data;
   };
+  
   // Xoá bài kiểm tra
   deleteExam = async (id: number) => {
     const res = await this.apiDelete(`/exams/${id}`);
@@ -63,6 +66,19 @@ class Exam extends Base {
   // Xoá bài kiểm tra cho user
   deleteExamUser = async (id: number) => {
     const res = await this.apiDelete(`/exams/delete-exam-of-user/${id}`);
+    return res.data;
+  };
+
+  // Reset bài kiểm tra để làm lại
+  resetExam = async (examId: number, body?: any) => {
+    const res = await this.apiPostWithoutPrefixNode(`/exam/reset/${examId}`, body);
+    console.log('reset', res)
+    return res.data;
+  };
+
+  // Lấy lịch sử làm bài kiểm tra
+  getExamHistory = async (examId: number) => {
+    const res = await this.apiGet(`/exams/history/${examId}`);
     return res.data;
   };
 }

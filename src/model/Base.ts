@@ -9,14 +9,6 @@ export class Base {
   private readonly apiPrefix: string | undefined;
   private readonly apiPrefixNode: string | undefined;
 
-  // constructor(apiPrefix: string | null = null) {
-  //   this.apiRoot = API_ROOT;
-  //   this.apiRootNode = API_ROOT_NODE + "/api";
-  //   this.apiPrefix = `${API_ROOT}/${apiPrefix}`;
-  //   // this.apiPrefixNode = `${API_ROOT_NODE}/api/${apiPrefix}`;
-  //   // this.apiPrefix = apiPrefix || '';
-  //   this.apiPrefixNode = `${API_ROOT_NODE}/api/${apiPrefix}`;
-  // }
   constructor(apiPrefix: string | null = null) {
     this.apiRoot = API_ROOT;
     this.apiRootNode = API_ROOT_NODE + "/api";
