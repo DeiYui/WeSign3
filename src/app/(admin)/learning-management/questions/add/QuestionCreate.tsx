@@ -115,9 +115,7 @@ const QuestionCreate: React.FC = () => {
         videoLocation: "",
         classRoomId: 0,
         type: "ONE_ANSWER",
-        answerReqs: [
-          { content: "", imageLocation: "", videoLocation: "", correct: true },
-        ],
+        answerReqs: [], // Không có đáp án mặc định
       })),
     );
   };
@@ -195,6 +193,26 @@ const QuestionCreate: React.FC = () => {
                   Câu hỏi {(currentPage - 1) * questionsPerPage + index + 1}
                 </h2>
 
+                {/* Kiểu câu hỏi */}
+                <Form.Item
+                  name={["questions", index, "type"]}
+                  label="Kiểu câu hỏi:"
+                  required
+                  rules={[validateRequireInput("Vui lòng chọn loại câu hỏi")]}
+                  initialValue={"ONE_ANSWER"}
+                >
+                  <Select
+                    value={question.type}
+                    onChange={(value) => handleQuestionChange(index, "type", value)}
+                    placeholder="Chọn loại câu hỏi"
+                    options={[
+                      { label: "Một đáp án", value: "ONE_ANSWER" },
+                      { label: "Nhiều đáp án", value: "MULTIPLE_ANSWERS" },
+                    ]}
+                  />
+                </Form.Item>
+
+                {/* Tên câu hỏi */}
                 <Form.Item
                   label="Tên câu hỏi:"
                   name={["questions", index, "content"]}
@@ -206,239 +224,224 @@ const QuestionCreate: React.FC = () => {
                   <Input placeholder="Nhập câu hỏi" />
                 </Form.Item>
 
+                {/* Lựa chọn câu hỏi */}
                 <Form.Item
                   name={["questions", index, "typeFile"]}
-                  label="Lựa chọn file (hình ảnh, video):"
+                  label="Lựa chọn câu hỏi (hình ảnh, video, từ):"
                   className="mb-0"
                   required
                   rules={[validateRequire("Không được bỏ trống trường này")]}
                 >
                   <Select
                     style={{ width: "100%" }}
-                    placeholder="Chọn hoặc tải lên file"
+                    placeholder="Chọn hoặc tải lên câu hỏi"
+                    onChange={(value) => handleQuestionChange(index, "typeFile", value)}
                   >
-                    <Select.Option value="NOT_EXISTED">
-                      Tải lên file mới
-                    </Select.Option>
-                    <Select.Option value="EXISTED">
-                      Chọn từ dữ liệu có sẵn
-                    </Select.Option>
+                    <Select.Option value="NOT_EXISTED">Tải lên mới</Select.Option>
+                    <Select.Option value="EXISTED">Chọn từ dữ liệu có sẵn</Select.Option>
+                    <Select.Option value="TEXT">Nhập câu hỏi bằng từ</Select.Option>
                   </Select>
                 </Form.Item>
 
-                <div className="mt-2">
-                  {lstQuestions.questions?.length && (
-                    <>
-                      <Form.Item
-                        name={["questions", index, "file"]}
-                        className="mb-2"
-                        required
-                        rules={[
-                          validateRequire("Không được bỏ trống trường này"),
-                        ]}
-                        hidden={
-                          lstQuestions?.questions[index]?.typeFile ===
-                          "NOT_EXISTED"
-                        }
-                      >
-                        {lstQuestions?.questions[index]?.typeFile ===
-                          "EXISTED" && (
-                          <QuestionModal
-                            openChooseVideo={openChooseVideo}
-                            setOpenChooseVideo={setOpenChooseVideo}
-                            file={lstQuestions?.questions[index]?.file}
-                          >
-                            <div
-                              onClick={() => {
-                                setOpenChooseVideo(true);
-                              }}
-                            >
-                              <Button>Chọn file</Button>
-                              {lstQuestions?.questions[index]?.file && (
-                                <div className="">
-                                  {isImage(
-                                    lstQuestions?.questions[index]?.file,
-                                  ) ? (
-                                    <Image
-                                      preview={false}
-                                      alt="example"
-                                      style={{
-                                        width: 200,
-                                        height: 200,
-                                        objectFit: "contain",
-                                      }}
-                                      src={lstQuestions?.questions[index]?.file}
-                                    />
-                                  ) : (
-                                    <video
-                                      controls
-                                      style={{ width: 200, height: 200 }}
-                                    >
-                                      <source
-                                        src={
-                                          lstQuestions?.questions[index]?.file
-                                        }
-                                        type="video/mp4"
-                                      />
-                                    </video>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </QuestionModal>
-                        )}
-                      </Form.Item>
+                {/* Hiển thị trường nhập nếu chọn "Nhập câu hỏi bằng từ" */}
+                {question.typeFile === "TEXT" && (
+                  <Form.Item
+                    name={["questions", index, "content"]}
+                    label="Nhập câu hỏi:"
+                    required
+                    rules={[validateRequireInput("Vui lòng nhập câu hỏi")]}
+                  >
+                    <Input placeholder="Nhập câu hỏi" />
+                  </Form.Item>
+                )}
 
-                      <Form.Item
-                        name={["questions", index, "file"]}
-                        className="mb-2"
-                        required
-                        rules={[
-                          validateRequire("Không được bỏ trống trường này"),
-                        ]}
-                        hidden={
-                          lstQuestions?.questions[index]?.typeFile === "EXISTED"
-                        }
-                      >
-                        {lstQuestions?.questions[index]?.typeFile ===
-                          "NOT_EXISTED" && <MediaUpload />}
-                      </Form.Item>
+                <div className="mt-2">
+                                  {lstQuestions.questions?.length && (
+                                    <>
+                                      <Form.Item
+                                        name={["questions", index, "file"]}
+                                        className="mb-2"
+                                        required
+                                        rules={[
+                                          validateRequire("Không được bỏ trống trường này"),
+                                        ]}
+                                        hidden={
+                                          lstQuestions?.questions[index]?.typeFile ===
+                                          "NOT_EXISTED"
+                                        }
+                                      >
+                                        {lstQuestions?.questions[index]?.typeFile ===
+                                          "EXISTED" && (
+                                          <QuestionModal
+                                            openChooseVideo={openChooseVideo}
+                                            setOpenChooseVideo={setOpenChooseVideo}
+                                            file={lstQuestions?.questions[index]?.file}
+                                          >
+                                            <div
+                                              onClick={() => {
+                                                setOpenChooseVideo(true);
+                                              }}
+                                            >
+                                              <Button>Chọn file</Button>
+                                              {lstQuestions?.questions[index]?.file && (
+                                                <div className="">
+                                                  {isImage(
+                                                    lstQuestions?.questions[index]?.file,
+                                                  ) ? (
+                                                    <Image
+                                                      preview={false}
+                                                      alt="example"
+                                                      style={{
+                                                        width: 200,
+                                                        height: 200,
+                                                        objectFit: "contain",
+                                                      }}
+                                                      src={lstQuestions?.questions[index]?.file}
+                                                    />
+                                                  ) : (
+                                                    <video
+                                                      controls
+                                                      style={{ width: 200, height: 200 }}
+                                                    >
+                                                      <source
+                                                        src={
+                                                          lstQuestions?.questions[index]?.file
+                                                        }
+                                                        type="video/mp4"
+                                                      />
+                                                    </video>
+                                                  )}
+                                                </div>
+                                              )}
+                                            </div>
+                                          </QuestionModal>
+                                        )}
+                                      </Form.Item>
+                      
+
+                      {/* Nếu tải lên mới */}
+                      {question.typeFile === "NOT_EXISTED" && (
+                        <MediaUpload />
+                      )}
                     </>
                   )}
                 </div>
 
-                <Form.Item
-                  name={["questions", index, "type"]}
-                  label="Kiểu câu hỏi:"
-                  required
-                  rules={[validateRequireInput("Vui lòng chọn loại đáp án")]}
-                  initialValue={"ONE_ANSWER"}
-                >
-                  <Select
-                    value={question.type}
-                    onChange={(value) =>
-                      handleQuestionChange(index, "type", value)
-                    }
-                    placeholder="Chọn loại đáp án"
-                    options={[
-                      { label: "Một đáp án", value: "ONE_ANSWER" },
-                      { label: "Nhiều đáp án", value: "MULTIPLE_ANSWERS" },
-                    ]}
-                  />
-                </Form.Item>
+                
 
+                {/* Đáp án */}
                 <Form.List name={["questions", index, "answerReqs"]}>
                   {(fields, { add, remove }) => (
                     <>
-                      {question.type === "ONE_ANSWER" ? (
-                        <Radio.Group className="w-full" defaultValue={0}>
-                          {fields.map((field, answerIndex) => (
-                            <div
-                              key={field.key}
-                              className="flex w-full items-center gap-4"
-                            >
-                              <div className="mb-2 flex items-center">
-                                <Form.Item
-                                  name={[field.name, "correct"]}
-                                  className="mb-0 ml-2 w-full"
-                                  valuePropName="checked"
-                                  initialValue={answerIndex === 0}
-                                >
-                                  <Radio value={answerIndex} />
-                                </Form.Item>
-
-                                <Form.Item
-                                  name={[field.name, "content"]}
-                                  className="mb-0 ml-2 w-full"
-                                  required
-                                  rules={[
-                                    validateRequireInput(
-                                      "Vui lòng nhập đáp án",
-                                    ),
-                                  ]}
-                                >
-                                  <Input
-                                    placeholder="Nhập đáp án"
-                                    style={{ width: 500 }}
-                                  />
-                                </Form.Item>
-                              </div>
-
-                              <MinusCircleOutlined
-                                style={{ fontSize: 20 }}
-                                className="dynamic-delete-button"
-                                onClick={() => remove(field.name)}
+                      {fields.map((field, answerIndex) => (
+                        <div key={field.key} className="flex w-full items-center gap-4">
+                          <div className="mb-2 flex items-center gap-2">
+                            {/* Checkbox đáp án đúng */}
+                            <Form.Item
+                              {...field}
+                              name={[field.name, "correct"]}
+                              className="mb-0"
+                              valuePropName="checked">
+                              <Checkbox
+                                onChange={(e) => {
+                                  if (question.type === "ONE_ANSWER" && e.target.checked) {
+                                    // Nếu là "Một đáp án", bỏ chọn các đáp án khác
+                                    const updatedAnswers = question.answerReqs.map(
+                                      (answer, i) => ({
+                                        ...answer,
+                                        correct: i === answerIndex,
+                                      })
+                                    );
+                                    handleQuestionChange(index, "answerReqs", updatedAnswers);
+                                  }
+                                }}
                               />
-                            </div>
-                          ))}
-                          <Button
-                            type="dashed"
-                            onClick={() =>
-                              add({
-                                ...initAnswerValue,
-                                correct: fields?.length === 0,
-                              })
-                            }
-                            icon={<PlusOutlined />}
-                          >
-                            Thêm đáp án
-                          </Button>
-                        </Radio.Group>
-                      ) : (
-                        <Checkbox.Group className="w-full" defaultValue={[0]}>
-                          {fields.map((field, answerIndex) => (
-                            <div
-                              key={field.key}
-                              className="flex w-full items-center gap-4"
-                            >
-                              <div className="mb-2 flex items-center">
-                                <Form.Item
-                                  {...field}
-                                  name={[field.name, "correct"]}
-                                  className="mb-0 ml-2 w-full"
-                                  valuePropName="checked"
-                                >
-                                  <Checkbox value={answerIndex} />
-                                </Form.Item>
-                                <Form.Item
-                                  {...field}
-                                  name={[field.name, "content"]}
-                                  className="mb-0 ml-2 w-full"
-                                  required
-                                  rules={[
-                                    validateRequireInput(
-                                      "Vui lòng nhập đáp án",
-                                    ),
-                                  ]}
-                                >
-                                  <Input
-                                    placeholder="Nhập đáp án"
-                                    style={{ width: 700 }}
-                                  />
-                                </Form.Item>
-                              </div>
+                            </Form.Item>
 
-                              <MinusCircleOutlined
-                                style={{ fontSize: 20 }}
-                                className="dynamic-delete-button"
-                                onClick={() => remove(field.name)}
+                            {/* Lựa chọn kiểu đáp án */}
+                            <Select
+                              style={{ width: 150 }}
+                              value={question.answerReqs[answerIndex]?.fileType || "TEXT"}
+                              onChange={(value) => {
+                                const updatedAnswers = [...question.answerReqs];
+                                updatedAnswers[answerIndex].fileType = value;
+                                updatedAnswers[answerIndex].file = null; // Reset file khi thay đổi kiểu
+                                updatedAnswers[answerIndex].content = value === "TEXT" ? "" : null; // Reset content nếu không phải nhập chữ
+                                handleQuestionChange(index, "answerReqs", updatedAnswers);
+                              }}>
+                              <Select.Option value="TEXT">Nhập chữ</Select.Option>
+                              <Select.Option value="NOT_EXISTED">Tải lên</Select.Option>
+                            </Select>
+
+                            {/* Nhập đáp án bằng chữ */}
+                            {question.answerReqs[answerIndex]?.fileType === "TEXT" && (
+                              <Form.Item
+                                {...field}
+                                name={[field.name, "content"]}
+                                className="mb-0 w-full"
+                                required
+                                rules={[validateRequireInput("Vui lòng nhập đáp án")]}>
+                                <Input placeholder="Nhập đáp án" style={{ width: 300 }} />
+                              </Form.Item>
+                            )}
+
+                            {/* Nếu chọn tải lên */}
+                            {question.answerReqs[answerIndex]?.fileType === "NOT_EXISTED" && (
+                              <MediaUpload
+                                onUpload={(file) => {
+                                  const updatedAnswers = [...question.answerReqs];
+                                  updatedAnswers[answerIndex].file = file;
+                                  handleQuestionChange(index, "answerReqs", updatedAnswers);
+                                }}
                               />
-                            </div>
-                          ))}
-                          <Button
-                            type="dashed"
-                            onClick={() =>
-                              add({
-                                ...initAnswerValue,
-                                correct: fields?.length === 0,
-                              })
-                            }
-                            icon={<PlusOutlined />}
-                          >
-                            Thêm đáp án
-                          </Button>
-                        </Checkbox.Group>
-                      )}
+                            )}
+
+
+                            {/* Hiển thị ảnh hoặc video đã chọn */}
+                            {question.answerReqs[answerIndex]?.file && (
+                              <div>
+                                {isImage(question.answerReqs[answerIndex]?.file) ? (
+                                  <Image
+                                    preview={false}
+                                    alt="example"
+                                    style={{
+                                      width: 100,
+                                      height: 100,
+                                      objectFit: "contain",
+                                    }}
+                                    src={question.answerReqs[answerIndex]?.file}
+                                  />
+                                ) : (
+                                  <video controls style={{ width: 100, height: 100 }}>
+                                    <source
+                                      src={question.answerReqs[answerIndex]?.file}
+                                      type="video/mp4"
+                                    />
+                                  </video>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          <MinusCircleOutlined
+                            style={{ fontSize: 20 }}
+                            className="dynamic-delete-button"
+                            onClick={() => remove(field.name)}
+                          />
+                        </div>
+                      ))}
+                      <Button
+                        type="dashed"
+                        onClick={() =>
+                          add({
+                            ...initAnswerValue,
+                            fileType: "TEXT", // Đặt mặc định là "TEXT"
+                            correct: fields?.length === 0 && question.type === "ONE_ANSWER",
+                          })
+                        }
+                        icon={<PlusOutlined />}>
+                        Thêm đáp án
+                      </Button>
                     </>
                   )}
                 </Form.List>

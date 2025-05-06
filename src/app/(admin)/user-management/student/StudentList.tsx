@@ -269,6 +269,11 @@ const StudentList: React.FC = () => {
                   });
                 }}
               />
+              {/* <Button
+                icon={<DeleteOutlined />}
+                danger
+                onClick={() => mutationDel.mutate(value)}
+              /> */}
             </div>
           ),
           width: 150,

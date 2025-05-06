@@ -50,9 +50,6 @@ const TeacherList: React.FC = () => {
     setCurrentPage(newPage);
   };
 
-  const [selectedClass, setSelectedClass] = useState<number | null>(null);
-  const [selectedSchool, setSelectedSchool] = useState<number | null>(null);
-
   // Fetching the list of classes
   const { data: allClasses, isFetching: isFetchingClasses } = useQuery({
     queryKey: ["getListClass"],
@@ -93,12 +90,12 @@ const TeacherList: React.FC = () => {
       });
       setTotal(res.meta.itemCount);
       // Tạo lại dữ liệu với cấu trúc phù hợp
+      const mappedData = res.content.map((item: any) => ({
         name: item.name,
         teacherId: item.userId,
         classRoomId: item.classroomId,
         classroom: item.classRoomName,
         teacherProfile: {
-          // Giả sử các thông tin về giáo viên, nếu có
           dateOfBirth: item.birthDay || "Không có",
           schoolName: item.schoolName || "Không có",
           address: item.city || "Không có",
