@@ -1,3 +1,4 @@
+
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { CloseIcon } from "@/assets/icons";
@@ -7,7 +8,7 @@ import Learning from "@/model/Learning";
 import { validateRequireInput } from "@/utils/validation/validtor";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Form, Input, Select, message } from "antd";
+import { Button, Form, Input, Select, message, DatePicker } from "antd";
 import { useForm } from "antd/es/form/Form";
 import React, { useCallback, useState } from "react";
 import { CustomTable } from "../../learning-management/check-list/ExamList";
@@ -17,6 +18,7 @@ import { RootState } from "@/store";
 import User from "@/model/User";
 import Auth from "@/model/Auth";
 import { useRouter } from "next/navigation";
+import dayjs from 'dayjs';
 
 interface Student {
   name: string;
@@ -104,7 +106,9 @@ const StudentList: React.FC = () => {
         classroom: item.classRoomName|| "Không có",
         studentProfile: {
           // Giả sử các thông tin về học sinh, nếu có
-          dateOfBirth: item.birthDay || "Không có",
+          birthDay: item.birthDay && dayjs(item.birthDay).isValid()
+          ? dayjs(item.birthDay).add(0, 'day').format('YYYY-MM-DD') 
+          : "Không có",
           schoolName: item.schoolName || "Không có",
           address: item.city || "Không có",
           email: item.email || "Không có",
@@ -141,7 +145,7 @@ const StudentList: React.FC = () => {
         classroom: allClasses?.find((cls: { value: any; }) => cls.value === variables.classroom)?.label,
         studentProfile: {
           schoolName: allSchools?.find((sch: { value: any; }) => sch.value === variables.school)?.label,
-          dateOfBirth: variables.dateOfBirth || "Không có",
+          birthDay: variables.birthDay || "Không có",
           address: variables.address || "Không có",
           // email: `${variables.name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
         },
@@ -200,9 +204,9 @@ const StudentList: React.FC = () => {
     {
       title: "Ngày sinh", // Date of birth
       dataIndex: "studentProfile",
-      key: "dateOfBirth",
+      key: "birthDay",
       render: (value: any) => (
-        <div className="text-lg">{value?.dateOfBirth || "Không có"}</div>
+        <div className="text-lg">{value?.birthDay || "Không có"}</div>
       ),
       width: 200,
     },
@@ -255,11 +259,16 @@ const StudentList: React.FC = () => {
                 icon={<EditOutlined />}
                 onClick={() => {
                   setCurrentStudentId(record.studentId);
+                  const birthDay = record.studentProfile.birthDay && 
+                                    record.studentProfile.birthDay !== "Không có" ? 
+                                    dayjs(record.studentProfile.birthDay) : null;
+                  
                   form.setFieldsValue({
                     name: record.name,
+                    // classroom: record.classroom,
                     classroom: allClasses?.find((c: { label: any; }) => c.label === record.classroom)?.value,
                     school: record.studentProfile.schoolId || allSchools?.find((s: { label: any; }) => s.label === record.studentProfile.schoolName)?.value,
-                    dateOfBirth: record.studentProfile.dateOfBirth,
+                    birthDay: birthDay,
                     address: record.studentProfile.address,
                     studentId: record.studentId,
                   });
@@ -269,68 +278,108 @@ const StudentList: React.FC = () => {
                   });
                 }}
               />
-              {/* <Button
+              <Button
                 icon={<DeleteOutlined />}
                 danger
-                onClick={() => mutationDel.mutate(value)}
-              /> */}
+                onClick={async() => {
+                  try {
+                      await User.deleteUser(record.studentId); // record.id là id của học sinh
+                      // Nếu thành công thì mới cập nhật lại danh sách ở FE
+                      setLstStudents((prev) => prev.filter((student) => student.studentId !== record.studentId));
+                      setFilteredLstStudents((prev) => prev.filter((student) => student.studentId !== record.studentId));
+
+                      message.success("Xóa học sinh thành công");
+                    } catch (error) {
+                      console.error(error);
+                      message.error("Xóa học sinh thất bại");
+                    }
+                }}
+              />
             </div>
           ),
-          width: 150,
         }
-      : {},
-  ];
+      : null,
+  ]?.filter((item) => item);
 
   const handleSearch = useCallback(
-    debounce((value: string) => {
-      setSearchText(value);
+    debounce((searchText: string) => {
+      refetch();
     }, 300),
-    [],
+    [lstStudents],
   );
 
+  const isLoading = isFetching || mutationCreateUpdate.isPending;
+
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex space-x-2">
-          <InputPrimary
-            placeholder="Tìm kiếm học sinh"
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-          <Select
-            options={allClasses || []}
-            placeholder="Lọc theo lớp"
-            loading={isFetchingClasses}
-            allowClear
-            onChange={(value) => setSelectedClass(value)}
-          />
-          <Select
-            options={allSchools || []}
-            placeholder="Lọc theo trường"
-            loading={isFetchingSchools}
-            allowClear
-            onChange={(value) => setSelectedSchool(value)}
-          />
-        </div>
+    <div className="w-full p-4">
+      <h1 className="mb-4 text-2xl font-bold">Danh sách học sinh</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <InputPrimary
+          allowClear
+          onClear={() => {
+            refetch();
+            setCurrentPage(1);
+            setSearchText("");
+          }}
+          value={searchText}
+          onChange={(e) => {
+            setSearchText(e.target.value);
+            handleSearch(e.target.value);
+          }}
+          className="mb-4"
+          style={{ width: 400 }}
+          placeholder="Tìm kiếm tên học sinh"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSearch(e.currentTarget.value);
+            }
+          }}
+        />
+
+        <Select
+          options={allClasses}
+          placeholder="Lọc theo lớp"
+          onChange={(value) => {
+            setSelectedClass(value);
+            setCurrentPage(1);
+            // refetch();
+          }}
+          allowClear
+          style={{ width: 200 }}
+        />
+        <Select
+          options={allSchools}
+          placeholder="Lọc theo trường"
+          onChange={(value) => {
+            setSelectedSchool(value);
+            setCurrentPage(1);
+          }}
+          allowClear
+          style={{ width: 200 }}
+        />
         <Button
+          hidden={!(user?.role === "ADMIN" || user?.role === "TEACHER")}
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => {
-            setModalCreate({ open: true, typeModal: "create" });
+            setModalCreate({ ...modalCreate, open: true, typeModal: "create" });
             form.resetFields();
           }}
         >
-          Thêm học sinh
+          Thêm mới
         </Button>
       </div>
       <CustomTable
-        columns={columns}
+        columns={columns as any}
         dataSource={filteredLstStudents}
-        loading={isFetching}
+        loading={isLoading}
         pagination={{
-          current: currentPage,
           pageSize: pageSize,
+          current: currentPage,
           total: total,
           onChange: handleTableChange,
+          showSizeChanger: false,
+          position: ["bottomCenter"],
         }}
       />
 
@@ -355,7 +404,7 @@ const StudentList: React.FC = () => {
         extra={
           <div className="flex items-center gap-x-4">
             <Button
-              className="hover:opacity-60"
+              className="hover:opacity-60 "
               onClick={() => {
                 setModalCreate({ ...modalCreate, open: false });
                 form.resetFields();
@@ -368,25 +417,21 @@ const StudentList: React.FC = () => {
           </div>
         }
       >
-        <div>
+        <div className="">
           <Form
             form={form}
             layout="vertical"
             onFinish={(value) => {
-              console.log("value", value);
+              console.log("value", value)
               mutationCreateUpdate.mutate({
                 ...value,
-                classroom: value.classroom,
-                classRoomName:
-                  allClasses?.find(
-                    (cls: { value: number }) => cls.value === value.classroom
-                  )?.label || "",
+                name: value.name,
+                classroom: value.classroom, 
+                classRoomName: allClasses?.find((cls: { value: number }) => cls.value === value.classroom)?.label|| "",
                 school: value.school,
-                schoolName:
-                  allSchools?.find(
-                    (sch: { value: number }) => sch.value === value.school
-                  )?.label || "",
+                schoolName: allSchools?.find((sch: { value: number }) => sch.value === value.school)?.label|| "",
                 studentId: currentStudentId,
+                birthDay: value.birthDay ? value.birthDay.format("YYYY-MM-DD") : null,
               });
             }}
           >
@@ -406,14 +451,14 @@ const StudentList: React.FC = () => {
               required
               rules={[{ required: true, message: "Lớp không được bỏ trống" }]}
             >
-              <Select
-                options={allClasses || []}
-                placeholder="Lựa chọn lớp"
-                loading={isFetchingClasses}
-                allowClear
-                showSearch
-                optionFilterProp="label"
-              />
+                <Select
+                  options={allClasses || []}
+                  placeholder="Lựa chọn lớp"
+                  loading={isFetchingClasses}
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                />
             </Form.Item>
             <Form.Item
               name="school"
@@ -422,14 +467,28 @@ const StudentList: React.FC = () => {
               required
               rules={[validateRequireInput("Trường không được bỏ trống")]}
             >
-              <Select
-                options={allSchools || []}
-                placeholder="Lựa chọn trường"
-                loading={isFetchingSchools}
-                allowClear
-                showSearch
-                optionFilterProp="label"
-              />
+                <Select
+                  options={allSchools || []}
+                  placeholder="Lựa chọn trường"
+                  loading={isFetchingSchools}
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                />
+            </Form.Item>
+            <Form.Item
+              name="birthDay"
+              label="Ngày sinh"
+              className="mb-2"
+            >
+              <DatePicker format="YYYY-MM-DD" style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item
+              name="address"
+              label="Địa chỉ"
+              className="mb-2"
+            >
+              <Input placeholder="Nhập địa chỉ" />
             </Form.Item>
           </Form>
         </div>

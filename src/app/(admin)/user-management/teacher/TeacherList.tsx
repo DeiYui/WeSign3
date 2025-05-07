@@ -7,7 +7,7 @@ import Learning from "@/model/Learning";
 import { validateRequireInput } from "@/utils/validation/validtor";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Form, Input, Select, message } from "antd";
+import { Button, Form, Input, Select, message, DatePicker } from "antd";
 import { useForm } from "antd/es/form/Form";
 import React, { useCallback, useState } from "react";
 import { CustomTable } from "../../learning-management/check-list/ExamList";
@@ -16,6 +16,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import User from "@/model/User";
 import Auth from "@/model/Auth";
+import dayjs from 'dayjs';
 interface Teacher {
   name: string;
   classroom: any;
@@ -96,7 +97,11 @@ const TeacherList: React.FC = () => {
         classRoomId: item.classroomId,
         classroom: item.classRoomName,
         teacherProfile: {
-          dateOfBirth: item.birthDay || "Không có",
+          // Giả sử các thông tin về giáo viên, nếu có
+          birthDay: item.birthDay && dayjs(item.birthDay).isValid()
+          ? dayjs(item.birthDay).add(0, 'day').format('YYYY-MM-DD') 
+          : "Không có",
+          schoolId: item.schoolId || "Không có",
           schoolName: item.schoolName || "Không có",
           address: item.city || "Không có",
           email: item.email || "Không có",
@@ -128,11 +133,11 @@ const TeacherList: React.FC = () => {
 
       const updatedTeacher = {
         ...variables,
-        name: res.name,
+        name: variables.name,
         classroom: allClasses?.find((cls: { value: any; }) => cls.value === variables.classroom)?.label,
         teacherProfile: {
           schoolName: allSchools?.find((sch: { value: any; }) => sch.value === variables.school)?.label,
-          dateOfBirth: variables.dateOfBirth || "Không có",
+          birthDay: variables.birthDay || "Không có",
           address: variables.address || "Không có",
           // email: `${variables.name.toLowerCase().replace(/\s+/g, "")}@gmail.com`,
         },
@@ -183,9 +188,9 @@ const TeacherList: React.FC = () => {
     {
       title: "Ngày sinh", // Date of birth
       dataIndex: "teacherProfile",
-      key: "dateOfBirth",
+      key: "birthDay",
       render: (value: any) => (
-        <div className="text-lg">{value?.dateOfBirth || "Không có"}</div>
+        <div className="text-lg">{value?.birthDay || "Không có"}</div>
       ),
       width: 200,
     },
@@ -204,7 +209,7 @@ const TeacherList: React.FC = () => {
     {
       title: "Trường", // School
       dataIndex: "teacherProfile",
-      key: "schoolName",
+      key: "school",
       render: (value: any) => (
         <div className="text-lg">{value?.schoolName || "Không có"}</div>
       ),
@@ -238,11 +243,14 @@ const TeacherList: React.FC = () => {
                 icon={<EditOutlined />}
                 onClick={() => {
                   setCurrentTeacherId(record.teacherId);
+                  const birthDay = record.teacherProfile.birthDay && 
+                                    record.teacherProfile.birthDay !== "Không có" ? 
+                                    dayjs(record.teacherProfile.birthDay) : null;
                   form.setFieldsValue({
                     name: record.name,
                     classroom: record.classRoomId || allClasses?.find((c: { label: any; }) => c.label === record.classroom)?.value,
                     school: allSchools?.find((s: { label: any; }) => s.label === record.teacherProfile.schoolName)?.value,
-                    dateOfBirth: record.teacherProfile.dateOfBirth,
+                    birthDay: birthDay,
                     address: record.teacherProfile.address,
                     teacherId: record.teacherId,
                   });
@@ -402,6 +410,7 @@ const TeacherList: React.FC = () => {
                 school: value.school,
                 schoolName: allSchools?.find((sch: { value: number }) => sch.value === value.school)?.label || "",
                 teacherId: currentTeacherId,
+                birthDay: value.birthDay ? value.birthDay.format("YYYY-MM-DD") : null,
               });
             }}
           >
@@ -430,14 +439,14 @@ const TeacherList: React.FC = () => {
               required
               rules={[validateRequireInput("Trường không được bỏ trống")]}
             >
-              <Select options={allSchools} placeholder="Lựa chọn trường" />
+              <Select options={allSchools} placeholder="Lựa chọn lớp" />
             </Form.Item>
             <Form.Item
-              name="dateOfBirth"
+              name="birthDay"
               label="Ngày sinh"
               className="mb-2"
             >
-              <Input placeholder="Nhập ngày sinh" />
+              <DatePicker format="YYYY-MM-DD" style={{ width: '100%' }} />
             </Form.Item>
             <Form.Item
               name="address"
