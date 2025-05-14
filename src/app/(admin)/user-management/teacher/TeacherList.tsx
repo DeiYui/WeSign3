@@ -44,12 +44,12 @@ const TeacherList: React.FC = () => {
   });
   const [currentTeacherId, setCurrentTeacherId] = useState<number | null>(null);
 
-  const [selectedClass, setSelectedClass] = useState<number | null>(null);
-  const [selectedSchool, setSelectedSchool] = useState<number | null>(null);
-
   const handleTableChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
+
+  const [selectedClass, setSelectedClass] = useState<number | null>(null);
+  const [selectedSchool, setSelectedSchool] = useState<number | null>(null);
 
   // Fetching the list of classes
   const { data: allClasses, isFetching: isFetchingClasses } = useQuery({
@@ -78,7 +78,7 @@ const TeacherList: React.FC = () => {
   // Fetching the list of teachers
   const [total, setTotal] = useState<number>(0);
   const { isFetching, refetch } = useQuery({
-    queryKey: ["getListTeachers", searchText, selectedClass, selectedSchool, selectedClass, selectedSchool, currentPage],
+    queryKey: ["getListTeachers", searchText, selectedClass, selectedSchool, currentPage],
     queryFn: async () => {
       const res = await User.teacherList({
         name: searchText,
@@ -166,7 +166,7 @@ const TeacherList: React.FC = () => {
       form.resetFields();
     },
     onError: (error: any) => {
-      message.error(error?.data?.message || "Đã xảy ra lỗi");
+      message.error(error?.data?.message);
     },
   });
 
@@ -385,7 +385,7 @@ const TeacherList: React.FC = () => {
         extra={
           <div className="flex items-center gap-x-4">
             <Button
-              className="hover:opacity-60"
+              className="hover:opacity-60 "
               onClick={() => {
                 setModalCreate({ ...modalCreate, open: false });
                 form.resetFields();

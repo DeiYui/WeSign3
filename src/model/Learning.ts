@@ -46,9 +46,18 @@ class Learning extends Base {
   };
 
   // Danh sách từ vựng
-  getAllVocabulary = async (param?: any) => {
-    const res = await this.apiGet("/vocabularies/all", param);
-    return res.data;
+  getAllVocabulary = async () => {
+    const res = await this.apiGet("/vocabularies/all");
+    if (!Array.isArray(res.data?.data)) {
+      console.error("Unexpected API response format:", res.data);
+      return []; // Return an empty array if the response format is incorrect
+    }
+    return res.data.data.map((item: any) => ({
+      id: item.vocabularyId,
+      label: item.content,
+      image: item.vocabularyImageResList?.[0]?.imageLocation || "",
+      video: item.vocabularyVideoResList?.[0]?.videoLocation || "",
+    }));
   };
 
   // CHi tiết từ vựng

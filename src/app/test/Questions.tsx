@@ -23,9 +23,10 @@ import { ReactMediaRecorder } from "react-media-recorder-2";
 import Webcam from "react-webcam";
 import * as XLSX from "xlsx";
 import { formatTime } from "../collect-data/CollectData";
-import LearningData from "./LearningData";
+import LearningData from "../practice-data/LearningData";
 
 const PracticeData: React.FC = () => {
+  const [showSampleData, setShowSampleData] = useState<boolean>(true);
   const [webcamReady, setWebcamReady] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordingDuration, setRecordingDuration] = useState(5);
@@ -322,6 +323,15 @@ const PracticeData: React.FC = () => {
       } else {
         message.error("Không có từ nào đúng với nội dung cung cấp");
       }
+
+      // Hiển thị video mẫu của từ được random
+      if (randomWord?.video) {
+        setModalVideo({
+          ...modalVideo,
+          type: "video",
+          previewVideo: randomWord.video,
+        });
+      }
     },
     onError: (error) => {
       console.error("Lỗi khi gọi AI model:", error);
@@ -405,10 +415,55 @@ const PracticeData: React.FC = () => {
     });
   };
 
+  // Random từ vựng
+  const [randomVocabularyList, setRandomVocabularyList] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [randomWord, setRandomWord] = useState<any>(null); // Từ vựng được random
+  const [vocabularyList, setVocabularyList] = useState<any[]>([]); // Danh sách từ vựng
+
+  // Lấy danh sách từ vựng từ API khi component được mount
+  useEffect(() => {
+    async function fetchVocabulary() {
+      try {
+        const data = await Learning.getAllVocabulary(); // Gọi API từ Learning.ts
+        setVocabularyList(data.data); // Lưu danh sách từ vựng vào state
+      } catch (error) {
+        console.error("Error fetching vocabulary:", error);
+      }
+    }
+    fetchVocabulary();
+  }, []);
+
+  // Hàm random từ vựng
+  const handleRandomWord = () => {
+    if (Array.isArray(vocabularyList) && vocabularyList.length > 0) {
+      const randomIndex = Math.floor(Math.random() * vocabularyList.length);
+      const selectedWord = vocabularyList[randomIndex];
+      setRandomWord(selectedWord); // Chọn một từ ngẫu nhiên
+      message.success(`Từ được random: ${selectedWord.label || selectedWord.content}`);
+    } else {
+      message.warning("Không có từ vựng để random.");
+    }
+  };
+
+  // Chuyển tiếp sang từ khác
+  const handleNextWord = () => {
+    if (currentIndex < randomVocabularyList.length - 1) {
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      setRandomWord(randomVocabularyList[nextIndex]);
+    }
+  };
+
+  // Quay lại từ ban đầu
+  const handleResetWord = () => {
+    setCurrentIndex(0);
+    setRandomWord(randomVocabularyList[0]);
+  };
+
   return (
     <>
       <Tabs defaultActiveKey="1">
-        <Tabs.TabPane tab="Luyện tập từ vựng" key="1">
           <div className="relative flex h-[600px] items-start justify-between gap-4 overflow-hidden bg-gray-2">
             <div className="flex w-1/2 flex-col justify-start">
               <div className="mb-2 flex justify-between items-center text-xl font-semibold">
@@ -550,6 +605,42 @@ const PracticeData: React.FC = () => {
                   </video>
                 )}
               </div>
+              {/* Nút random từ vựng */}
+              <div className="flex items-center gap-4">
+                <Button type="primary" onClick={handleRandomWord}>
+                  Random từ vựng
+                </Button>
+                {randomWord && (
+                  <div className="mt-3 text-lg font-semibold">
+                    Từ hiện tại: {randomWord.label || randomWord.content}
+                  </div>
+                )}
+              </div>
+
+              {/* Hiển thị từ random */}
+              {randomWord && (
+                <div className="mt-3 text-lg font-semibold">
+                  Từ hiện tại: {randomWord.label || randomWord.content}
+                </div>
+              )}
+
+              {/* Hiển thị dữ liệu mẫu nếu checkbox được tích */}
+              {showSampleData && randomWord && (
+                <div className="mt-3 flex items-start justify-start gap-4">
+                  {randomWord.image && (
+                    <Image
+                      src={randomWord.image}
+                      alt={randomWord.label}
+                      style={{ width: 200, height: 200 }}
+                    />
+                  )}
+                  {randomWord.video && (
+                    <video controls style={{ width: 400, height: 200 }}>
+                      <source src={randomWord.video} type="video/mp4" />
+                    </video>
+                  )}
+                </div>
+              )}
             </div>
             <div className="w-1/2">
               {!webcamReady && (
@@ -594,13 +685,8 @@ const PracticeData: React.FC = () => {
                         />
                         <Button
                           className="flex items-center gap-3"
-                          onClick={() => {
-                            handleStartRecording(startRecording, stopRecording);
-                          }}
-                          disabled={
-                            isRecordingRef.current ||
-                            filterParams.vocabulary === ""
-                          }
+                          onClick={() => handleStartRecording(startRecording, stopRecording)}
+                          disabled={isRecordingRef.current} // Không phụ thuộc vào dữ liệu mẫu
                           icon={
                             <Tooltip
                               title={`Thời gian tối đa cho mỗi video là ${recordingDuration}s.`}
@@ -640,11 +726,6 @@ const PracticeData: React.FC = () => {
                           }}
                         >
                           Xem lại file
-                        </Button>
-                        <Button
-                          onClick={() => setUploadModalVisible(true)}
-                        >
-                          Tải video
                         </Button>
                         <Button
                           size="large"
@@ -703,10 +784,6 @@ const PracticeData: React.FC = () => {
               </Modal>
             </div>
           </div>
-        </Tabs.TabPane>
-        <Tabs.TabPane tab="Luyện tập theo bảng chữ cái" key="2">
-          <LearningData />
-        </Tabs.TabPane>
       </Tabs>
 
       {/* Modal hiển thị kết quả */}

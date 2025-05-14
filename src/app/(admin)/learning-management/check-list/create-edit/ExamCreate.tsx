@@ -45,6 +45,7 @@ const CreateAndEditExamPage: React.FC = () => {
   const [form] = useForm();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [examType, setExamType] = useState<string | null>(null); // Thêm trạng thái theo dõi examType
   const questionsPerPage = 10;
   const searchParams = useSearchParams();
   const isPrivate = searchParams.get("isPrivate");
@@ -192,22 +193,23 @@ const CreateAndEditExamPage: React.FC = () => {
         <Form
           form={form}
           onFinish={(value) => {
-            // convert
-            const reqAdd = {
-              name: value.name,
-              questionIds: value.questionIds,
-              classRoomId: value.classRoomId,
-              private: isPrivate,
-            };
+            const reqAdd =
+              examType === "quiz"
+                ? {
+                    name: value.name,
+                    questionIds: value.questionIds,
+                    classRoomId: value.classRoomId,
+                    private: isPrivate,
+                  }
+                : {
+                    name: value.name,
+                    practiceWords: value.practiceWords,
+                    classRoomId: value.classRoomId,
+                    private: isPrivate,
+                  };
 
-            const reqEdit = {
-              examId: value.examId,
-              name: value.name,
-              questionIds: value.questionIds,
-              private: isPrivate,
-            };
             if (id) {
-              editExamMutation.mutate(reqEdit);
+              editExamMutation.mutate(reqAdd);
             } else {
               addExam.mutate(reqAdd);
             }
@@ -247,37 +249,121 @@ const CreateAndEditExamPage: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            label="Số câu hỏi"
-            name="numQuestions"
+            label="Loại bài kiểm tra"
+            name="examType"
             className="mb-2"
             required
-            rules={[validateRequire("Số lượng câu hỏi không được bỏ trống")]}
+            rules={[validateRequire("Loại bài kiểm tra không được bỏ trống")]}
           >
-            <Input
-              disabled={!openChooseQuestions.classRoomId}
-              placeholder="Nhập số lượng câu hỏi"
-              type="number"
-              maxLength={100}
-              onChange={(e) => {
-                setOpenChooseQuestions({
-                  ...openChooseQuestions,
-                  size: Number(e.target.value),
-                });
+            <Select
+              placeholder="Chọn loại bài kiểm tra"
+              options={[
+                { value: "quiz", label: "Bài kiểm tra trắc nghiệm" },
+                { value: "practice", label: "Bài kiểm tra thực hành" },
+              ]}
+              onChange={(value) => {
+                setExamType(value); // Cập nhật trạng thái examType
+                form.setFieldValue("examType", value);
+                form.setFieldValue("lstQuestions", []);
+                form.setFieldValue("practiceWords", []);
               }}
             />
           </Form.Item>
-          <Button
-            type="primary"
-            disabled={
-              form.getFieldValue("numQuestions") > limitQuestion?.length
-            }
-            className=""
-            onClick={() =>
-              setOpenChooseQuestions({ ...openChooseQuestions, open: true })
-            }
-          >
-            Chọn câu hỏi
-          </Button>
+
+          {/* Hiển thị động dựa trên loại bài kiểm tra */}
+          {examType === "quiz" && (
+            <>
+              <Form.Item
+                label="Số câu hỏi"
+                name="numQuestions"
+                className="mb-2"
+                required
+                rules={[validateRequire("Số lượng câu hỏi không được bỏ trống")]}
+              >
+                <Input
+                  disabled={!openChooseQuestions.classRoomId}
+                  placeholder="Nhập số lượng câu hỏi"
+                  type="number"
+                  maxLength={100}
+                  onChange={(e) => {
+                    setOpenChooseQuestions({
+                      ...openChooseQuestions,
+                      size: Number(e.target.value),
+                    });
+                  }}
+                />
+              </Form.Item>
+              <Button
+                type="primary"
+                disabled={
+                  form.getFieldValue("numQuestions") > limitQuestion?.length
+                }
+                onClick={() =>
+                  setOpenChooseQuestions({ ...openChooseQuestions, open: true })
+                }
+              >
+                Chọn câu hỏi
+              </Button>
+              <Form.Item name="questionIds" noStyle>
+                <ModalChooseQuestions
+                  questions={limitQuestion}
+                  open={openChooseQuestions.open}
+                  onClose={() =>
+                    setOpenChooseQuestions({
+                      ...openChooseQuestions,
+                      open: false,
+                    })
+                  }
+                  number={openChooseQuestions.size}
+                  loading={isFetchingQExams}
+                />
+              </Form.Item>
+            </>
+          )}
+
+          {examType === "practice" && (
+            <>
+              <Form.List name="practiceQuestions">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, fieldKey, ...restField }, index) => (
+                      <div key={key} className="mb-4 border p-4 rounded-md">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-md font-semibold">Câu hỏi {index + 1}</h4>
+                          {fields.length > 1 && (
+                            <Button
+                              type="text"
+                              danger
+                              onClick={() => remove(name)}
+                            >
+                              Xóa
+                            </Button>
+                          )}
+                        </div>
+                        <Form.Item
+                          {...restField}
+                          name={[name, "content"]}
+                          fieldKey={[fieldKey, "content"]}
+                          label="Nội dung câu hỏi"
+                          rules={[{ required: true, message: "Vui lòng nhập nội dung câu hỏi" }]}
+                        >
+                          <Input placeholder="Nhập nội dung câu hỏi" />
+                        </Form.Item>
+                      </div>
+                    ))}
+                    <Button
+                      type="dashed"
+                      onClick={() => add({ content: "" })}
+                      block
+                    >
+                      + Thêm câu hỏi
+                    </Button>
+                  </>
+                )}
+              </Form.List>
+            </>
+          )}
+
           <Form.Item name="questionIds" noStyle>
             {/* Modal danh sách các câu hỏi */}
             <ModalChooseQuestions

@@ -256,68 +256,65 @@ const QuestionCreate: React.FC = () => {
                 )}
 
                 <div className="mt-2">
-                                  {lstQuestions.questions?.length && (
-                                    <>
-                                      <Form.Item
-                                        name={["questions", index, "file"]}
-                                        className="mb-2"
-                                        required
-                                        rules={[
-                                          validateRequire("Không được bỏ trống trường này"),
-                                        ]}
-                                        hidden={
-                                          lstQuestions?.questions[index]?.typeFile ===
-                                          "NOT_EXISTED"
+                  {lstQuestions.questions?.length && (
+                    <>
+                      <Form.Item
+                        name={["questions", index, "file"]}
+                        className="mb-2"
+                        required
+                        hidden={
+                          lstQuestions?.questions[index]?.typeFile ===
+                          "NOT_EXISTED"
+                        }
+                      >
+                        {lstQuestions?.questions[index]?.typeFile ===
+                          "EXISTED" && (
+                          <QuestionModal
+                            openChooseVideo={openChooseVideo}
+                            setOpenChooseVideo={setOpenChooseVideo}
+                            file={lstQuestions?.questions[index]?.file}
+                          >
+                            <div
+                              onClick={() => {
+                                setOpenChooseVideo(true);
+                              }}
+                            >
+                              <Button>Chọn file</Button>
+                              {lstQuestions?.questions[index]?.file && (
+                                <div className="">
+                                  {isImage(
+                                    lstQuestions?.questions[index]?.file,
+                                  ) ? (
+                                    <Image
+                                      preview={false}
+                                      alt="example"
+                                      style={{
+                                        width: 200,
+                                        height: 200,
+                                        objectFit: "contain",
+                                      }}
+                                      src={lstQuestions?.questions[index]?.file}
+                                    />
+                                  ) : (
+                                    <video
+                                      controls
+                                      style={{ width: 200, height: 200 }}
+                                    >
+                                      <source
+                                        src={
+                                          lstQuestions?.questions[index]?.file
                                         }
-                                      >
-                                        {lstQuestions?.questions[index]?.typeFile ===
-                                          "EXISTED" && (
-                                          <QuestionModal
-                                            openChooseVideo={openChooseVideo}
-                                            setOpenChooseVideo={setOpenChooseVideo}
-                                            file={lstQuestions?.questions[index]?.file}
-                                          >
-                                            <div
-                                              onClick={() => {
-                                                setOpenChooseVideo(true);
-                                              }}
-                                            >
-                                              <Button>Chọn file</Button>
-                                              {lstQuestions?.questions[index]?.file && (
-                                                <div className="">
-                                                  {isImage(
-                                                    lstQuestions?.questions[index]?.file,
-                                                  ) ? (
-                                                    <Image
-                                                      preview={false}
-                                                      alt="example"
-                                                      style={{
-                                                        width: 200,
-                                                        height: 200,
-                                                        objectFit: "contain",
-                                                      }}
-                                                      src={lstQuestions?.questions[index]?.file}
-                                                    />
-                                                  ) : (
-                                                    <video
-                                                      controls
-                                                      style={{ width: 200, height: 200 }}
-                                                    >
-                                                      <source
-                                                        src={
-                                                          lstQuestions?.questions[index]?.file
-                                                        }
-                                                        type="video/mp4"
-                                                      />
-                                                    </video>
-                                                  )}
-                                                </div>
-                                              )}
-                                            </div>
-                                          </QuestionModal>
-                                        )}
-                                      </Form.Item>
-                      
+                                        type="video/mp4"
+                                      />
+                                    </video>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </QuestionModal>
+                        )}
+                      </Form.Item>
+      
 
                       {/* Nếu tải lên mới */}
                       {question.typeFile === "NOT_EXISTED" && (

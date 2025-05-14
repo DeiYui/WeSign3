@@ -101,16 +101,33 @@ const ExamListPage: React.FC = () => {
         <div
           className="hover:cursor-pointer text-blue-500"
           onClick={() => {
-            if (record.isFinished) {
-              router.push(`/exam/${record.examId}?review=true`);
+            if (record.examType === "practice") {
+              // Điều hướng đến QuestionsPractice nếu là bài kiểm tra thực hành
+              router.push(`/exam/${record.examId}/practice`);
             } else {
-              router.push(`/exam/${record.examId}`);
+              // Điều hướng đến QuestionsPage nếu là bài kiểm tra trắc nghiệm
+              if (record.isFinished) {
+                router.push(`/exam/${record.examId}?review=true`);
+              } else {
+                router.push(`/exam/${record.examId}`);
+              }
             }
           }}
         >
           {examName}
         </div>
       ),
+    },
+    {
+      title: "Loại bài kiểm tra",
+      dataIndex: "examType",
+      key: "examType",
+      render: (examType: string) =>
+        examType === "practice" ? (
+          <Tag color="blue">Thực hành</Tag>
+        ) : (
+          <Tag color="green">Trắc nghiệm</Tag>
+        ),
     },
     {
       title: "Số lần đã làm",
@@ -150,7 +167,13 @@ const ExamListPage: React.FC = () => {
             <>
               <Button 
                 type="default"
-                onClick={() => router.push(`/exam/${record.examId}?review=true`)}
+                onClick={() => 
+                  router.push(
+                    record.examType === "practice"
+                      ? `/exam/${record.examId}/practice`
+                      : `/exam/${record.examId}?review=true`
+                  )
+                }
               >
                 Xem đáp án
               </Button>
@@ -165,7 +188,13 @@ const ExamListPage: React.FC = () => {
           ) : (
             <Button 
               type="primary"
-              onClick={() => router.push(`/exam/${record.examId}`)}
+              onClick={() => 
+                router.push(
+                  record.examType === "practice"
+                    ? `/exam/${record.examId}/practice`
+                    : `/exam/${record.examId}`
+                )
+              }
             >
               Làm bài
             </Button>
