@@ -343,22 +343,23 @@ const CreateAndEditExamPage: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            label="Số câu hỏi"
-            name="numQuestions"
+            label="Loại bài kiểm tra"
+            name="examType"
             className="mb-2"
             required
-            rules={[validateRequire("Số lượng câu hỏi không được bỏ trống")]}
+            rules={[validateRequire("Loại bài kiểm tra không được bỏ trống")]}
           >
-            <Input
-              disabled={!openChooseQuestions.classRoomId}
-              placeholder="Nhập số lượng câu hỏi"
-              type="number"
-              maxLength={100}
-              onChange={(e) => {
-                setOpenChooseQuestions({
-                  ...openChooseQuestions,
-                  size: Number(e.target.value),
-                });
+            <Select
+              placeholder="Chọn loại bài kiểm tra"
+              options={[
+                { value: "quiz", label: "Bài kiểm tra trắc nghiệm" },
+                { value: "practice", label: "Bài kiểm tra thực hành" },
+              ]}
+              onChange={(value) => {
+                setExamType(value); // Cập nhật trạng thái examType
+                form.setFieldValue("examType", value);
+                form.setFieldValue("lstQuestions", []);
+                form.setFieldValue("practiceWords", []);
               }}
             />
           </Form.Item>
@@ -412,8 +413,7 @@ const CreateAndEditExamPage: React.FC = () => {
                 />
               </Form.Item>
             </>
-          )}
-
+          )}        
           {examType === "practice" && (
             <>
               <Form.List name="practiceQuestions">
