@@ -101,10 +101,16 @@ const ExamListPage: React.FC = () => {
         <div
           className="hover:cursor-pointer text-blue-500"
           onClick={() => {
-            if (record.isFinished) {
-              router.push(`/exam/${record.examId}?review=true`);
+            if (record.examType === "practice") {
+              // Sang trang thực hành mới: /exam/[id]/questionspractice
+              router.push(`/exam/${record.examId}/questionspractice`);
             } else {
-              router.push(`/exam/${record.examId}`);
+              // Sang trang trắc nghiệm mới: /exam/[id]/questionspage
+              if (record.isFinished) {
+                router.push(`/exam/${record.examId}/questionspage?review=true`);
+              } else {
+                router.push(`/exam/${record.examId}/questionspage`);
+              }
             }
           }}
         >
@@ -219,3 +225,5 @@ const CustomTable = styled(Table)`
     background-color: #f9f9f9;
   }
 `;
+
+
