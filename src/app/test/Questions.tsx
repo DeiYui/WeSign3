@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { filterOption } from "@/components/Dashboard/DashboardApp";
 import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
@@ -18,7 +19,7 @@ import {
 } from "antd";
 import { RcFile } from "antd/lib/upload";
 import axios from "axios";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { ReactMediaRecorder } from "react-media-recorder-2";
 import Webcam from "react-webcam";
 import * as XLSX from "xlsx";
@@ -26,6 +27,33 @@ import { formatTime } from "../collect-data/CollectData";
 import LearningData from "../practice-data/LearningData";
 
 const PracticeData: React.FC = () => {
+  // Lấy examId từ URL (giả sử truyền examId khi chuyển sang trang này)
+  const searchParams = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : ""
+  );
+  const examId = searchParams.get("examId");
+
+  // State cho danh sách câu hỏi thực hành và index hiện tại
+  const [practiceQuestions, setPracticeQuestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Gọi API lấy danh sách câu hỏi thực hành theo examId
+  useEffect(() => {
+    if (!examId) return;
+    setLoading(true);
+    // TODO: Thay thế bằng API thật khi backend sẵn sàng
+    fetch(`/api/exam/practice-questions?examId=${examId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setPracticeQuestions(data || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        message.error("Không lấy được danh sách câu hỏi thực hành");
+        setLoading(false);
+      });
+  }, [examId]);
+
   const [showSampleData, setShowSampleData] = useState<boolean>(true);
   const [webcamReady, setWebcamReady] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -34,7 +62,11 @@ const PracticeData: React.FC = () => {
     open: boolean;
     preview: string | undefined;
     type: string;
-  }>({ open: false, preview: "", type: "" });
+  }>({
+    open: false,
+    preview: "",
+    type: "",
+  });
   const [showModalResult, setShowModalResult] = useState<boolean>(false);
   const webcamRef = useRef<Webcam>(null);
   const isRecordingRef = useRef(false);
@@ -133,6 +165,7 @@ const PracticeData: React.FC = () => {
     queryKey: ["getAllTopics"],
     queryFn: async () => {
       const res = await Learning.getAllTopics();
+      console.log("test topic", res);
       return res?.data?.map((item: { topicId: any; content: any }) => ({
         id: item.topicId,
         value: item.topicId,
@@ -323,15 +356,6 @@ const PracticeData: React.FC = () => {
       } else {
         message.error("Không có từ nào đúng với nội dung cung cấp");
       }
-
-      // Hiển thị video mẫu của từ được random
-      if (randomWord?.video) {
-        setModalVideo({
-          ...modalVideo,
-          type: "video",
-          previewVideo: randomWord.video,
-        });
-      }
     },
     onError: (error) => {
       console.error("Lỗi khi gọi AI model:", error);
@@ -426,9 +450,9 @@ const PracticeData: React.FC = () => {
     async function fetchVocabulary() {
       try {
         const data = await Learning.getAllVocabulary(); // Gọi API từ Learning.ts
-        setVocabularyList(data.data); // Lưu danh sách từ vựng vào state
+        setVocabularyList(data.data); // Lưu danh sách từ vựng vào state      
       } catch (error) {
-        console.error("Error fetching vocabulary:", error);
+        console.error("Lỗi khi lấy danh sách từ vựng:", error);
       }
     }
     fetchVocabulary();
@@ -436,11 +460,9 @@ const PracticeData: React.FC = () => {
 
   // Hàm random từ vựng
   const handleRandomWord = () => {
-    if (Array.isArray(vocabularyList) && vocabularyList.length > 0) {
+    if (vocabularyList.length > 0) {
       const randomIndex = Math.floor(Math.random() * vocabularyList.length);
-      const selectedWord = vocabularyList[randomIndex];
-      setRandomWord(selectedWord); // Chọn một từ ngẫu nhiên
-      message.success(`Từ được random: ${selectedWord.label || selectedWord.content}`);
+       setRandomWord(vocabularyList[randomIndex]); // Chọn một từ ngẫu nhiên
     } else {
       message.warning("Không có từ vựng để random.");
     }
@@ -461,391 +483,231 @@ const PracticeData: React.FC = () => {
     setRandomWord(randomVocabularyList[0]);
   };
 
+  const [videoUrls, setVideoUrls] = useState<(string | null)[]>([]); // Lưu URL video từng câu
+  const [submitted, setSubmitted] = useState(false);
+  const [resultList, setResultList] = useState<any[]>([]); // Kết quả AI trả về
+
+  // Khi upload xong video cho từng câu hỏi
+  const handleSaveVideo = async (mediaBlobUrl: string, index: number) => {
+    const link = await uploadVideo(mediaBlobUrl);
+    setVideoUrls((prev) => {
+      const updated = [...prev];
+      updated[index] = link;
+      return updated;
+    });
+    message.success(`Đã lưu video cho câu hỏi ${index + 1}`);
+  };
+
+  // Khi ấn Nộp bài
+  const handleSubmit = async () => {
+    // Gửi danh sách video lên backend để detect AI
+    try {
+      setLoading(true);
+      const res = await fetch("/api/exam/submit-practice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          examId,
+          videos: videoUrls,
+        }),
+      });
+      const data = await res.json();
+      setResultList(data.results || []);
+      setSubmitted(true);
+      setLoading(false);
+      message.success("Đã nộp bài và chấm điểm xong!");
+    } catch (err) {
+      setLoading(false);
+      message.error("Nộp bài thất bại!");
+    }
+  };
+
+  // Tự động lưu video khi quay xong
+  const handleAutoSaveVideo = async (mediaBlobUrl: string, index: number) => {
+    const link = await uploadVideo(mediaBlobUrl);
+    setVideoUrls((prev) => {
+      const updated = [...prev];
+      updated[index] = link;
+      return updated;
+    });
+    message.success(`Đã tự động lưu video cho câu hỏi ${index + 1}`);
+  };
+
   return (
-    <>
-      <Tabs defaultActiveKey="1">
-          <div className="relative flex h-[600px] items-start justify-between gap-4 overflow-hidden bg-gray-2">
-            <div className="flex w-1/2 flex-col justify-start">
-              <div className="mb-2 flex justify-between items-center text-xl font-semibold">
-                <div>Dữ liệu mẫu</div>
-                <Select
-                  defaultValue="model1"
-                  onChange={(value) => setSelectedAIModel(value)}
-                  options={[
-                    { value: "model1", label: "AI Model 1" },
-                    { value: "model2", label: "AI Model 2" },
-                    { value: "model3", label: "AI Model 3" },
-                  ]}
-                  className="w-48"
-                />
-              </div>
-              <div className="flex gap-4">
-                <Select
-                  className="w-full"
-                  allowClear
-                  showSearch
-                  placeholder="Chọn chủ đề"
-                  options={allTopics}
-                  onChange={(value, option: any) =>
-                    setFilterParams({
-                      ...filterParams,
-                      topic: value,
-                      vocabulary: null,
-                    })
-                  }
-                  filterOption={filterOption}
-                />
-                <Select
-                  className="w-full"
-                  allowClear
-                  showSearch
-                  placeholder="Chọn từ vựng"
-                  disabled={!filterParams.topic}
-                  options={allVocabulary}
-                  value={filterParams.vocabulary}
-                  onChange={(value, option: any) => {
-                    if (value) {
-                      option?.vocabularyImageResList.sort(
-                        (a: { primary: any }, b: { primary: any }) => {
-                          // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
-                          return a.primary === b.primary
-                            ? 0
-                            : a.primary
-                              ? -1
-                              : 1;
-                        },
-                      );
-                      option?.vocabularyVideoResList.sort(
-                        (a: { primary: any }, b: { primary: any }) => {
-                          // Sắp xếp sao cho phần tử có primary = true được đặt lên đầu
-                          return a.primary === b.primary
-                            ? 0
-                            : a.primary
-                              ? -1
-                              : 1;
-                        },
-                      );
-                      setFilterParams({
-                        ...filterParams,
-                        vocabulary: value,
-                        vocabularyName: option.label,
-                      });
-                      setModalVideo((prevModalVideo) => ({
-                        ...prevModalVideo,
-                        previewImg:
-                          option?.vocabularyImageResList[0]?.imageLocation,
-                        previewVideo:
-                          option?.vocabularyVideoResList[0]?.videoLocation,
-                        vocabularyContent: option.label,
-                      }));
-                      if (videoRef.current) {
-                        videoRef.current.load();
-                        videoRef.current.play();
-                      }
-                    } else {
-                      setModalVideo({
-                        ...modalVideo,
-                        previewImg: "",
-                        previewVideo: "",
-                      });
-                    }
-                  }}
-                  filterOption={filterOption}
-                  loading={isFetchingVocabulary}
-                  notFoundContent={
-                    isFetchingVocabulary ? (
-                      <Spin size="small" />
-                    ) : (
-                      "Không tìm thấy từ vựng"
-                    )
-                  }
-                />
-              </div>
-              {/* Button lựa chọn hiển kiểu dữ liệu mẫu */}
-              <div className="mt-4  flex items-center gap-2">
-                <ButtonSecondary
-                  onClick={() =>
-                    setModalVideo({ ...modalVideo, type: "video" })
-                  }
-                  fontSize="text-sm"
-                  sizeClass="px-3 py-2"
-                  className="border border-neutral-400"
-                >
-                  Dữ liệu mẫu theo video
-                </ButtonSecondary>
-                <ButtonSecondary
-                  onClick={() =>
-                    setModalVideo({ ...modalVideo, type: "image" })
-                  }
-                  fontSize="text-sm"
-                  sizeClass="px-3 py-2"
-                  className="border border-neutral-400"
-                >
-                  Dữ liệu mẫu theo ảnh
-                </ButtonSecondary>
-              </div>
-              {/* Dữ liệu mẫu */}
-              <div className="mt-3 flex items-start justify-start ">
-                {modalVideo.type === "image" && modalVideo.previewImg && (
-                  <Image
-                    src={modalVideo.previewImg}
-                    alt="Uploaded"
-                    style={{ width: 400, height: 400 }}
-                    className="flex items-start justify-start"
-                  />
-                )}
-                {modalVideo.type === "video" && modalVideo.previewVideo && (
-                  <video
-                    ref={videoRef}
-                    controls
-                    style={{ width: 800, maxHeight: 400 }}
-                    className="flex items-start justify-start"
-                  >
-                    <source src={modalVideo.previewVideo} type="video/mp4" />
-                  </video>
-                )}
-              </div>
-              {/* Nút random từ vựng */}
-              <div className="flex items-center gap-4">
-                <Button type="primary" onClick={handleRandomWord}>
-                  Random từ vựng
-                </Button>
-                {randomWord && (
-                  <div className="mt-3 text-lg font-semibold">
-                    Từ hiện tại: {randomWord.label || randomWord.content}
-                  </div>
-                )}
-              </div>
-
-              {/* Hiển thị từ random */}
-              {randomWord && (
-                <div className="mt-3 text-lg font-semibold">
-                  Từ hiện tại: {randomWord.label || randomWord.content}
-                </div>
-              )}
-
-              {/* Hiển thị dữ liệu mẫu nếu checkbox được tích */}
-              {showSampleData && randomWord && (
-                <div className="mt-3 flex items-start justify-start gap-4">
-                  {randomWord.image && (
-                    <Image
-                      src={randomWord.image}
-                      alt={randomWord.label}
-                      style={{ width: 200, height: 200 }}
-                    />
-                  )}
-                  {randomWord.video && (
-                    <video controls style={{ width: 400, height: 200 }}>
-                      <source src={randomWord.video} type="video/mp4" />
-                    </video>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="w-1/2">
-              {!webcamReady && (
-                <div className="flex justify-center">
-                  <Spin />
-                </div>
-              )}
-              <Webcam
-                className="scale-x-[-1] object-fill"
-                width="100%" 
-                height={50} 
-                ref={webcamRef}
-                audio={false}
-                onUserMedia={handleWebcamReady}
-                style={{
-                  filter: "FlipH",
-                  height: '70%',
-                }}
-              />
-              <ReactMediaRecorder
-                video={true}
-                render={({
-                  status,
-                  startRecording,
-                  stopRecording,
-                  mediaBlobUrl,
-                }) => {
-                  recordingStatusRef.current = status;
-                  return (
-                    <div className="mt-3 object-contain overflow-y-auto max-h-[200px]">
-                      <div className="flex gap-2 items-center">
-                        <p>Trạng thái video: {status}</p>
-                        <Select
-                          defaultValue={5}
-                          onChange={(value) => setRecordingDuration(value)}
-                          options={[
-                            { value: 3, label: "3 giây" },
-                            { value: 4, label: "4 giây" },
-                            { value: 5, label: "5 giây" },
-                          ]}
-                          className="w-24"
-                        />
-                        <Button
-                          className="flex items-center gap-3"
-                          onClick={() => handleStartRecording(startRecording, stopRecording)}
-                          disabled={isRecordingRef.current} // Không phụ thuộc vào dữ liệu mẫu
-                          icon={
-                            <Tooltip
-                              title={`Thời gian tối đa cho mỗi video là ${recordingDuration}s.`}
-                              placement="top"
-                              trigger="hover"
-                              color="#4096ff"
-                            >
-                              <WarningFilled style={{ color: "#4096ff" }} />
-                            </Tooltip>
-                          }
-                        >
-                          Bắt đầu quay
-                          {isRecordingRef.current && (
-                            <p
-                              className="text-sm text-black"
-                              style={{ color: "red" }}
-                            >
-                              {formatTime(Math.max(0, recordingTime))}
-                            </p>
-                          )}
-                        </Button>
-                        <Button
-                          disabled={!mediaBlobUrl}
-                          onClick={() => {
-                            if (showModalPreview.type === "image") {
-                              setShowModalPreview({
-                                ...showModalPreview,
-                                open: true,
-                              });
-                            } else {
-                              setShowModalPreview({
-                                ...showModalPreview,
-                                open: true,
-                                preview: mediaBlobUrl,
-                              });
-                            }
-                          }}
-                        >
-                          Xem lại file
-                        </Button>
-                        <Button
-                          size="large"
-                          type="primary"
-                          disabled={!mediaBlobUrl}
-                          loading={mutationDetectAI.isPending}
-                          ref={checkButtonRef}
-                          className="text-center"
-                          onClick={async () => {
-                            try {
-                              console.log("Bắt đầu kiểm tra video...");
-                              const link = await uploadVideo(mediaBlobUrl);
-                              console.log("URL video gửi đến AI:", link);
-                              mutationDetectAI.mutate({ videoUrl: link });
-                            } catch (error) {
-                              console.error("Lỗi khi kiểm tra video:", error);
-                            }
-                          }}
-                        >
-                          Kiểm tra
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                }}
-              />
-
-              <Modal
-                visible={uploadModalVisible}
-                title="Tải video"
-                onCancel={() => setUploadModalVisible(false)}
-                footer={[
-                  <Button key="cancel" onClick={() => setUploadModalVisible(false)}>
-                    Hủy
-                  </Button>,
-                  <Button
-                    key="check"
-                    type="primary"
-                    loading={uploadLoading} // Add loading state
-                    onClick={handleUpload}
-                  >
-                    Kiểm tra
-                  </Button>,
-                ]}
-              >
-                <Upload
-                  beforeUpload={(file) => {
-                    setUploadedVideo(file);
-                    return false;
-                  }}
-                  accept="video/*"
-                  maxCount={1}
-                >
-                  <Button>Chọn video</Button>
-                </Upload>
-              </Modal>
+    <Spin spinning={loading}>
+      <div className="relative flex h-[600px] items-start justify-between gap-4 overflow-hidden bg-gray-2">
+        <div className="flex w-1/2 flex-col justify-start">
+          <div className="mb-2 flex justify-between items-center text-xl font-semibold">
+            <div>
+              Câu hỏi {currentIndex + 1}/{practiceQuestions.length}
             </div>
           </div>
-      </Tabs>
-
-      {/* Modal hiển thị kết quả */}
-      <Modal
-        open={showModalResult}
-        onCancel={() => setShowModalResult(false)}
-        footer={null}
-        title="Kết quả"
-        width={1200}
-      >
-        <div className="w-full ">
-          <Spin spinning={mutationDetectAI.isPending}>
-            <div className="mb-4 flex items-center justify-between gap-4 text-[60px] font-bold">
-              <div className="w-1/2">
-                <div className=" text-[20px]">Từ cần biểu diễn</div>
-                <div className=" text-[24px] text-primary">
-                  {modalVideo.vocabularyContent}
-                </div>
-              </div>
-              <div className="w-1/2">
-                <div className="w-1/2 text-[20px]">Từ nhận diện</div>
-                <div className="text-[24px] text-primary">
-                  {resultContent.content}
-                </div>
-              </div>
-            </div>
-
-            {resultContent.fileLocation && (
-              <video
-                width={800}
-                controls
-                src={resultContent.fileLocation}
-              ></video>
-            )}
-          </Spin>
+          <div className="mb-6 text-xl min-h-[48px]">
+            {practiceQuestions[currentIndex]?.content}
+          </div>
+          <div className="flex gap-4 mt-2">
+            <Button
+              onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+              disabled={currentIndex === 0}
+            >
+              Lùi
+            </Button>
+            <Button
+              onClick={() =>
+                setCurrentIndex((i) => Math.min(practiceQuestions.length - 1, i + 1))
+              }
+              disabled={currentIndex === practiceQuestions.length - 1}
+            >
+              Tiến
+            </Button>
+          </div>
         </div>
-      </Modal>
-      {/* Modal xem lại */}
+        <div className="w-1/2">
+          {!webcamReady && (
+            <div className="flex justify-center">
+              <Spin />
+            </div>
+          )}
+          <Webcam
+            className="scale-x-[-1] object-fill"
+            width="100%"
+            height={50}
+            ref={webcamRef}
+            audio={false}
+            onUserMedia={handleWebcamReady}
+            style={{
+              filter: "FlipH",
+              height: "70%",
+            }}
+          />
+          <ReactMediaRecorder
+            video={true}
+            render={({
+              status,
+              startRecording,
+              stopRecording,
+              mediaBlobUrl,
+            }) => {
+              recordingStatusRef.current = status;
+
+              // Khi quay xong video thì tự động upload
+              useEffect(() => {
+                if (mediaBlobUrl) {
+                  handleAutoSaveVideo(mediaBlobUrl, currentIndex);
+                }
+                // eslint-disable-next-line react-hooks/exhaustive-deps
+              }, [mediaBlobUrl, currentIndex]);
+
+              return (
+                <div className="mt-3 object-contain overflow-y-auto max-h-[200px]">
+                  <div className="flex gap-2 items-center">
+                    <p>Trạng thái video: {status}</p>
+                    <Select
+                      defaultValue={5}
+                      onChange={(value) => setRecordingDuration(value)}
+                      options={[
+                        { value: 3, label: "3 giây" },
+                        { value: 4, label: "4 giây" },
+                        { value: 5, label: "5 giây" },
+                      ]}
+                      className="w-24"
+                    />
+                    <Button
+                      className="flex items-center gap-3"
+                      onClick={() => handleStartRecording(startRecording, stopRecording)}
+                      disabled={isRecordingRef.current}
+                      icon={
+                        <Tooltip
+                          title={`Thời gian tối đa cho mỗi video là ${recordingDuration}s.`}
+                          placement="top"
+                          trigger="hover"
+                          color="#4096ff"
+                        >
+                          <WarningFilled style={{ color: "#4096ff" }} />
+                        </Tooltip>
+                      }
+                    >
+                      Bắt đầu quay
+                      {isRecordingRef.current && (
+                        <p
+                          className="text-sm text-black"
+                          style={{ color: "red" }}
+                        >
+                          {formatTime(Math.max(0, recordingTime))}
+                        </p>
+                      )}
+                    </Button>
+                    <Button
+                      disabled={!videoUrls[currentIndex]}
+                      onClick={() =>
+                        setShowModalPreview({
+                          ...showModalPreview,
+                          open: true,
+                          preview: videoUrls[currentIndex] || "",
+                          type: "video",
+                        })
+                      }
+                    >
+                      Xem lại File
+                    </Button>
+                  </div>
+                </div>
+              );
+            }}
+          />
+        </div>
+      </div>
+      {/* Nút nộp bài */}
+      <div className="flex justify-center mt-6">
+        <Button
+          type="primary"
+          size="large"
+          onClick={handleSubmit}
+        >
+          Nộp bài
+        </Button>
+      </div>
+      {/* Hiển thị kết quả sau khi nộp bài */}
+      {submitted && (
+        <Modal
+          open={submitted}
+          onCancel={() => setSubmitted(false)}
+          footer={null}
+          title="Kết quả bài kiểm tra"
+          width={800}
+        >
+          <div>
+            {resultList.map((item, idx) => (
+              <div key={idx} className="mb-2">
+                <b>Câu {idx + 1}:</b> {item.question} <br />
+                <span>
+                  Đáp án AI: <b>{item.aiAnswer}</b> -{" "}
+                  {item.isCorrect ? (
+                    <span style={{ color: "green" }}>Đúng</span>
+                  ) : (
+                    <span style={{ color: "red" }}>Sai</span>
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Modal>
+      )}
+      {/* Modal xem lại giữ nguyên */}
       <Modal
         open={showModalPreview.open}
         onCancel={() =>
           setShowModalPreview({ ...showModalPreview, open: false })
         }
         footer={null}
-        title={
-          showModalPreview.type === "image" ? "Xem lại ảnh: " : "Xem lại video"
-        }
+        title="Xem lại video"
         width={800}
       >
         <div className="flex justify-center">
-          {showModalPreview.type === "video" ? (
-            <video controls src={showModalPreview.preview}></video>
-          ) : (
-            <Image
-              preview={false}
-              src={showModalPreview.preview}
-              alt="preview"
-            />
-          )}
+          <video controls src={showModalPreview.preview}></video>
         </div>
       </Modal>
-    </>
+    </Spin>
   );
 };
 

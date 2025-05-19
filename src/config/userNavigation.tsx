@@ -104,6 +104,13 @@ export const MenuSystem = () => {
       hidden: !token && !admin,
     },
     {
+      key: "/teacher-scoring-test",
+      label: "Chấm điểm",
+      path: "/teacher-scoring-test",
+      icon: <ExamIcon color="white" size={20} />,
+      hidden: admin?.role !== "TEACHER",
+    },
+    {
       key: "/collect-data",
       label: "Thu thập dữ liệu",
       path: "/collect-data",

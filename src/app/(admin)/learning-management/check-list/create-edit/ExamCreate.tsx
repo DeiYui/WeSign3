@@ -46,6 +46,10 @@ const CreateAndEditExamPage: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [examType, setExamType] = useState<string | null>(null); // Thêm trạng thái theo dõi examType
+  const [topicOptions, setTopicOptions] = useState<any[]>([]);
+  const [vocabOptions, setVocabOptions] = useState<{ [key: number]: any[] }>(
+    {},
+  );
   const questionsPerPage = 10;
   const searchParams = useSearchParams();
   const isPrivate = searchParams.get("isPrivate");
@@ -182,6 +186,59 @@ const CreateAndEditExamPage: React.FC = () => {
     setCurrentPage(page);
   };
 
+  useEffect(() => {
+    // Lấy danh sách chủ đề
+    Learning.getAllTopics().then((res) => {
+      setTopicOptions(
+        res?.data?.map((item: any) => ({
+          value: item.topicId,
+          label: item.content,
+        })) || [],
+      );
+    });
+  }, []);
+
+  const fetchVocabulary = async (topicId: number, index: number) => {
+    if (!topicId) return;
+    const res = await Learning.getVocabularyTopic(topicId);
+    setVocabOptions((prev) => ({
+      ...prev,
+      [index]: res?.data?.map((item: any) => ({
+        value: item.vocabularyId,
+        label: item.content,
+      })) || [],
+    }));
+  };
+
+  // Thêm state lưu practiceQuestions
+  const [practiceQuestions, setPracticeQuestions] = useState<any[]>([]);
+
+  // Hàm xử lý thay đổi chủ đề hoặc từ vựng cho từng câu hỏi
+  const handlePracticeQuestionChange = (index: number, key: string, value: any) => {
+    setPracticeQuestions(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [key]: value };
+      return updated;
+    });
+    form.setFieldValue("practiceQuestions", [
+      ...(form.getFieldValue("practiceQuestions") || []).map((q: any, i: number) =>
+        i === index ? { ...q, [key]: value } : q
+      ),
+    ]);
+    // Nếu đổi chủ đề thì reset từ vựng
+    if (key === "topicId") {
+      setVocabOptions(prev => ({ ...prev, [index]: [] }));
+      fetchVocabulary(value, index);
+      handlePracticeQuestionChange(index, "vocabularyId", undefined);
+    }
+  };
+
+  // Khi Form.List thay đổi, đồng bộ lại state
+  useEffect(() => {
+    const qs = form.getFieldValue("practiceQuestions") || [];
+    setPracticeQuestions(qs);
+  }, [form.getFieldValue("practiceQuestions")]);
+
   return (
     <Spin
       spinning={
@@ -192,22 +249,32 @@ const CreateAndEditExamPage: React.FC = () => {
         <h1 className="mb-4 text-2xl font-bold">Thêm bài kiểm tra</h1>
         <Form
           form={form}
-          onFinish={(value) => {
-            const reqAdd =
-              examType === "quiz"
-                ? {
-                    name: value.name,
-                    questionIds: value.questionIds,
-                    classRoomId: value.classRoomId,
-                    private: isPrivate,
-                  }
-                : {
-                    name: value.name,
-                    practiceWords: value.practiceWords,
-                    classRoomId: value.classRoomId,
-                    private: isPrivate,
-                  };
-
+          onFinish={async (value) => {
+            let reqAdd;
+            if (examType === "quiz") {
+              reqAdd = {
+                name: value.name,
+                questionIds: value.questionIds,
+                classRoomId: value.classRoomId,
+                private: isPrivate,
+              };
+            } else {
+              // Lấy danh sách từ vựng theo từng câu hỏi
+              const practiceQs = (value.practiceQuestions || []).map((q: any, idx: number) => {
+                const vocab = (vocabOptions[idx] || []).find(v => v.value === q.vocabularyId);
+                const vocabName = vocab ? vocab.label : "";
+                return {
+                  ...q,
+                  content: q.content && vocabName ? `${q.content} - ${vocabName}` : q.content,
+                };
+              });
+              reqAdd = {
+                name: value.name,
+                practiceWords: practiceQs,
+                classRoomId: value.classRoomId,
+                private: isPrivate,
+              };
+            }
             if (id) {
               editExamMutation.mutate(reqAdd);
             } else {
@@ -347,7 +414,35 @@ const CreateAndEditExamPage: React.FC = () => {
                           label="Nội dung câu hỏi"
                           rules={[{ required: true, message: "Vui lòng nhập nội dung câu hỏi" }]}
                         >
-                          <Input placeholder="Nhập nội dung câu hỏi" />
+                          <Input
+                            placeholder="Nhập nội dung câu hỏi"
+                            onChange={e => handlePracticeQuestionChange(index, "content", e.target.value)}
+                          />
+                        </Form.Item>
+                        <Form.Item
+                          label="Chủ đề"
+                          name={[name, "topicId"]}
+                          rules={[{ required: true, message: "Vui lòng chọn chủ đề" }]}
+                        >
+                          <Select
+                            placeholder="Chọn chủ đề"
+                            options={topicOptions}
+                            onChange={value => handlePracticeQuestionChange(index, "topicId", value)}
+                            value={practiceQuestions[index]?.topicId}
+                          />
+                        </Form.Item>
+                        <Form.Item
+                          label="Từ vựng"
+                          name={[name, "vocabularyId"]}
+                          rules={[{ required: true, message: "Vui lòng chọn từ vựng" }]}
+                        >
+                          <Select
+                            placeholder="Chọn từ vựng"
+                            options={vocabOptions[index] || []}
+                            value={practiceQuestions[index]?.vocabularyId}
+                            onChange={value => handlePracticeQuestionChange(index, "vocabularyId", value)}
+                            disabled={!practiceQuestions[index]?.topicId}
+                          />
                         </Form.Item>
                       </div>
                     ))}
