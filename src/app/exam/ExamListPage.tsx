@@ -35,6 +35,7 @@ const ExamListPage: React.FC = () => {
     }
   }, [user]);
 
+  // Lấy dữ liệu phân trang từ usePage
   const {
     page,
     pageSize,
@@ -42,7 +43,11 @@ const ExamListPage: React.FC = () => {
     isFetching,
     pagination,
     refetch,
-  } = usePage(user?.userId ?["getLstExam", filterParams] : [], Exam.getLstExam, { ...filterParams });
+  } = usePage(
+    user?.userId ? ["getLstExam", filterParams] : [],
+    Exam.getLstExam,
+    { ...filterParams, pageSize: 10 } // Đảm bảo pageSize luôn là 10
+  );
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
@@ -117,17 +122,6 @@ const ExamListPage: React.FC = () => {
       ),
     },
         {
-      title: "Loại bài kiểm tra",
-      dataIndex: "examType",
-      key: "examType",
-      render: (examType: string) =>
-        examType === "practice" ? (
-          <Tag color="blue">Thực hành</Tag>
-        ) : (
-          <Tag color="green">Trắc nghiệm</Tag>
-        ),
-    },
-    {
       title: "Loại bài kiểm tra",
       dataIndex: "examType",
       key: "examType",
@@ -242,7 +236,11 @@ const ExamListPage: React.FC = () => {
         dataSource={content}
         columns={columns}
         loading={isFetching}
-        pagination={{ ...pagination, showSizeChanger: false }}
+        pagination={{
+          ...pagination,
+          pageSize: 10, // Đảm bảo luôn là 10
+          showSizeChanger: false,
+        }}
         rowKey="examId"
         scroll={{ x: 1000 }}
       />

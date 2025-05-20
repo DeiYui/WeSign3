@@ -64,7 +64,8 @@ const ExamListPage = ({ isPrivate }: any) => {
     Exam.getLstExam,
     {
       ...filterParams,
-    },
+      pageSize: 10, // Đảm bảo pageSize luôn là 10
+    }
   );
 
   // API lấy danh sách  topics
@@ -209,7 +210,11 @@ const ExamListPage = ({ isPrivate }: any) => {
         columns={columns as any}
         scroll={{ x: 1100, y: 440 }}
         loading={isFetching}
-        pagination={{ ...pagination, showSizeChanger: false }}
+        pagination={{
+          ...pagination,
+          pageSize: 10, // Đảm bảo luôn là 10
+          showSizeChanger: false,
+        }}
         rowKey="examId"
       />
     </div>

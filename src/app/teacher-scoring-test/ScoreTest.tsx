@@ -1,10 +1,11 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
+import { usePage } from "@/hooks/usePage";
+import Exam from "@/model/Exam";
+import Learning from "@/model/Learning";
 import { Table, Select, Input, Tag, Button, Spin } from "antd";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import Exam from "@/model/Exam";
-import Learning from "@/model/Learning";
+import { useQuery } from "@tanstack/react-query";
 
 const ScoreTest: React.FC = () => {
   const router = useRouter();
@@ -13,6 +14,7 @@ const ScoreTest: React.FC = () => {
   const [filterParams, setFilterParams] = useState({
     classRoomId: 0,
     nameSearch: "",
+    isPrivate: "false",
     examType: "practice", // chỉ lấy bài kiểm tra thực hành
   });
 
@@ -28,15 +30,16 @@ const ScoreTest: React.FC = () => {
     },
   });
 
-  // Lấy danh sách bài kiểm tra thực hành
-  const { data: examList = [], isFetching } = useQuery({
-    queryKey: ["getLstExamPractice", filterParams],
-    queryFn: async () => {
-      const res = await Exam.getLstExam({ ...filterParams });
-      // Lọc chỉ lấy bài kiểm tra thực hành
-      return (res?.content || []).filter((item: any) => item.examType === "practice");
-    },
-  });
+  // Lấy danh sách bài kiểm tra thực hành (giống ExamListPage)
+  const {
+    content: examList,
+    isFetching,
+    pagination,
+  } = usePage(
+    ["getLstExamPractice", filterParams],
+    Exam.getLstExam,
+    { ...filterParams, pageSize: 10 }
+  );
 
   // Cột bảng
   const columns = [
@@ -59,6 +62,17 @@ const ScoreTest: React.FC = () => {
       ),
     },
     {
+      title: "Loại bài kiểm tra",
+      dataIndex: "examType",
+      key: "examType",
+      render: (examType: string) =>
+        examType === "practice" ? (
+          <Tag color="blue">Thực hành</Tag>
+        ) : (
+          <Tag color="green">Trắc nghiệm</Tag>
+        ),
+    },
+    {
       title: "Lớp",
       dataIndex: "classRoomName",
       key: "classRoomName",
@@ -79,12 +93,6 @@ const ScoreTest: React.FC = () => {
         ) : (
           <Tag color="default" className="px-3 py-1">Chưa hoàn thành</Tag>
         ),
-    },
-    {
-      title: "Điểm",
-      dataIndex: "score",
-      render: (value: number, record: any) =>
-        record.isFinished ? <b>{value !== undefined ? value.toFixed(1) : "0.0"}</b> : "-",
     },
     {
       title: "Hành động",
@@ -118,10 +126,15 @@ const ScoreTest: React.FC = () => {
       </div>
       <Table
         columns={columns}
-        dataSource={examList}
+        dataSource={Array.isArray(examList) ? examList.filter((item) => item.examType === "practice") : []}
         loading={isFetching}
         rowKey="examId"
-        pagination={{ pageSize: 10, showSizeChanger: false, position: ["bottomCenter"] }}
+        pagination={{
+          ...pagination,
+          pageSize: 10,
+          showSizeChanger: false,
+          position: ["bottomCenter"],
+        }}
       />
     </div>
   );
