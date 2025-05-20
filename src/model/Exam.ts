@@ -3,10 +3,10 @@ import { Base } from "./Base";
 
 class Exam extends Base {
   // Danh sách bài kiểm tra
-  getLstExam = async (param?: any) => {
-    const res = await this.apiGetWithoutPrefixNode("/exam/all-exams", param);
-    return res;
-  };
+getLstExam = async (param?: any) => {
+  const res = await this.apiGetWithoutPrefixNode(`/exam/all-exams`, param); 
+  return res;
+};
 
   // Danh sách bài kiểm tra cho user
   getLstExamUser = async (params?: any) => {

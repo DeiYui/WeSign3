@@ -115,8 +115,8 @@ const ExamListPage = ({ isPrivate }: any) => {
     },
     {
       title: "Tên bài kiểm tra",
-      dataIndex: "name",
-      key: "name",
+      dataIndex: "examName",
+      key: "examName",
     },
     {
       title: "Số câu hỏi",

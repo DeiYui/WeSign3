@@ -43,8 +43,6 @@ const ExamListPage: React.FC = () => {
     pagination,
     refetch,
   } = usePage(user?.userId ?["getLstExam", filterParams] : [], Exam.getLstExam, { ...filterParams });
-
-  // ✅ Refetch lại khi user quay về tab
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
@@ -117,6 +115,17 @@ const ExamListPage: React.FC = () => {
           {examName}
         </div>
       ),
+    },
+        {
+      title: "Loại bài kiểm tra",
+      dataIndex: "examType",
+      key: "examType",
+      render: (examType: string) =>
+        examType === "practice" ? (
+          <Tag color="blue">Thực hành</Tag>
+        ) : (
+          <Tag color="green">Trắc nghiệm</Tag>
+        ),
     },
     {
       title: "Số lần đã làm",
