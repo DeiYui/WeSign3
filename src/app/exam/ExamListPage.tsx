@@ -102,14 +102,14 @@ const ExamListPage: React.FC = () => {
           className="hover:cursor-pointer text-blue-500"
           onClick={() => {
             if (record.examType === "practice") {
-              // Điều hướng đến QuestionsPractice nếu là bài kiểm tra thực hành
-              router.push(`/exam/${record.examId}/practice`);
+              // Sang trang thực hành mới: /exam/[id]/questionspractice
+              router.push(`/exam/${record.examId}/questionspractice`);
             } else {
-              // Điều hướng đến QuestionsPage nếu là bài kiểm tra trắc nghiệm
+              // Sang trang trắc nghiệm mới: /exam/[id]/questionspage
               if (record.isFinished) {
-                router.push(`/exam/${record.examId}?review=true`);
+                router.push(`/exam/${record.examId}/questionspage?review=true`);
               } else {
-                router.push(`/exam/${record.examId}`);
+                router.push(`/exam/${record.examId}/questionspage`);
               }
             }
           }}
