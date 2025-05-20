@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
@@ -44,8 +45,8 @@ const CreateAndEditExamPage: React.FC = () => {
   const router = useRouter();
   const [form] = useForm();
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [examType, setExamType] = useState<string | null>(null); 
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [examType, setExamType] = useState<string | null>(null); // Thêm trạng thái theo dõi examType
   const [topicOptions, setTopicOptions] = useState<any[]>([]);
   const [vocabOptions, setVocabOptions] = useState<{ [key: number]: any[] }>(
     {},
@@ -90,7 +91,8 @@ const CreateAndEditExamPage: React.FC = () => {
   const { data: detailExam, refetch } = useQuery({
     queryKey: ["detailExamsForUser", id],
     queryFn: async () => {
-      const res = await Exam.detailExamsForUser(Number(id));
+      // const res = await Exam.detailExamsForUser(Number(id));
+      const res = await Exam.getDetailExam(Number(id));
       form.setFieldsValue({
         ...res?.data,
         numQuestions: res.data?.numberOfQuestions,
@@ -152,7 +154,7 @@ const CreateAndEditExamPage: React.FC = () => {
     mutationFn: Exam.addExam,
     onSuccess: async () => {
       // Thông báo thành công
-      message.success("Thêm bài kiểm tra thành công thành công");
+      message.success("Thêm bài kiểm tra trắc nghiệm thành công");
 
       router.push(
         isPrivate === "true"
@@ -161,7 +163,22 @@ const CreateAndEditExamPage: React.FC = () => {
       );
     },
     onError: () => {
-      message.error("Thêm bài kiểm tra thất bại");
+      message.error("Thêm bài kiểm tra trắc nghiệm thất bại");
+    },
+  });
+
+    const addPracticeExam = useMutation({
+    mutationFn: Exam.addPracticeExam,
+    onSuccess: async () => {
+      message.success("Thêm bài kiểm tra thực hành thành công");
+      router.push(
+        isPrivate === "true"
+          ? "/learning-management/check-list/private"
+          : "/learning-management/check-list/public",
+      );
+    },
+    onError: () => {
+      message.error("Thêm bài kiểm tra thực hành thất bại");
     },
   });
 
@@ -247,42 +264,52 @@ const CreateAndEditExamPage: React.FC = () => {
     >
       <div className="container mx-auto p-4">
         <h1 className="mb-4 text-2xl font-bold">Thêm bài kiểm tra</h1>
-        <Form
-          form={form}
-          onFinish={async (value) => {
-            let reqAdd;
-            if (examType === "quiz") {
-              reqAdd = {
-                name: value.name,
-                questionIds: value.questionIds,
-                classRoomId: value.classRoomId,
-                private: isPrivate,
-              };
-            } else {
-              // Lấy danh sách từ vựng theo từng câu hỏi
-              const practiceQs = (value.practiceQuestions || []).map((q: any, idx: number) => {
-                const vocab = (vocabOptions[idx] || []).find(v => v.value === q.vocabularyId);
-                const vocabName = vocab ? vocab.label : "";
-                return {
-                  ...q,
-                  content: q.content && vocabName ? `${q.content} - ${vocabName}` : q.content,
-                };
-              });
-              reqAdd = {
-                name: value.name,
-                practiceWords: practiceQs,
-                classRoomId: value.classRoomId,
-                private: isPrivate,
-              };
-            }
+
+      <Form
+        form={form}
+        onFinish={async (value) => {
+          let reqAdd;
+
+          if (examType === "quiz") {
+            reqAdd = {
+              name: value.name,
+              questionIds: value.questionIds,
+              classRoomId: value.classRoomId,
+              isPrivate: isPrivate,
+            };
             if (id) {
               editExamMutation.mutate(reqAdd);
             } else {
               addExam.mutate(reqAdd);
             }
-          }}
-          layout="vertical"
-        >
+          } else {
+            const practiceQs = (value.practiceQuestions || []).map((q: any, idx: number) => {
+              const vocab = (vocabOptions[idx] || []).find(v => v.value === q.vocabularyId);
+              const vocabName = vocab ? vocab.label : "";
+              return {
+                ...q,
+                content: q.content && vocabName ? `${q.content} - ${vocabName}` : q.content,
+              };
+            });
+
+            reqAdd = {
+              name: value.name,
+              practiceWords: practiceQs,
+              classRoomId: value.classRoomId,
+              isPrivate: isPrivate,
+            };
+
+
+            if (id) {
+              editExamMutation.mutate(reqAdd);
+            } else {
+              addPracticeExam.mutate(reqAdd); // ✅ Gửi thực hành
+            }
+          }
+        }}
+        layout="vertical"
+      >
+
           <Form.Item
             label="Lớp "
             name="classRoomId"
@@ -386,14 +413,13 @@ const CreateAndEditExamPage: React.FC = () => {
                 />
               </Form.Item>
             </>
-          )}
-
+          )}        
           {examType === "practice" && (
             <>
               <Form.List name="practiceQuestions">
                 {(fields, { add, remove }) => (
                   <>
-                    {fields.map(({ key, name, fieldKey, ...restField }, index) => (
+                    {fields.map(({ key, name, ...restField }, index) => (
                       <div key={key} className="mb-4 border p-4 rounded-md">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-md font-semibold">Câu hỏi {index + 1}</h4>
@@ -410,7 +436,7 @@ const CreateAndEditExamPage: React.FC = () => {
                         <Form.Item
                           {...restField}
                           name={[name, "content"]}
-                          fieldKey={[fieldKey, "content"]}
+                          // fieldKey={[fieldKey, "content"]}
                           label="Nội dung câu hỏi"
                           rules={[{ required: true, message: "Vui lòng nhập nội dung câu hỏi" }]}
                         >

@@ -3,10 +3,10 @@ import { Base } from "./Base";
 
 class Exam extends Base {
   // Danh sách bài kiểm tra
-  getLstExam = async (param?: any) => {
-    const res = await this.apiGetWithoutPrefixNode("/exam/all-exams", param);
-    return res;
-  };
+getLstExam = async (param?: any) => {
+  const res = await this.apiGetWithoutPrefixNode(`/exam/all-exams`, param); 
+  return res;
+};
 
   // Danh sách bài kiểm tra cho user
   getLstExamUser = async (params?: any) => {
@@ -26,6 +26,12 @@ class Exam extends Base {
     return res.data;
   };
 
+  addPracticeExam = async (body?: any) => {
+    const res = await this.apiPostWithoutPrefixNode(`/exam/practice-exams`, body);
+    console.log('practice', res)
+    return res.data;
+  };
+
   // Thêm bài kiểm tra cho user
   addExamForUser = async (body?: any) => {
     const res = await this.apiPost(`/exams/exams-for-user`, body);
@@ -38,10 +44,15 @@ class Exam extends Base {
     return res.data;
   };
 
+  getDetailPracticeExam = async (examId: number) => {
+    const res = await this.apiGetWithoutPrefixNode(`/exam/practice-exams/${examId}`);
+    console.log("data practice lay dc",  res)
+    return res.data;
+  };
+
   // Chấm điểm bài kiểm tra
   markExam = async (body: any) => {
     const res = await this.apiPostWithoutPrefixNode(`/exam/exam-scoring`, body);
-    console.log('score', res)
     return res.config.data;
   };
 
@@ -72,7 +83,6 @@ class Exam extends Base {
   // Reset bài kiểm tra để làm lại
   resetExam = async (examId: number, body?: any) => {
     const res = await this.apiPostWithoutPrefixNode(`/exam/reset/${examId}`, body);
-    console.log('reset', res)
     return res.data;
   };
 

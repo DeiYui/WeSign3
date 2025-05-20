@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { filterOption } from "@/components/Dashboard/DashboardApp";
@@ -25,34 +26,53 @@ import Webcam from "react-webcam";
 import * as XLSX from "xlsx";
 import { formatTime } from "../collect-data/CollectData";
 import LearningData from "../practice-data/LearningData";
+import Exam from "@/model/Exam";
+import { useParams } from "next/navigation";
 
 const PracticeData: React.FC = () => {
   // Lấy examId từ URL (giả sử truyền examId khi chuyển sang trang này)
-  const searchParams = new URLSearchParams(
-    typeof window !== "undefined" ? window.location.search : ""
-  );
-  const examId = searchParams.get("examId");
-
+    const params = useParams();
+    const examId = params?.id;
   // State cho danh sách câu hỏi thực hành và index hiện tại
   const [practiceQuestions, setPracticeQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Gọi API lấy danh sách câu hỏi thực hành theo examId
+  // useEffect(() => {
+  //   if (!examId) return;
+  //   setLoading(true);
+  //   // TODO: Thay thế bằng API thật khi backend sẵn sàng
+  //   fetch(`/api/exam/practice-questions?examId=${examId}`)
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       setPracticeQuestions(data || []);
+  //       setLoading(false);
+  //     })
+  //     .catch(() => {
+  //       message.error("Không lấy được danh sách câu hỏi thực hành");
+  //       setLoading(false);
+  //     });
+  // }, [examId]);
   useEffect(() => {
-    if (!examId) return;
-    setLoading(true);
-    // TODO: Thay thế bằng API thật khi backend sẵn sàng
-    fetch(`/api/exam/practice-questions?examId=${examId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setPracticeQuestions(data || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        message.error("Không lấy được danh sách câu hỏi thực hành");
-        setLoading(false);
-      });
-  }, [examId]);
+  if (!examId) return;
+  setLoading(true);
+
+  Exam.getDetailPracticeExam(Number(examId))
+    .then((res) => {
+      console.log('105', res.data)
+      if (res?.data) {
+        setPracticeQuestions(res.data); // giả sử bạn cần mảng câu hỏi
+      } else {
+        setPracticeQuestions([]);
+      }
+    })
+    .catch(() => {
+      message.error("Không lấy được danh sách câu hỏi thực hành");
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+}, [examId]);
 
   const [showSampleData, setShowSampleData] = useState<boolean>(true);
   const [webcamReady, setWebcamReady] = useState(false);
@@ -543,7 +563,7 @@ const PracticeData: React.FC = () => {
             </div>
           </div>
           <div className="mb-6 text-xl min-h-[48px]">
-            {practiceQuestions[currentIndex]?.content}
+            {practiceQuestions[currentIndex]?.contentFromExamVocabulary}
           </div>
           <div className="flex gap-4 mt-2">
             <Button
