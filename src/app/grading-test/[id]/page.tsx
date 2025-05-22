@@ -1,7 +1,7 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
 import React from "react";
-import Questions from "./Questions";
+import GradeTest from ".././GradeTest";
 
 export const metadata: Metadata = {
   title: "Exam - We_sign",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 const ExamPage: React.FC = () => {
   return (
     <DefaultLayout>
-      <Questions />
+      <GradeTest />
     </DefaultLayout>
   );
 };

@@ -16,16 +16,11 @@ const ExamListPage: React.FC = () => {
   const queryClient = useQueryClient();
   const user: any = useSelector((state: RootState) => state.admin);
 
-  // useEffect(() => {
-  //   if (!user?.userId) {
-  //     router.push("/");
-  //   }
-  // }, [user, router]);
-
   const [filterParams, setFilterParams] = useState({
     classRoomId: 0,
     nameSearch: "",
-    isPrivate: "false",
+    examType: "", // "" là tất cả, "practice" hoặc "quiz"
+    isFinished: "", // "" là tất cả, "1" đã hoàn thành, "0" chưa hoàn thành
     userId: 0,
   });
 
@@ -90,6 +85,18 @@ const ExamListPage: React.FC = () => {
     });
   };
 
+  const examTypeOptions = [
+    { label: "Tất cả", value: "" },
+    { label: "Thực hành", value: "practice" },
+    { label: "Trắc nghiệm", value: "quiz" },
+  ];
+
+  const statusOptions = [
+    { label: "Tất cả", value: "" },
+    { label: "Đã hoàn thành", value: "1" },
+    { label: "Chưa hoàn thành", value: "0" },
+  ];
+
   const columns = [
     {
       title: "STT",
@@ -121,7 +128,7 @@ const ExamListPage: React.FC = () => {
         </div>
       ),
     },
-        {
+    {
       title: "Loại bài kiểm tra",
       dataIndex: "examType",
       key: "examType",
@@ -131,6 +138,12 @@ const ExamListPage: React.FC = () => {
         ) : (
           <Tag color="green">Trắc nghiệm</Tag>
         ),
+    },
+    {
+      title: "Lớp",
+      dataIndex: "classRoomName",
+      key: "classRoomName",
+      render: (value: string) => <span>{value}</span>,
     },
     {
       title: "Số lần đã làm",
@@ -210,27 +223,29 @@ const ExamListPage: React.FC = () => {
   return (
     <div className="container mx-auto py-4">
       <h1 className="text-2xl font-bold mb-4">Danh sách bài kiểm tra</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-      <Select
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <Select
           placeholder="Chọn lớp"
           allowClear
           options={allClass}
-          onChange={(value) => setFilterParams({ ...filterParams, classRoomId: value })}
+          onChange={(value) => setFilterParams({ ...filterParams, classRoomId: value || 0 })}
         />
         <Input
-          placeholder="Tìm theo tên"
+          placeholder="Tìm theo tên bài kiểm tra"
           onChange={(e) => setFilterParams({ ...filterParams, nameSearch: e.target.value })}
         />
-        {(user?.role === "ADMIN" || user?.role === "TEACHER") && (
-          <Select
-            defaultValue={"false"}
-            options={[
-              { label: "Chung", value: "false" },
-              { label: "Riêng", value: "true" },
-            ]}
-            onChange={(value) => setFilterParams({ ...filterParams, isPrivate: value })}
-          />
-        )}
+        <Select
+          placeholder="Loại bài kiểm tra"
+          allowClear
+          options={examTypeOptions}
+          onChange={(value) => setFilterParams({ ...filterParams, examType: value })}
+        />
+        <Select
+          placeholder="Trạng thái"
+          allowClear
+          options={statusOptions}
+          onChange={(value) => setFilterParams({ ...filterParams, isFinished: value })}
+        />
       </div>
       <CustomTable
         dataSource={content}

@@ -55,7 +55,7 @@ const ScoreTest: React.FC = () => {
       render: (examName: string, record: any) => (
         <div
           className="hover:cursor-pointer text-blue-500"
-          onClick={() => router.push(`/exam/${record.examId}/practice`)}
+          onClick={() => router.push(`/grading-test/${record.examId}`)} 
         >
           {examName}
         </div>
@@ -99,12 +99,18 @@ const ScoreTest: React.FC = () => {
       render: (record: any) => (
         <Button
           type="primary"
-          onClick={() => router.push(`/exam/${record.examId}/practice`)}
+          onClick={() => router.push(`/grading-test/${record.examId}`)} // Sửa lại đường dẫn này
         >
           Chấm điểm
         </Button>
       ),
     },
+  ];
+
+  const statusOptions = [
+    { label: "Tất cả", value: "" },
+    { label: "Đã hoàn thành", value: "1" },
+    { label: "Chưa hoàn thành", value: "0" },
   ];
 
   return (
@@ -116,12 +122,19 @@ const ScoreTest: React.FC = () => {
           allowClear
           options={allClass}
           style={{ width: 200 }}
-          onChange={(value) => setFilterParams({ ...filterParams, classRoomId: value })}
+          onChange={(value) => setFilterParams({ ...filterParams, classRoomId: value || 0 })}
         />
         <Input
           placeholder="Tìm theo tên bài kiểm tra"
-          style={{ width: 300 }}
+          style={{ width: 220 }}
           onChange={(e) => setFilterParams({ ...filterParams, nameSearch: e.target.value })}
+        />
+        <Select
+          placeholder="Trạng thái"
+          allowClear
+          options={statusOptions}
+          style={{ width: 180 }}
+          onChange={(value) => setFilterParams({ ...filterParams, isFinished: value })}
         />
       </div>
       <Table
