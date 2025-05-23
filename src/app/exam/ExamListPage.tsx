@@ -16,26 +16,33 @@ const ExamListPage: React.FC = () => {
   const queryClient = useQueryClient();
   const user: any = useSelector((state: RootState) => state.admin);
 
-  // useEffect(() => {
-  //   if (!user?.userId) {
-  //     router.push("/");
-  //   }
-  // }, [user, router]);
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const [filterParams, setFilterParams] = useState({
     classRoomId: 0,
     nameSearch: "",
-    isPrivate: "false",
-    userId: 0,
+    examType: "",
+    isFinished: "",
+    userId: user?.userId || 0,
   });
 
+  // Debounce input (500ms)
   useEffect(() => {
-    if (user?.userId) {
-      setFilterParams((prev) => ({ ...prev, userId: user.userId }));
-    }
-  }, [user]);
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]);
 
-  // Lấy dữ liệu phân trang từ usePage
+  // Cập nhật filterParams.nameSearch mỗi khi debounce xong
+  useEffect(() => {
+    setFilterParams((prev) => ({
+      ...prev,
+      nameSearch: debouncedSearch,
+    }));
+  }, [debouncedSearch]);
+
   const {
     page,
     pageSize,
@@ -46,8 +53,9 @@ const ExamListPage: React.FC = () => {
   } = usePage(
     user?.userId ? ["getLstExam", filterParams] : [],
     Exam.getLstExam,
-    { ...filterParams, pageSize: 10 } // Đảm bảo pageSize luôn là 10
+    { ...filterParams, pageSize: 10 }
   );
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
@@ -59,15 +67,15 @@ const ExamListPage: React.FC = () => {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [refetch, queryClient]);
+  }, [queryClient, refetch]);
 
   const { data: allClass } = useQuery({
     queryKey: ["getListClass"],
     queryFn: async () => {
-      const res = await Learning.getListClass();
-      return res?.data?.map((item: { classRoomId: number; content: string }) => ({
+      const res = await Learning.getListClasses();
+      return res?.content?.map((item: { classRoomId: number; name: string }) => ({
         value: item.classRoomId,
-        label: item.content,
+        label: item.name,
       }));
     },
   });
@@ -90,6 +98,18 @@ const ExamListPage: React.FC = () => {
     });
   };
 
+  const examTypeOptions = [
+    { label: "Tất cả", value: "" },
+    { label: "Thực hành", value: "practice" },
+    { label: "Trắc nghiệm", value: "quiz" },
+  ];
+
+  const statusOptions = [
+    { label: "Tất cả", value: "" },
+    { label: "Đã hoàn thành", value: "1" },
+    { label: "Chưa hoàn thành", value: "0" },
+  ];
+
   const columns = [
     {
       title: "STT",
@@ -105,10 +125,8 @@ const ExamListPage: React.FC = () => {
           className="hover:cursor-pointer text-blue-500"
           onClick={() => {
             if (record.examType === "practice") {
-              // Sang trang thực hành mới: /exam/[id]/questionspractice
               router.push(`/exam/${record.examId}/questionspractice`);
             } else {
-              // Sang trang trắc nghiệm mới: /exam/[id]/questionspage
               if (record.isFinished) {
                 router.push(`/exam/${record.examId}/questionspage?review=true`);
               } else {
@@ -121,7 +139,7 @@ const ExamListPage: React.FC = () => {
         </div>
       ),
     },
-        {
+    {
       title: "Loại bài kiểm tra",
       dataIndex: "examType",
       key: "examType",
@@ -133,33 +151,30 @@ const ExamListPage: React.FC = () => {
         ),
     },
     {
+      title: "Lớp",
+      dataIndex: "classRoomName",
+      key: "classRoomName",
+    },
+    {
       title: "Số lần đã làm",
       dataIndex: "attemptCount",
-      render: (attemptCount: number, record: any) => {
-        if (record.isFinished) {
-          return attemptCount;
-        }
-        return "-"; // Hiển thị dấu "-" nếu chưa làm bài
-      },
+      render: (attemptCount: number, record: any) =>
+        record.isFinished ? attemptCount : "-",
     },
     {
       title: "Điểm cao nhất (Thang điểm 10)",
       dataIndex: "score",
-      render: (value: number, record: any) => {
-        if (record.isFinished) {
-          return <b>{value !== undefined ? value.toFixed(1) : "0.0"}</b>;
-        }
-        return "-";
-      },
+      render: (value: number | string, record: any) =>
+        record.isFinished ? <b>{Number(value)?.toFixed(1) ?? "0.0"}</b> : "-",
     },
     {
       title: "Trạng thái",
       dataIndex: "isFinished",
       render: (isFinished: boolean) =>
         isFinished ? (
-          <Tag color="green" className="px-3 py-1">Đã hoàn thành</Tag>
+          <Tag color="green">Đã hoàn thành</Tag>
         ) : (
-          <Tag color="default" className="px-3 py-1">Chưa hoàn thành</Tag>
+          <Tag>Chưa hoàn thành</Tag>
         ),
     },
     {
@@ -168,9 +183,8 @@ const ExamListPage: React.FC = () => {
         <div className="space-x-2">
           {record.isFinished ? (
             <>
-              <Button 
-                type="default"
-                onClick={() => 
+              <Button
+                onClick={() =>
                   router.push(
                     record.examType === "practice"
                       ? `/exam/${record.examId}/practice`
@@ -180,18 +194,14 @@ const ExamListPage: React.FC = () => {
               >
                 Xem đáp án
               </Button>
-              <Button 
-                type="primary" 
-                danger 
-                onClick={() => handleRedoExam(record.examId)}
-              >
+              <Button danger type="primary" onClick={() => handleRedoExam(record.examId)}>
                 Làm lại
               </Button>
             </>
           ) : (
-            <Button 
+            <Button
               type="primary"
-              onClick={() => 
+              onClick={() =>
                 router.push(
                   record.examType === "practice"
                     ? `/exam/${record.examId}/practice`
@@ -210,27 +220,36 @@ const ExamListPage: React.FC = () => {
   return (
     <div className="container mx-auto py-4">
       <h1 className="text-2xl font-bold mb-4">Danh sách bài kiểm tra</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-      <Select
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <Select
           placeholder="Chọn lớp"
           allowClear
           options={allClass}
-          onChange={(value) => setFilterParams({ ...filterParams, classRoomId: value })}
+          onChange={(value) =>
+            setFilterParams((prev) => ({ ...prev, classRoomId: value || 0 }))
+          }
         />
         <Input
-          placeholder="Tìm theo tên"
-          onChange={(e) => setFilterParams({ ...filterParams, nameSearch: e.target.value })}
+          placeholder="Tìm theo tên bài kiểm tra"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
         />
-        {(user?.role === "ADMIN" || user?.role === "TEACHER") && (
-          <Select
-            defaultValue={"false"}
-            options={[
-              { label: "Chung", value: "false" },
-              { label: "Riêng", value: "true" },
-            ]}
-            onChange={(value) => setFilterParams({ ...filterParams, isPrivate: value })}
-          />
-        )}
+        <Select
+          placeholder="Loại bài kiểm tra"
+          allowClear
+          options={examTypeOptions}
+          onChange={(value) =>
+            setFilterParams((prev) => ({ ...prev, examType: value }))
+          }
+        />
+        <Select
+          placeholder="Trạng thái"
+          allowClear
+          options={statusOptions}
+          onChange={(value) =>
+            setFilterParams((prev) => ({ ...prev, isFinished: value }))
+          }
+        />
       </div>
       <CustomTable
         dataSource={content}
@@ -238,7 +257,7 @@ const ExamListPage: React.FC = () => {
         loading={isFetching}
         pagination={{
           ...pagination,
-          pageSize: 10, // Đảm bảo luôn là 10
+          pageSize: 10,
           showSizeChanger: false,
         }}
         rowKey="examId"
@@ -255,5 +274,3 @@ const CustomTable = styled(Table)`
     background-color: #f9f9f9;
   }
 `;
-
-
