@@ -5,7 +5,7 @@ import Exam from "@/model/Exam";
 import { useParams, useRouter } from "next/navigation";
 
 interface PracticeQuestion {
-  contentFromExamVocabulary: string;
+  contentFromVocabulary: string;
   videoUrl?: string;
   aiAnswer?: string;
 }
@@ -13,22 +13,32 @@ interface PracticeQuestion {
 const GradingTest: React.FC = () => {
   const params = useParams();
   const router = useRouter();
-  const examId = params?.id;
+  const examId = params.examId;
+  const userId = params.userId;
   const [loading, setLoading] = useState(false);
   const [practiceQuestions, setPracticeQuestions] = useState<PracticeQuestion[]>([]);
+  const [visibleVideos, setVisibleVideos] = useState<{ [key: number]: boolean }>({});
   const [gradingList, setGradingList] = useState<{ isCorrect: boolean | null }[]>([]);
-
+  const VIDEO_BASE_URL = "http://202.191.56.11:8088/videos/";
+  // const VIDEO_BASE_URL = "http://localhost:8088/videos/";
   // Lấy danh sách câu hỏi thực hành và kết quả AI detect
   useEffect(() => {
     if (!examId) return;
     setLoading(true);
-    Exam.getDetailPracticeExam(Number(examId))
+    Exam.getDetailPracticeExamToScore(Number(examId), Number(userId))
       .then((res) => {
-        if (Array.isArray(res?.data)) {
-          // Lọc chỉ lấy các câu hỏi đã có videoUrl (học sinh đã nộp video)
-          const filtered = res.data.filter((q: any) => !!q.videoUrl);
-          setPracticeQuestions(filtered);
-          setGradingList(filtered.map(() => ({ isCorrect: null })));
+        const list = res?.data;
+        if (Array.isArray(list)) {
+            const filtered = list.filter((q: any) => Array.isArray(q.videoUrls) && q.videoUrls.length > 0);
+
+            setPracticeQuestions(
+              filtered.map((q: any, idx: number) => ({
+                contentFromVocabulary: q.contentFromVocabulary,
+                videoUrl: q.videoUrls[idx], // lấy đúng video theo index
+                aiAnswer: q.aiAnswer,
+              }))
+            );
+            setGradingList(filtered.map(() => ({ isCorrect: null })));
         } else {
           setPracticeQuestions([]);
           setGradingList([]);
@@ -38,7 +48,15 @@ const GradingTest: React.FC = () => {
         message.error("Không lấy được danh sách câu hỏi thực hành");
       })
       .finally(() => setLoading(false));
-  }, [examId]);
+  }, [examId, userId]);
+
+  const toggleVideo = (index: number) => {
+  setVisibleVideos((prev) => ({
+    ...prev,
+    [index]: !prev[index],
+  }));
+};
+
 
   // Hàm tick đúng/sai
   const handleGradeChange = (index: number, value: boolean) => {
@@ -58,9 +76,12 @@ const GradingTest: React.FC = () => {
     setLoading(true);
     try {
       // Gọi API lưu điểm và kết quả chấm từng câu
-      await Exam.saveGrading({
+      // await Exam.saveGrading({
+      await Exam.markPracticeExam({
         examId,
-        gradingList,
+        userId,
+        isFinished: true,
+        // gradingList,
         score,
       });
       message.success(`Đã lưu kết quả chấm điểm! Điểm: ${score}/10`);
@@ -75,8 +96,8 @@ const GradingTest: React.FC = () => {
   const columns = [
     {
       title: "Câu hỏi",
-      dataIndex: "contentFromExamVocabulary",
-      key: "contentFromExamVocabulary",
+      dataIndex: "contentFromVocabulary",
+      key: "contentFromVocabulary",
       width: 200,
     },
     {
@@ -91,9 +112,9 @@ const GradingTest: React.FC = () => {
       dataIndex: "videoUrl",
       key: "videoUrl",
       width: 150,
-      render: (url: string) =>
-        url ? (
-          <a href={url} target="_blank" rel="noopener noreferrer">
+      render: (videoUrl: string) =>
+        videoUrl ? (
+          <a href={VIDEO_BASE_URL + videoUrl} target="_blank" rel="noopener noreferrer">
             Xem video
           </a>
         ) : (
