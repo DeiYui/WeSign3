@@ -272,7 +272,25 @@ const PracticeData: React.FC = () => {
             },
           }
         );
-        console.log("Kết quả trả về từ model2:", response.data);
+        return response.data;
+      } else if (selectedAIModel === "model3") {
+        // Gửi videoUrl tới API model 3
+        const response = await axios.post(
+          "https://wesign.ibme.edu.vn/ai/t3/ai/detection", 
+          data,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        // Kết quả trả về dạng:
+        // {
+        //   "predicted_label": 5,
+        //   "action_name": "ClassIndex_5",
+        //   "confidence": 0.054673030972480774,
+        //   ...
+        // }
         return response.data;
       }
     },
@@ -284,6 +302,7 @@ const PracticeData: React.FC = () => {
           ? filterParams.vocabularyName.toLowerCase().trim()
           : null;
 
+      // Model 3 trả về action_name là tên nhãn
       const content =
         typeof res?.action_name === "string"
           ? res.action_name.toLowerCase().trim()
@@ -315,7 +334,7 @@ const PracticeData: React.FC = () => {
       if (res?.action_name) {
         setResultContent({
           content: res.action_name,
-          fileLocation: res.fileLocation,
+          fileLocation: res.fileLocation, // Nếu model 3 trả về fileLocation, nếu không thì bỏ dòng này
         });
         setShowModalResult(true);
         message.success("Xử lý dữ liệu thành công");
