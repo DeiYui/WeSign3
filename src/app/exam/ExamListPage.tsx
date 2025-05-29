@@ -80,7 +80,7 @@ const ExamListPage: React.FC = () => {
     },
   });
 
-  const handleRedoExam = (examId: number) => {
+  const handleRedoExam = async (examId: number, examType: string) => {
     Modal.confirm({
       title: "Xác nhận",
       content: "Bạn có chắc chắn muốn làm lại bài kiểm tra này không?",
@@ -88,9 +88,16 @@ const ExamListPage: React.FC = () => {
       cancelText: "Hủy",
       onOk: async () => {
         try {
-          await Exam.resetExam(examId, { userId: user.userId });
-          message.success("Đã làm mới bài kiểm tra.");
-          router.push(`/exam/${examId}?redo=true`);
+          if (examType === "practice") {
+            // Gọi API reset riêng cho thực hành
+            await Exam.resetPracticeExam(examId, { userId: user.userId });
+            message.success("Đã làm mới bài kiểm tra thực hành.");
+            router.push(`/exam/${examId}/questionspractice?redo=true`);
+          } else {
+            await Exam.resetExam(examId, { userId: user.userId });
+            message.success("Đã làm mới bài kiểm tra.");
+            router.push(`/exam/${examId}/questionspage?redo=true`);
+          }
         } catch (error) {
           message.error("Lỗi khi làm lại bài kiểm tra.");
         }
@@ -185,16 +192,18 @@ const ExamListPage: React.FC = () => {
             <>
               <Button
                 onClick={() =>
-                  router.push(
-                    record.examType === "practice"
-                      ? `/exam/${record.examId}/practice`
-                      : `/exam/${record.examId}?review=true`
-                  )
+                  record.examType === "practice"
+                    ? router.push(`/exam/${record.examId}/questionspractice?review=true`)
+                    : router.push(`/exam/${record.examId}/questionspage?review=true`)
                 }
               >
                 Xem đáp án
               </Button>
-              <Button danger type="primary" onClick={() => handleRedoExam(record.examId)}>
+              <Button
+                danger
+                type="primary"
+                onClick={() => handleRedoExam(record.examId, record.examType)}
+              >
                 Làm lại
               </Button>
             </>
@@ -202,11 +211,9 @@ const ExamListPage: React.FC = () => {
             <Button
               type="primary"
               onClick={() =>
-                router.push(
-                  record.examType === "practice"
-                    ? `/exam/${record.examId}/practice`
-                    : `/exam/${record.examId}`
-                )
+                record.examType === "practice"
+                  ? router.push(`/exam/${record.examId}/questionspractice`)
+                  : router.push(`/exam/${record.examId}/questionspage`)
               }
             >
               Làm bài

@@ -4,7 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Button, Modal, message, Spin, Select } from "antd";
 import Webcam from "react-webcam";
 import Exam from "@/model/Exam";
-import { useParams, useRouter } from "next/navigation";
+import Learning from "@/model/Learning";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 
@@ -16,6 +17,7 @@ type VideoData = {
 const QuestionsPractice: React.FC = () => {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const user: User = useSelector((state: RootState) => state.admin);
   const examId = params?.id;
   const [currentWordIndex, setCurrentWordIndex] = useState<number>(0);
@@ -36,14 +38,30 @@ const QuestionsPractice: React.FC = () => {
   const recordedChunksRef = useRef<Blob[]>([]);
   const recordTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Kiểm tra xem có phải là trang review không
+  const isReview = searchParams.get("review") === "true";
+
+  // Thêm state cho video mẫu
+  const [sampleVideos, setSampleVideos] = useState<string[]>([]);
+
   useEffect(() => {
     if (!examId) return;
     setLoading(true);
     Exam.getDetailPracticeExam(Number(examId))
-      .then((res) => {
+      .then(async (res) => {
         if (res?.data) {
           setPracticeQuestions(res.data);
           setVideoList(new Array(res.data.length).fill(null));
+          if (isReview) {
+            const vocabularyIds = res.data.map((q: any) => q.vocabularyId);
+            const videoPromises = vocabularyIds.map((id: string) =>
+              Learning.getDetailVocabularyById(id)
+                .then((vocab) => vocab?.vocabularyVideoResList?.[0]?.videoLocation || "")
+                .catch(() => "")
+            );
+            const videos = await Promise.all(videoPromises);
+            setSampleVideos(videos);
+          }
         } else {
           setPracticeQuestions([]);
           setVideoList([]);
@@ -55,7 +73,7 @@ const QuestionsPractice: React.FC = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, [examId]);
+  }, [examId, isReview]);
 
   const handleStartRecording = () => {
     setIsRecording(true);
@@ -190,55 +208,84 @@ const QuestionsPractice: React.FC = () => {
         </div>
 
         <div className="w-2/3 bg-white p-6 rounded-md flex flex-col items-center">
-          <h3 className="text-lg font-bold mb-4">Biểu diễn ngôn ngữ ký hiệu</h3>
-          {/* Thêm chọn thời gian quay */}
-          <div className="mb-4 flex items-center gap-4">
-            <span>Chọn thời gian quay:</span>
-            <Select
-              value={recordDuration}
-              style={{ width: 100 }}
-              onChange={setRecordDuration}
-              disabled={isRecording}
-              options={[
-                { value: 3, label: "3 giây" },
-                { value: 4, label: "4 giây" },
-                { value: 5, label: "5 giây" },
-              ]}
-            />
-          </div>
-          <Webcam
-            ref={webcamRef}
-            audio={false}
-            className="w-full"
-            style={{ width: "100%", maxWidth: 900, height: 520, background: "#000", borderRadius: 18, objectFit: "cover", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}
-            videoConstraints={{ width: 1280, height: 720, facingMode: "user" }}
-          />
-          <div className="flex justify-between w-full mt-8 gap-4">
-            <Button type="primary" onClick={handleStartRecording} disabled={isRecording} style={{ minWidth: 140, fontWeight: 600, fontSize: 16 }}>
-              Bắt đầu quay
-            </Button>
-            <Button type="default" onClick={handleStopRecording} disabled={!isRecording} style={{ minWidth: 140, fontWeight: 600, fontSize: 16 }}>
-              Dừng quay
-            </Button>
-            <Button
-              type="dashed"
-              disabled={!videoList[currentWordIndex]}
-              onClick={() => setShowPreview({ open: true, url: videoList[currentWordIndex]?.previewUrl || "" })}
-              style={{ minWidth: 140, fontWeight: 600, fontSize: 16, border: "1.5px dashed #2f54eb", color: "#2f54eb" }}
-            >
-              Xem lại file
-            </Button>
-          </div>
-          <div className="flex justify-center w-full mt-10">
-            <Button
-              type="primary"
-              size="large"
-              onClick={handleSubmit}
-              style={{ minWidth: 200, fontWeight: 700, fontSize: 18, background: "#52c41a", border: "none" }}
-            >
-              Nộp bài
-            </Button>
-          </div>
+          <h3 className="text-lg font-bold mb-4">
+            {isReview ? "Video mẫu ngôn ngữ ký hiệu" : "Biểu diễn ngôn ngữ ký hiệu"}
+          </h3>
+          {isReview ? (
+            // Hiển thị video mẫu
+            sampleVideos[currentWordIndex] ? (
+              <video
+                controls
+                src={sampleVideos[currentWordIndex]}
+                style={{
+                  width: "100%",
+                  maxWidth: 900,
+                  height: 520,
+                  background: "#000",
+                  borderRadius: 18,
+                  objectFit: "cover",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+                }}
+              />
+            ) : (
+              <div>Không có video mẫu cho từ này.</div>
+            )
+          ) : (
+            // Hiển thị webcam như cũ
+            <>
+              {/* Thêm chọn thời gian quay */}
+              <div className="mb-4 flex items-center gap-4">
+                <span>Chọn thời gian quay:</span>
+                <Select
+                  value={recordDuration}
+                  style={{ width: 100 }}
+                  onChange={setRecordDuration}
+                  disabled={isRecording}
+                  options={[
+                    { value: 3, label: "3 giây" },
+                    { value: 4, label: "4 giây" },
+                    { value: 5, label: "5 giây" },
+                  ]}
+                />
+              </div>
+              <Webcam
+                ref={webcamRef}
+                audio={false}
+                className="w-full"
+                style={{ width: "100%", maxWidth: 900, height: 520, background: "#000", borderRadius: 18, objectFit: "cover", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}
+                videoConstraints={{ width: 1280, height: 720, facingMode: "user" }}
+              />
+              <div className="flex justify-between w-full mt-8 gap-4">
+                <Button type="primary" onClick={handleStartRecording} disabled={isRecording} style={{ minWidth: 140, fontWeight: 600, fontSize: 16 }}>
+                  Bắt đầu quay
+                </Button>
+                <Button type="default" onClick={handleStopRecording} disabled={!isRecording} style={{ minWidth: 140, fontWeight: 600, fontSize: 16 }}>
+                  Dừng quay
+                </Button>
+                <Button
+                  type="dashed"
+                  disabled={!videoList[currentWordIndex]}
+                  onClick={() => setShowPreview({ open: true, url: videoList[currentWordIndex]?.previewUrl || "" })}
+                  style={{ minWidth: 140, fontWeight: 600, fontSize: 16, border: "1.5px dashed #2f54eb", color: "#2f54eb" }}
+                >
+                  Xem lại file
+                </Button>
+              </div>
+            </>
+          )}
+          {/* Nút nộp bài chỉ hiển thị khi không phải review */}
+          {!isReview && (
+            <div className="flex justify-center w-full mt-10">
+              <Button
+                type="primary"
+                size="large"
+                onClick={handleSubmit}
+                style={{ minWidth: 200, fontWeight: 700, fontSize: 18, background: "#52c41a", border: "none" }}
+              >
+                Nộp bài
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 

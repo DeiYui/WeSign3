@@ -1,7 +1,7 @@
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Metadata } from "next";
 import React from "react";
-import GradeTest from ".././GradeTest";
+import GradeTest from "@/components/Grading-Test/GradeTest";
 
 export const metadata: Metadata = {
   title: "Exam - We_sign",

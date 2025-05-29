@@ -101,7 +101,7 @@ export const MenuSystem = () => {
       label: "Kiểm tra",
       path: "/exam",
       icon: <ExamIcon color="white" size={20} />,
-      hidden: !token && !admin,
+      hidden: (!token && !admin) || admin?.role === "TEACHER",
     },
     {
       key: "/teacher-scoring-test",
@@ -123,7 +123,7 @@ export const MenuSystem = () => {
       label: "Tiến độ học tập",
       path: "/learning-progress",
       icon: <BarChartOutlined />,
-      hidden: false,
+      hidden: admin?.role === "TEACHER",
     },
     
     {

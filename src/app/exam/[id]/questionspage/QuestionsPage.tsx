@@ -160,15 +160,10 @@ export default function QuestionsPage() {
             </p>
           </div>
         ),
-        okText: "Xem kết quả",
+        okText: "Quay về",
         onOk: () => {
-          setShowResults(true);
-          router.push(`/exam/${id}?review=true`);
-        },
-        cancelText: "Quay lại danh sách",
-        onCancel: () => {
           router.push("/exam");
-        }
+        },
       });
     } catch (error) {
       message.error("Vui lòng hoàn thành tất cả câu hỏi trước khi nộp bài.");
