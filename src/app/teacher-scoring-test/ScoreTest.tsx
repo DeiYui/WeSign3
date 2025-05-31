@@ -17,7 +17,8 @@ const ScoreTest: React.FC = () => {
     classRoomId: 0,
     nameSearch: "",
     isPrivate: "false",
-    examType: "practice", // chỉ lấy bài kiểm tra thực hành
+    examType: "practice", 
+    isFinished: "", 
   });
 
   // Lấy danh sách lớp
@@ -32,7 +33,7 @@ const ScoreTest: React.FC = () => {
     },
   });
 
-  // Lấy danh sách bài kiểm tra thực hành (giống ExamListPage)
+  // Lấy danh sách bài kiểm tra thực hành 
   const fetchExams = React.useCallback(async () => {
     try {
       setLoading(true);

@@ -419,7 +419,7 @@ const PartList = ({ isPrivate }: any) => {
         columns={columns as any}
         dataSource={allPartsSearch}
         loading={isLoading}
-        rowKey={(record) => record.partId}
+        rowKey={(record: any) => record.partId} // Sửa ở đây: thêm (record: any)
         pagination={{
           pageSize: pageSize,
           current: currentPage,

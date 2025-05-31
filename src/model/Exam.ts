@@ -119,6 +119,11 @@ class Exam extends Base {
   const res = await this.apiPostWithoutPrefixNode(`/exam/submit-practice`, body);
   return res.data;
   };
+
+  resetPracticeExam = async (examId: number, body: any) => {
+    const res = await this.apiPut(`/practice-exam/reset/${examId}`, body);
+    return res.data;
+  };
 }
 
 export default new Exam("learning-service");

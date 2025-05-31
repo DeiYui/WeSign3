@@ -32,6 +32,8 @@ interface Answer {
   imageLocation: string;
   videoLocation: string;
   correct: boolean;
+  fileType?: string; // Thêm dòng này
+  file?: string; // Thêm dòng này
 }
 
 interface Question {
@@ -43,6 +45,7 @@ interface Question {
   answerReqs: Answer[];
   type?: string;
   file?: string;
+  typeFile?: string; // Thêm dòng này
 }
 const { Panel } = Collapse;
 
@@ -362,8 +365,8 @@ const QuestionCreate: React.FC = () => {
                               onChange={(value) => {
                                 const updatedAnswers = [...question.answerReqs];
                                 updatedAnswers[answerIndex].fileType = value;
-                                updatedAnswers[answerIndex].file = null; // Reset file khi thay đổi kiểu
-                                updatedAnswers[answerIndex].content = value === "TEXT" ? "" : null; // Reset content nếu không phải nhập chữ
+                                updatedAnswers[answerIndex].file = undefined;
+                                updatedAnswers[answerIndex].content = ""; // Sửa ở đây
                                 handleQuestionChange(index, "answerReqs", updatedAnswers);
                               }}>
                               <Select.Option value="TEXT">Nhập chữ</Select.Option>

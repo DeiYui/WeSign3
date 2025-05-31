@@ -6,12 +6,13 @@ import { isFunction } from "lodash";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 
-interface MediaUploadProps {
+export interface MediaUploadProps {
   value?: any[];
   onChange?: (value: any) => void;
   limit?: number;
   uploadWidth?: number;
   uploadHeight?: number;
+  onUpload?: (file: string) => void;
 }
 
 const uploadButton = (uploadWidth?: number, uploadHeight?: number) => (
@@ -30,11 +31,12 @@ const uploadButton = (uploadWidth?: number, uploadHeight?: number) => (
 
 const ITEM_DISPLAY = 1;
 
-export const MediaUpload: FC<MediaUploadProps> = ({
+const MediaUpload: FC<MediaUploadProps> = ({
   value,
   onChange,
   uploadWidth = 100,
   uploadHeight = 100,
+  onUpload,
 }) => {
   const [mediaList, setMediaList] = useState<any[]>([]);
 
@@ -109,6 +111,14 @@ export const MediaUpload: FC<MediaUploadProps> = ({
     [],
   );
 
+  const handleChange = (info: any) => {
+    if (info.file.status === "done") {
+      // Lấy url file đã upload
+      const fileUrl = info.file.response?.url || info.file.thumbUrl;
+      if (onUpload) onUpload(fileUrl);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-wrap items-center gap-4">
@@ -163,6 +173,7 @@ export const MediaUpload: FC<MediaUploadProps> = ({
               showUploadList={false}
               customRequest={handleUpload as any}
               onRemove={handleRemove}
+              onChange={handleChange}
             >
               {uploadButton(uploadWidth, uploadHeight)}
             </Upload>
@@ -224,3 +235,6 @@ const CustomUpload = styled.div<{
     }
   }
 `;
+
+export default MediaUpload;
+export { MediaUpload };

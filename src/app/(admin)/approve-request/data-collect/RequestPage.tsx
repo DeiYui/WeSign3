@@ -23,7 +23,7 @@ import moment from "moment";
 import { validateRequire } from "@/utils/validation/validtor";
 import { useForm } from "antd/es/form/Form";
 import { CustomDiv, CustomDivPopper } from "@/app/collect-data/CollectData";
-import { CustomTable } from "@/app/exam/ExamListPage";
+import  CustomTable  from "@/app/exam/ExamListPage";
 
 interface ContactItem {
   id: number;

@@ -1,22 +1,28 @@
-FROM node:20-alpine
-
-# Set working directory
+# Stage 1: Build
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy package.json and yarn.lock first for caching dependencies
-COPY yarn.lock package.json ./
-
-# Install dependencies
+COPY package.json yarn.lock ./
 RUN yarn install
 
-# Copy the rest of the application files
 COPY . .
-
-# Build the application
 RUN yarn build
+
+# Stage 2: Run (production image)
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Copy build output từ builder
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
 
-# Set the command to run the application
-CMD ["yarn", "dev"]
+# Chạy ở production
+CMD ["yarn", "start"]
+
 

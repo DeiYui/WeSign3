@@ -489,7 +489,7 @@ const VocabularyList = ({ isPrivate }: any) => {
         columns={columns as any}
         dataSource={allVocabulary}
         loading={isLoading}
-        rowKey={(record) => record.vocabularyId}
+        rowKey={(record: any) => record.vocabularyId} // Sửa ở đây: thêm (record: any)
         // scroll={{ x: 600 }}
         pagination={{
           pageSize: pageSize,
