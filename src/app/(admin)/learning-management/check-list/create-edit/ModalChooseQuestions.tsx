@@ -23,6 +23,7 @@ interface Answer {
   id: number;
   content: string;
   correct: boolean;
+  videoLocation?: string,
 }
 
 interface Question {
@@ -106,7 +107,6 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
     },
     enabled: open && !!classRoomId,
   });
-
   // Cập nhật dánh sách lựa chọn
   useEffect(() => {
     if (questionIds && open) {
@@ -125,10 +125,11 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
   }, [open, number, lstQuestion, questionIds]);
 
   const handleViewImage = (record: any) => {
+    console.log("Selected answer to view:", record);
     setPreview({
       open: true,
-      file: record?.imageLocation,
-      fileVideo: record?.videoLocation,
+      file: record?.imageLocation || " ",
+      fileVideo: record?.videoLocation || " ",
     });
   };
 
@@ -144,56 +145,98 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
       title: "Hình ảnh/Video",
       dataIndex: "imageLocation",
       key: "imageLocation",
-      render: (imageLocation: string, record: any) => (
-        <div>
-          <Button onClick={() => handleViewImage(record)}>Xem</Button>
-        </div>
-      ),
+render: (_: any, record: any) => {
+  const fileType = record.fileType;
+  const isText = fileType === "TEXT";
+
+  // Nếu là TEXT thì lấy video từ đáp án đúng
+  const correctAnswer = record.answerResList?.find(
+    (a: any) => a.correct && a.videoLocation
+  );
+
+  const hasImageOrVideo =
+    (!isText && record.videoLocation) ||
+    (isText && correctAnswer?.videoLocation);
+
+  if (!hasImageOrVideo) return null;
+
+  return (
+    <Button
+      onClick={() =>
+        handleViewImage({
+          ...record,
+          fileVideo: isText
+            ? correctAnswer?.videoLocation
+            : record.videoLocation,
+          file: record.imageLocation,
+        })
+      }
+    >
+      Xem
+    </Button>
+  );
+},
       width: 140,
     },
     {
       title: "Đáp án đúng",
       dataIndex: "answerResList",
       key: "answerResList",
-      render: (answerResList: Answer[]) => {
-        const answersCorrect = answerResList?.filter(
-          (answer) => answer.correct,
-        );
-        return (
+      render: (_: any, record: any) => {
+  const isText = record.fileType === "TEXT";
+  const answersCorrect = record.answerResList?.filter((a: any) => a.correct) || [];
+
+  if (isText) {
+    return answersCorrect.map((answer: any, index: number) => (
+      <Button
+        key={index}
+        onClick={() =>
+          handleViewImage({
+            file: "",
+            fileVideo: answer.videoLocation,
+          })
+        }
+        className="m-1"
+      >
+        Xem
+      </Button>
+    ));
+  }
+
+  return (
+    <>
+      {answersCorrect?.slice(0, 3)?.map((answer: any, index: number) => (
+        <Tag key={index} className="bg-green-500">
+          <div className="p-1 text-sm font-bold text-white">
+            {answer.content}
+          </div>
+        </Tag>
+      ))}
+      <Popover
+        content={
           <>
-            {answersCorrect?.slice(0, 3)?.map((answer, index) => (
-              <Tag key={index} className="bg-green-500">
-                <div className="p-1 text-sm font-bold text-white">
-                  {answer.content}
-                </div>
-              </Tag>
-            ))}
-            <Popover
-              content={
-                <>
-                  {answersCorrect
-                    ?.slice(3, answersCorrect?.length)
-                    ?.map((answer, index) => (
-                      <Tag key={index} className="bg-green-500">
-                        <div className="p-1 text-sm font-bold text-white">
-                          {answer.content}
-                        </div>
-                      </Tag>
-                    ))}
-                </>
-              }
-            >
-              {answersCorrect.length > 3 && (
-                <Tag className="bg-green-500">
-                  <div className="p-1 text-sm font-bold text-white">...</div>
+            {answersCorrect
+              ?.slice(3)
+              ?.map((answer: any, index: number) => (
+                <Tag key={index} className="bg-green-500">
+                  <div className="p-1 text-sm font-bold text-white">
+                    {answer.content}
+                  </div>
                 </Tag>
-              )}
-            </Popover>
+              ))}
           </>
-        );
-      },
-      width: 300,
-    },
+        }
+      >
+        {answersCorrect.length > 3 && (
+          <Tag className="bg-green-500">
+            <div className="p-1 text-sm font-bold text-white">...</div>
+          </Tag>
+        )}
+      </Popover>
+    </>
+  );
+      }
+},
   ];
 
   // hàm toggle đóng mở 1 hàng

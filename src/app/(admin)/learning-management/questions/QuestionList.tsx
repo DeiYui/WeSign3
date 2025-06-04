@@ -35,6 +35,7 @@ interface Answer {
   id: number;
   content: string;
   correct: boolean;
+  videoLocation?: string;
 }
 
 const QuestionList = () => {
@@ -58,8 +59,8 @@ const QuestionList = () => {
   // preview
   const [preview, setPreview] = useState<{
     open: boolean;
-    file: string;
-    fileVideo: string;
+    file?: string;
+    fileVideo?: string;
   }>({
     open: false,
     file: "",
@@ -95,7 +96,8 @@ const QuestionList = () => {
     queryKey: ["getQuestionTopic", filterParams],
     queryFn: async () => {
       const res = await Questions.getAllQuestion(filterParams);
-      return res.data;
+      console.log('ques', res)
+      return res.content;
     },
   });
 
@@ -152,8 +154,8 @@ const QuestionList = () => {
     },
     {
       title: "Lớp",
-      dataIndex: "classRoomContent",
-      key: "classRoomContent",
+      dataIndex:  "className",
+      key: "className",
     },
     {
       title: "Hình ảnh/Video",
@@ -167,50 +169,75 @@ const QuestionList = () => {
       width: 140,
     },
     {
-      title: "Đáp án đúng",
-      dataIndex: "answerResList",
-      key: "answerResList",
-      render: (answerResList: Answer[]) => {
-        const answersCorrect = answerResList?.filter(
-          (answer) => answer.correct,
-        );
-        return (
-          <>
-            {answersCorrect?.length &&
-              answersCorrect?.slice(0, 3)?.map((answer, index) => (
-                <Tag key={index} className="bg-green-500">
-                  <div className="p-1 text-sm font-bold text-white">
-                    {answer.content}
-                  </div>
-                </Tag>
-              ))}
-            <Popover
-              content={
-                <>
-                  {answersCorrect?.length &&
-                    answersCorrect
-                      ?.slice(3, answersCorrect?.length)
-                      ?.map((answer, index) => (
-                        <Tag key={index} className="bg-green-500">
-                          <div className="p-1 text-sm font-bold text-white">
-                            {answer.content}
-                          </div>
-                        </Tag>
-                      ))}
-                </>
-              }
-            >
-              {answersCorrect.length > 3 && (
-                <Tag className="bg-green-500">
-                  <div className="p-1 text-sm font-bold text-white">...</div>
-                </Tag>
-              )}
-            </Popover>
-          </>
-        );
-      },
-      width: 300,
-    },
+  title: "Đáp án đúng",
+  dataIndex: "answerResList",
+  key: "answerResList",
+  render: (answerResList: Answer[]) => {
+    const answersCorrect = answerResList?.filter((answer) => answer.correct);
+    return (
+      <>
+        {answersCorrect?.length &&
+          answersCorrect?.slice(0, 3)?.map((answer, index) => {
+            const showButton =
+              !answer.content &&
+              !!answer.videoLocation?.trim(); // content rỗng + có video
+
+            return (
+              <Tag key={index} className="bg-green-500">
+                <div className="p-1 text-sm font-bold text-white">
+                  {showButton ? (
+                    <Button
+                      size="small"
+                      onClick={() => handleViewImage(answer)}
+                    >
+                      Xem
+                    </Button>
+                  ) : (
+                    answer.content
+                  )}
+                </div>
+              </Tag>
+            );
+          })}
+
+        {/* Nếu có >3 đáp án đúng thì phần còn lại hiển thị trong Popover */}
+        <Popover
+          content={
+            <>
+              {answersCorrect?.slice(3)?.map((answer, index) => {
+                const showButton =
+                  !answer.content && !!answer.videoLocation?.trim();
+                return (
+                  <Tag key={index} className="bg-green-500">
+                    <div className="p-1 text-sm font-bold text-white">
+                      {showButton ? (
+                        <Button
+                          size="small"
+                          onClick={() => handleViewImage(answer)}
+                        >
+                          Xem
+                        </Button>
+                      ) : (
+                        answer.content
+                      )}
+                    </div>
+                  </Tag>
+                );
+              })}
+            </>
+          }
+        >
+          {answersCorrect.length > 3 && (
+            <Tag className="bg-green-500">
+              <div className="p-1 text-sm font-bold text-white">...</div>
+            </Tag>
+          )}
+        </Popover>
+      </>
+    );
+  },
+  width: 300,
+},
     {
       fixed: "right",
       dataIndex: "questionId",

@@ -276,6 +276,7 @@ const CreateAndEditExamPage: React.FC = () => {
               questionIds: value.questionIds,
               classRoomId: value.classRoomId,
               isPrivate: isPrivate,
+              numberOfQuestions: value.numQuestions
             };
             if (id) {
               editExamMutation.mutate(reqAdd);

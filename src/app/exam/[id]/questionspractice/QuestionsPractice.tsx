@@ -53,10 +53,11 @@ const QuestionsPractice: React.FC = () => {
           setPracticeQuestions(res.data);
           setVideoList(new Array(res.data.length).fill(null));
           if (isReview) {
-            const vocabularyIds = res.data.map((q: any) => q.vocabularyId);
-            const videoPromises = vocabularyIds.map((id: string) =>
-              Learning.getDetailVocabularyById(id)
-                .then((vocab) => vocab?.vocabularyVideoResList?.[0]?.videoLocation || "")
+            // const vocabularyIds = res.data.map((q: any) => q.vocabularyId);
+            const vocabularyIds: number[] = res.data.map((q: any) => q.vocabularyId);
+            const videoPromises = vocabularyIds.map((id) =>
+              Learning.getDetailVocabularyById(String(id))
+                .then((vocab) => vocab?.data?.vocabularyVideoResList?.[0]?.videoLocation || "")
                 .catch(() => "")
             );
             const videos = await Promise.all(videoPromises);

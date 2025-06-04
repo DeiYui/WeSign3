@@ -4,7 +4,7 @@ import { Base } from "./Base";
 class Questions extends Base {
   // Danh sách câu hỏi
   getAllQuestion = async (params: any) => {
-    const res = await this.apiGet(`/questions/all`, params);
+    const res = await this.apiGetWithoutPrefixNode(`/question/all`, params);
     return res.data;
   };
 
@@ -27,7 +27,7 @@ class Questions extends Base {
   };
 
   getLstQuestionClass = async (classRoomId?: any) => {
-    const res = await this.apiGet(`/questions/${classRoomId}`);
+    const res = await this.apiGetWithoutPrefixNode(`/question/class/${classRoomId}`);
     return res.data;
   };
 
@@ -38,8 +38,8 @@ class Questions extends Base {
   };
 
   // Tạo câu hỏi
-  addQuestion = async (body?: any) => {
-    const res = await this.apiPost(`/questions/add-list`, body);
+    addQuestionForExam = async (body?: any) => {
+    const res = await this.apiPostWithoutPrefixNode(`/question/add-list`, body);
     return res.data;
   };
 
@@ -51,13 +51,14 @@ class Questions extends Base {
 
   // Xoá câu bỏi
   deleteQuestion = async (body?: any) => {
-    const res = await this.apiDeleteBody(`/questions/delete-list`, body);
+    const res = await this.apiPutWithoutPrefixNode(`/question/delete-list`, body);
+    console.log('des', res)
     return res.data;
   };
 
   // Dánh sách câu hỏi theo bài kiểm tra
   getLstQuestionExam = async (id?: any) => {
-    const res = await this.apiGet(`/questions/question-of-exam/${id}`);
+    const res = await this.apiGetWithoutPrefixNode(`/question/question-of-exam/${id}`);
     return res.data;
   };
 

@@ -47,10 +47,18 @@ const DashboardApp: React.FC = () => {
   });
 
   // API lấy danh sách  bài kiểm tra
-  const { total, refetch } = usePage(["getLstExam"], Exam.getLstExam, {
-    classRoomId: 0,
-    nameSearch: "",
-  });
+  // const { total, refetch } = usePage(["getLstExam"], Exam.getLstExam, {
+  //   classRoomId: 0,
+  //   nameSearch: "",
+  // });
+  const { data: examData, isFetching: isFetchingExam } = useQuery({
+  queryKey: ["getLstExam"],
+  queryFn: async () => {
+    const res = await Exam.getLstExam({ classRoomId: 0, nameSearch: "" });
+    return res?.data;
+  },
+});
+
 
   // Danh sách topic
   const { data: allTopics, isFetching: isFetchingTopic } = useQuery({
@@ -104,7 +112,7 @@ const DashboardApp: React.FC = () => {
         <CardDataStats title="Từ vựng" total={`${totalVocabulary}`}>
           <AlphabetIcon size={24} color="#3C50E0" />
         </CardDataStats>
-        <CardDataStats title="Bài kiểm tra" total={`${total}`}>
+        <CardDataStats title="Bài kiểm tra" total={`${examData?.meta?.itemCount ?? 0}`}>
           <ExamIcon size={24} color="#3C50E0" />
         </CardDataStats>
       </div>

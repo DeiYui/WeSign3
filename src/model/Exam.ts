@@ -34,7 +34,7 @@ class Exam extends Base {
 
   // Thêm bài kiểm tra
   addExam = async (body?: any) => {
-    const res = await this.apiPost(`/exams`, body);
+    const res = await this.apiPostWithoutPrefixNode(`/exam/add-exam`, body);
     return res.data;
   };
 
@@ -52,7 +52,7 @@ class Exam extends Base {
 
   // Chi tiết bài kiểm tra
   getDetailExam = async (id: number) => {
-    const res = await this.apiGet(`/exams/${id}`);
+    const res = await this.apiGetWithoutPrefixNode(`/exam/detail-exam/${id}`);
     return res.data;
   };
 
@@ -121,7 +121,7 @@ class Exam extends Base {
   };
 
   resetPracticeExam = async (examId: number, body: any) => {
-    const res = await this.apiPut(`/practice-exam/reset/${examId}`, body);
+    const res = await this.apiPostWithoutPrefixNode(`/exam/practice-exam/reset/${examId}`, body);
     return res.data;
   };
 }

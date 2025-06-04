@@ -28,7 +28,7 @@ import React, { useState } from "react";
 import QuestionModal from "../../check-list/create-edit/ModalSelectFile";
 
 interface Answer {
-  content: string;
+  content?: string;
   imageLocation: string;
   videoLocation: string;
   correct: boolean;
@@ -59,18 +59,19 @@ const initAnswerValue = {
 // Convert form data to API request format
 function convertQuestions(input: any) {
   return input.questions.map((question: any) => ({
-    content: question.content,
+    content: question.content || "",
     explanation: "",
-    imageLocation: isImage(question.file) ? question.file : "",
+    imageLocation: isImage(question.file) ? question.file || "" : "",
     videoLocation: !isImage(question.file) ? question.file : "",
     classRoomId: input.classRoomId,
-    questionType: question.type,
-    fileType: question.typeFile,
+    questionType: question.type|| "ONE_ANSWER",
+    fileType: question.typeFile|| "TEXT",
     answerReqs: question.answerReqs.map((answer: any) => ({
-      content: answer.content,
-      imageLocation: "",
-      videoLocation: "",
+      content: answer.content || "", // Ensure content is always a string
+      imageLocation: isImage(answer.file) ? answer.file || "" : "", // Handle file uploads
+      videoLocation: !isImage(answer.file) && answer.file ? answer.file : "", // Handle video uploads
       correct: answer.correct,
+      fileType: answer.fileType || "TEXT", 
     })),
   }));
 }
@@ -85,7 +86,7 @@ const QuestionCreate: React.FC = () => {
   const questions: Question[] = Form.useWatch("questions", form);
 
   const [openChooseVideo, setOpenChooseVideo] = useState<boolean>(false);
-
+  const [openChooseAnswerVideo, setOpenChooseAnswerVideo] = useState<Record<string, boolean>>({});
   // Danh sách lớp
   const { data: allClass, isFetching: isFetchingClass } = useQuery({
     queryKey: ["getListClass"],
@@ -99,7 +100,7 @@ const QuestionCreate: React.FC = () => {
   });
 
   const mutationAdd = useMutation({
-    mutationFn: Questions.addQuestion,
+    mutationFn: Questions.addQuestionForExam,
     onSuccess: () => {
       message.success("Thêm mới câu hỏi thành công");
       router.push("/learning-management/questions");
@@ -152,7 +153,6 @@ const QuestionCreate: React.FC = () => {
         form={form}
         onFinish={(value) => {
           const newValue = convertQuestions(value);
-
           mutationAdd.mutate(newValue);
         }}
         layout="vertical"
@@ -213,7 +213,7 @@ const QuestionCreate: React.FC = () => {
                       { label: "Nhiều đáp án", value: "MULTIPLE_ANSWERS" },
                     ]}
                   />
-                </Form.Item>
+                </Form.Item>  
 
                 {/* Tên câu hỏi */}
                 <Form.Item
@@ -360,30 +360,82 @@ const QuestionCreate: React.FC = () => {
 
                             {/* Lựa chọn kiểu đáp án */}
                             <Select
-                              style={{ width: 150 }}
-                              value={question.answerReqs[answerIndex]?.fileType || "TEXT"}
-                              onChange={(value) => {
-                                const updatedAnswers = [...question.answerReqs];
-                                updatedAnswers[answerIndex].fileType = value;
-                                updatedAnswers[answerIndex].file = undefined;
-                                updatedAnswers[answerIndex].content = ""; // Sửa ở đây
-                                handleQuestionChange(index, "answerReqs", updatedAnswers);
-                              }}>
-                              <Select.Option value="TEXT">Nhập chữ</Select.Option>
-                              <Select.Option value="NOT_EXISTED">Tải lên</Select.Option>
+                              // style={{ width: 150 }}
+                              // value={question.answerReqs[answerIndex]?.fileType || "TEXT"}
+                              // onChange={(value) => {
+                              //   const updatedAnswers = [...question.answerReqs];
+                              //   updatedAnswers[answerIndex].fileType = value;
+                              //   updatedAnswers[answerIndex].file = undefined;
+                              //   // updatedAnswers[answerIndex].content = ""; // Sửa ở đây
+                              //   if (value === "TEXT") {
+                              //     updatedAnswers[answerIndex].content = updatedAnswers[answerIndex].content || "";
+                              //   } else {
+                              //     updatedAnswers[answerIndex].content = "";
+                              //   }
+                              //   handleQuestionChange(index, "answerReqs", updatedAnswers);
+                              // }}>
+                              // <Select.Option value="TEXT">Nhập chữ</Select.Option>
+                              // <Select.Option value="NOT_EXISTED">Tải lên</Select.Option>
+                                style={{ width: 150 }}
+                                value={question.answerReqs[answerIndex]?.fileType || "TEXT"}
+                                onChange={(value) => {
+                                  const updatedAnswers = [...question.answerReqs];
+                                  updatedAnswers[answerIndex].fileType = value;
+                                  updatedAnswers[answerIndex].file = undefined;
+                                  if (value === "TEXT") {
+                                    updatedAnswers[answerIndex].content = updatedAnswers[answerIndex].content || "";
+                                  } else {
+                                    updatedAnswers[answerIndex].content = "";
+                                  }
+                                  handleQuestionChange(index, "answerReqs", updatedAnswers);
+                                }}>
+                                <Select.Option value="TEXT">Nhập chữ</Select.Option>
+                                <Select.Option value="EXISTED">Chọn từ dữ liệu có sẵn</Select.Option>
+                                <Select.Option value="NOT_EXISTED">Tải lên mới</Select.Option>
                             </Select>
 
                             {/* Nhập đáp án bằng chữ */}
                             {question.answerReqs[answerIndex]?.fileType === "TEXT" && (
-                              <Form.Item
-                                {...field}
-                                name={[field.name, "content"]}
-                                className="mb-0 w-full"
-                                required
-                                rules={[validateRequireInput("Vui lòng nhập đáp án")]}>
-                                <Input placeholder="Nhập đáp án" style={{ width: 300 }} />
-                              </Form.Item>
-                            )}
+                                  <Form.Item
+                                    {...field}
+                                    name={[field.name, "content"]}
+                                    className="mb-0 w-full"
+                                    required
+                                    rules={[validateRequireInput("Vui lòng nhập đáp án")]}>
+                                    <Input placeholder="Nhập đáp án" style={{ width: 300 }} />
+                                  </Form.Item>
+                                )}
+
+                                                      {/* If select existing files */}
+                                  {question.answerReqs[answerIndex]?.fileType === "EXISTED" && (
+                                    <Form.Item
+                                      name={[field.name, "file"]}
+                                      className="mb-0"
+                                      required>
+                                      <QuestionModal
+                                        openChooseVideo={openChooseAnswerVideo[`${index}-${answerIndex}`] || false}
+                                        setOpenChooseVideo={(open: boolean) =>
+                                          setOpenChooseAnswerVideo((prev) => ({
+                                            ...prev,
+                                            [`${index}-${answerIndex}`]: open,
+                                          }))
+                                        }
+                                        file={question.answerReqs[answerIndex]?.file}
+                                      >
+                                        <div
+                                          onClick={() =>
+                                            setOpenChooseAnswerVideo((prev) => ({
+                                              ...prev,
+                                              [`${index}-${answerIndex}`]: true,
+                                            }))
+                                          }
+                                        >
+                                          <Button>Chọn file</Button>
+                                          {/* Remove the preview code from here since QuestionModal handles it */}
+                                        </div>
+                                      </QuestionModal>
+                                    </Form.Item>
+                                  )} 
 
                             {/* Nếu chọn tải lên */}
                             {question.answerReqs[answerIndex]?.fileType === "NOT_EXISTED" && (
@@ -473,3 +525,4 @@ const QuestionCreate: React.FC = () => {
 };
 
 export default QuestionCreate;
+
