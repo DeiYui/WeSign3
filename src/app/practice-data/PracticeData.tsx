@@ -374,12 +374,6 @@ const PracticeData: React.FC = () => {
       return;
     }
 
-    const videoDuration = await getVideoDuration(uploadedVideo);
-    if (videoDuration > 5) {
-      message.error("Video phải có thời lượng tối đa 5 giây.");
-      return;
-    }
-
     try {
       setUploadLoading(true); // Set loading state
       const formData = new FormData();
