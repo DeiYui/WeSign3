@@ -287,6 +287,18 @@ const QuestionsPractice: React.FC = () => {
               </Button>
             </div>
           )}
+          {isReview && (
+            <div className="flex justify-center mt-8">
+              <Button
+                type="primary"
+                size="large"
+                style={{ flex: 1, background: "#2f54eb", color: "#fff", fontWeight: 600, border: "1.5px solid #2f54eb" }}
+                onClick={() => router.push("/exam")}
+              >
+                Quay về danh sách bài kiểm tra
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 

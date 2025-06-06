@@ -158,15 +158,23 @@ const QuestionList = () => {
       key: "className",
     },
     {
-      title: "Hình ảnh/Video",
+      title: "Câu hỏi",
       dataIndex: "imageLocation",
-      key: "imageLocation",
-      render: (imageLocation: string, record: any) => (
-        <div>
-          <Button onClick={() => handleViewImage(record)}>Xem</Button>
-        </div>
-      ),
-      width: 140,
+      key: "questionContent",
+      render: (_: any, record: any) => {
+        // Nếu có ảnh hoặc video thì hiện nút Xem, không thì hiện content
+        if (record.imageLocation || record.videoLocation) {
+          return (
+            <Button onClick={() => handleViewImage(record)}>
+              Xem
+            </Button>
+          );
+        }
+        return (
+          <span className="font-semibold">{record.content}</span>
+        );
+      },
+      width: 200,
     },
     {
   title: "Đáp án đúng",
@@ -336,6 +344,7 @@ const QuestionList = () => {
 
         <Button
           type="primary"
+          style={{background: "#2f54eb"}}
           icon={<PlusOutlined />}
           onClick={() => {
             router.push("/learning-management/questions/add");

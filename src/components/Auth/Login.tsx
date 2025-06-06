@@ -48,7 +48,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="w-full p-4 sm:p-12.5 xl:p-17.5">
-      <h2 className="mb-9 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
+      <h2 className="mb-9 text-2xl font-bold text-black dark:text-white sm:text-title-xl2" >
         Đăng nhập
       </h2>
 
@@ -100,6 +100,7 @@ const Login: React.FC = () => {
             type="primary"
             htmlType="submit"
             className="w-full"
+            style={{background: "#2f54eb"}}
           >
             Đăng nhập
           </Button>

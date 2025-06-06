@@ -196,6 +196,7 @@ const ExamListPage = ({ isPrivate }: any) => {
         {/* <Button type="primary">Thêm user vào bài kiểm tra</Button> */}
         <Button
           type="primary"
+          style={{background: "#2f54eb"}}
           onClick={() =>
             router.push(
               `/learning-management/check-list/create-edit/?isPrivate=${isPrivate}`,

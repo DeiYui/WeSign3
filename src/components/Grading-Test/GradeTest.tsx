@@ -159,7 +159,7 @@ const GradingTest: React.FC = () => {
           bordered
         />
         <div className="flex justify-end mt-4">
-          <Button type="primary" onClick={handleSaveGrading}>
+          <Button type="primary" onClick={handleSaveGrading} style={{background: "#2f54eb"}}>
             Lưu kết quả chấm điểm
           </Button>
         </div>

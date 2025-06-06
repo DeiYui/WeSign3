@@ -86,6 +86,9 @@ const ExamListPage: React.FC = () => {
       content: "Bạn có chắc chắn muốn làm lại bài kiểm tra này không?",
       okText: "Đồng ý",
       cancelText: "Hủy",
+      okButtonProps: {
+      style: { backgroundColor: "#2f54eb", borderColor: "#2f54eb", color: "#fff" },
+      },
       onOk: async () => {
         try {
           if (examType === "practice") {

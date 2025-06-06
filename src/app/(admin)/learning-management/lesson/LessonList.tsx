@@ -339,6 +339,7 @@ const LessonList = (props: any) => {
 
         <Button
           type="primary"
+          style={{background: "#2f54eb"}}
           icon={<PlusOutlined />}
           onClick={() => {
             setModalCreate({

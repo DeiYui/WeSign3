@@ -360,6 +360,7 @@ const StudentList: React.FC = () => {
         <Button
           hidden={!(user?.role === "ADMIN" || user?.role === "TEACHER")}
           type="primary"
+          style={{background: "#2f54eb"}}
           icon={<PlusOutlined />}
           onClick={() => {
             setModalCreate({ ...modalCreate, open: true, typeModal: "create" });
