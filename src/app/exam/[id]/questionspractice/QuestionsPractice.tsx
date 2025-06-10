@@ -148,22 +148,42 @@ const QuestionsPractice: React.FC = () => {
       formData.append("examId", String(examId));
       formData.append("userId", String(user.userId));
 
-      videoList.forEach((item, index) => {
+      videoList.forEach((item, index) => { 
         if (item?.file) {
           const now = new Date();
-          const timestamp = now
-            .toISOString()
-            .replace(/[-:.]/g, "")
-            .replace("T", "_")
-            .slice(0, 8);
 
-          const fileName = `exam-${examId}-user-${user.userId}-question-${index + 1}-${timestamp}.webm`;
+          // ISO-like timestamp without symbols: 20250610_062955716Z
+          const isoPart = now
+            .toISOString()
+            .replace(/[-:.]/g, "") // remove hyphens, colons, and dots
+            .replace("T", "_")     // replace 'T' with underscore
+            .replace("Z", "Z");    // keep Z at the end
+
+          // Milliseconds timestamp: 1749536994495
+          const msPart = now.getTime();
+
+          const timestamp = `${isoPart}_${msPart}`; // full timestamp
+
+          const fileName = `exam-${examId}-user-${user.userId}-question-${index + 1}-vocabulary-${practiceQuestions[index]?.vocabularyId}-${timestamp}.webm`;
+
           const file = new File([item.file], fileName, { type: item.file.type });
           formData.append("videos", file);
         }
       });
 
+
       await Exam.submitPracticeVideos(formData);
+      for (const pair of formData.entries()) {
+          if (pair[1] instanceof File) {
+            console.log(`🟦 ${pair[0]}:`, {
+              name: pair[1].name,
+              type: pair[1].type,
+              size: pair[1].size,
+            });
+          } else {
+            console.log(`🟨 ${pair[0]}: ${pair[1]}`);
+          }
+        }
       message.success("Nộp bài thành công!");
       router.push("/exam");
     } catch (err) {
@@ -284,6 +304,18 @@ const QuestionsPractice: React.FC = () => {
                 style={{ minWidth: 200, fontWeight: 700, fontSize: 18, background: "#52c41a", border: "none" }}
               >
                 Nộp bài
+              </Button>
+            </div>
+          )}
+          {isReview && (
+            <div className="flex justify-center mt-8">
+              <Button
+                type="primary"
+                size="large"
+                style={{ flex: 1, background: "#2f54eb", color: "#fff", fontWeight: 600, border: "1.5px solid #2f54eb" }}
+                onClick={() => router.push("/exam")}
+              >
+                Quay về danh sách bài kiểm tra
               </Button>
             </div>
           )}

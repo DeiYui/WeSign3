@@ -24,11 +24,6 @@ interface FilterParams {
   status: number;
 }
 
-const exams: Exam[] = [
-  { key: "1", name: "Bài kiểm tra 1", questionCount: 10, status: 1 },
-  { key: "2", name: "Bài kiểm tra 2", questionCount: 15, status: 0 },
-];
-
 const optionStatus = [
   {
     label: "Đã hoàn thành",
@@ -46,27 +41,44 @@ const optionStatus = [
 
 const ExamListPage = ({ isPrivate }: any) => {
   const router = useRouter();
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [searchText, setSearchText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
-  // xử lý khi hover vào row
-  const [filterParams, setFilterParams] = useState<{
-    classRoomId: number | string;
-    nameSearch: string;
-    isPrivate: string;
-  }>({
+  const [filterParams, setFilterParams] = useState({
     classRoomId: 0,
     nameSearch: "",
+    examType: "",
+    isFinished: "",
     isPrivate: `${isPrivate}`,
   });
 
   // API lấy danh sách  bài kiểm tra
-  const { page, pageSize, content, isFetching, pagination, refetch } = usePage(
-    ["getLstExam", filterParams],
-    Exam.getLstExam,
-    {
-      ...filterParams,
-      pageSize: 10, // Đảm bảo pageSize luôn là 10
-    }
-  );
+  const { isFetching, refetch } = useQuery({
+    queryKey: ["getExamList", filterParams, searchText, currentPage, ],
+    queryFn: async () => {
+      const res = await Exam.getLstExam({ 
+        name: filterParams.nameSearch,
+        classRoomId: filterParams.classRoomId || undefined,
+        examType: filterParams.examType || undefined,
+        page: currentPage - 1,
+        take: pageSize,
+        orderBy: "examId",
+        sortBy: "DESC",
+      });
+      setTotal(res.data.meta.itemCount);
+      const mapped = res.data.content.map((item: any) => ({
+        examId: item.examId,
+        name: item.examName,
+        status: item.isPrivate
+
+      }));
+      setExams(mapped);
+      return mapped;
+    },
+  });
 
   // API lấy danh sách  topics
   const { data: allTopics } = useQuery({
@@ -106,18 +118,22 @@ const ExamListPage = ({ isPrivate }: any) => {
     },
   });
 
+    const handleTableChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   const columns = [
     {
       title: "STT",
       dataIndex: "stt",
       render: (value: any, record: any, index: number) =>
-        (page - 1) * pageSize + index + 1,
+        (currentPage - 1) * pageSize + index + 1,
       width: 80,
     },
     {
       title: "Tên bài kiểm tra",
-      dataIndex: "examName",
-      key: "examName",
+      dataIndex: "name",
+      key: "name",
     },
     {
       title: "Số câu hỏi",
@@ -186,6 +202,7 @@ const ExamListPage = ({ isPrivate }: any) => {
           onChange={(value, option: any) => {
             if (value) {
               setFilterParams({ ...filterParams, classRoomId: value });
+              setCurrentPage(1);
             } else {
               setFilterParams({ ...filterParams, classRoomId: 0 });
             }
@@ -196,6 +213,7 @@ const ExamListPage = ({ isPrivate }: any) => {
         {/* <Button type="primary">Thêm user vào bài kiểm tra</Button> */}
         <Button
           type="primary"
+          style={{background: "#2f54eb"}}
           onClick={() =>
             router.push(
               `/learning-management/check-list/create-edit/?isPrivate=${isPrivate}`,
@@ -206,14 +224,16 @@ const ExamListPage = ({ isPrivate }: any) => {
         </Button>
       </div>
       <CustomTable
-        dataSource={content}
         columns={columns as any}
-        scroll={{ x: 1100, y: 440 }}
+        dataSource={exams}
         loading={isFetching}
         pagination={{
-          ...pagination,
-          pageSize: 10, // Đảm bảo luôn là 10
+          pageSize: pageSize,
+          current: currentPage,
+          total: total,
+          onChange: handleTableChange,
           showSizeChanger: false,
+          position: ["bottomCenter"],
         }}
         rowKey="examId"
       />

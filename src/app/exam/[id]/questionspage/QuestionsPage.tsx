@@ -231,7 +231,10 @@ export default function QuestionsPage() {
             </p>
           </div>
         ),
-        okText: "Quay về",
+        okText : "Quay về",
+        okButtonProps: {
+        style: { backgroundColor: "#2f54eb", borderColor: "#2f54eb", color: "#fff" },
+        },
         onOk: () => {
           router.push("/exam");
         },
@@ -269,74 +272,117 @@ export default function QuestionsPage() {
         <Skeleton loading={!currentQuestion} active>
           {currentQuestion && (
             <Card
-              title={`Câu ${currentPage}: ${currentQuestion.content}`}
+              title={
+                <div style={{ textAlign: "center", fontSize: 24, fontWeight: 700, margin: "24px 0" }}>
+                  Câu {currentPage}: {currentQuestion.content}
+                </div>
+              }
               className="mb-6"
             >
-              {currentQuestion.videoLocation && (
-                <video width="100%" controls className="mb-4">
-                  <source src={currentQuestion.videoLocation} type="video/mp4" />
-                  Trình duyệt không hỗ trợ video.
-                </video>
-              )}
-
-              {currentQuestion.imageLocation && (
-                <img
-                  src={currentQuestion.imageLocation}
-                  alt="Question Media"
-                  className="mb-4 w-full max-w-md"
-                />
+              {/* Căn giữa media */}
+              {(currentQuestion.videoLocation || currentQuestion.imageLocation) && (
+                <div className="flex justify-center mb-4">
+                  {currentQuestion.videoLocation && (
+                    <video width="100%" style={{ maxWidth: 500 }} controls>
+                      <source src={currentQuestion.videoLocation} type="video/mp4" />
+                      Trình duyệt không hỗ trợ video.
+                    </video>
+                  )}
+                  {currentQuestion.imageLocation && (
+                    <img
+                      src={currentQuestion.imageLocation}
+                      alt="Question Media"
+                      style={{ maxWidth: 400, width: "100%" }}
+                    />
+                  )}
+                </div>
               )}
 
               <Form.Item name={["answerList", currentPage - 1, "answerId"]}>
                 {currentQuestion.questionType === "MULTIPLE_ANSWERS" ? (
-                  <Checkbox.Group
-                    disabled={isCompleted || showResults}
-                    onChange={(value) => {
-                      const correct = currentQuestion.answerResList
-                        .filter((item: any) => value.includes(item.answerId))
-                        .every((item: { correct: any; }) => item.correct);
-                      form.setFieldValue(["answer", currentPage - 1], correct);
-                    }}
-                  >
-                    {currentQuestion.answerResList.map((answer: any) => (
-                      <div 
-                        key={answer.answerId} 
-                        className={`p-2 ${
-                          showResults && answer.correct 
-                            ? "bg-green-50 border border-green-200 rounded mb-2" 
-                            : "mb-2"
-                        }`}
+                  <div className="flex justify-center">
+                    <Checkbox.Group
+                      disabled={isCompleted || showResults}
+                      onChange={(value) => {
+                        const correct = currentQuestion.answerResList
+                          .filter((item: any) => value.includes(item.answerId))
+                          .every((item: { correct: any; }) => item.correct);
+                        form.setFieldValue(["answer", currentPage - 1], correct);
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: 16,
+                          maxWidth: 600,
+                        }}
                       >
-                        <Checkbox value={answer.answerId}>
-                          {renderAnswerContent(answer)}
-                        </Checkbox>
+                        {currentQuestion.answerResList.map((answer: any) => (
+                          <div
+                            key={answer.answerId}
+                            className={`p-3 flex items-center ${
+                              showResults && answer.correct
+                                ? "bg-green-50 border border-green-200 rounded"
+                                : ""
+                            }`}
+                            style={{
+                              minHeight: 56,
+                              background: "#f9f9f9",
+                              borderRadius: 8,
+                              border: "1px solid #e5e7eb",
+                            }}
+                          >
+                            <Checkbox value={answer.answerId} style={{ width: "100%" }}>
+                              {renderAnswerContent(answer)}
+                            </Checkbox>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </Checkbox.Group>
+                    </Checkbox.Group>
+                  </div>
                 ) : (
-                  <Radio.Group disabled={isCompleted || showResults}>
-                    {currentQuestion.answerResList.map((answer: any) => (
-                      <div 
-                        key={answer.answerId} 
-                        className={`p-2 ${
-                          showResults && answer.correct 
-                            ? "bg-green-50 border border-green-200 rounded mb-2" 
-                            : "mb-2"
-                        }`}
+                  <div className="flex justify-center">
+                    <Radio.Group disabled={isCompleted || showResults}>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: 16,
+                          maxWidth: 600,
+                        }}
                       >
-                        <Radio
-                          value={answer.answerId}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              form.setFieldValue(["answer", currentPage - 1], answer.correct);
-                            }
-                          }}
-                        >
-                          {renderAnswerContent(answer)}
-                        </Radio>
+                        {currentQuestion.answerResList.map((answer: any) => (
+                          <div
+                            key={answer.answerId}
+                            className={`p-3 flex items-center ${
+                              showResults && answer.correct
+                                ? "bg-green-50 border border-green-200 rounded"
+                                : ""
+                            }`}
+                            style={{
+                              minHeight: 56,
+                              background: "#f9f9f9",
+                              borderRadius: 8,
+                              border: "1px solid #e5e7eb",
+                            }}
+                          >
+                            <Radio
+                              value={answer.answerId}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  form.setFieldValue(["answer", currentPage - 1], answer.correct);
+                                }
+                              }}
+                              style={{ width: "100%" }}
+                            >
+                              {renderAnswerContent(answer)}
+                            </Radio>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </Radio.Group>
+                    </Radio.Group>
+                  </div>
                 )}
               </Form.Item>
             </Card>
@@ -353,7 +399,7 @@ export default function QuestionsPage() {
           />
 
           {!isCompleted && !isReview && (
-            <Button type="primary" onClick={handleSubmit} disabled={submitted}>
+            <Button type="primary" onClick={handleSubmit} disabled={submitted} style={{background: "#2f54eb"}}>
               Nộp bài
             </Button>
           )}

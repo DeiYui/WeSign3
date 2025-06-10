@@ -405,6 +405,7 @@ const PartList = ({ isPrivate }: any) => {
         </div>
         <Button
           type="primary"
+          style={{background: "#2f54eb"}}
           icon={<PlusOutlined />}
           onClick={() => {
             // router.push(`/learning-management/part/create-edit`);

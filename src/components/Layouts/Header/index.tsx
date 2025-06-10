@@ -86,7 +86,7 @@ const Header = (props: {
                 <Button>Đăng ký</Button>
               </Link>
               <Link href="/login">
-                <Button type="primary"> Đăng nhập</Button>
+                <Button type="primary" style={{background: "#2f54eb"}}> Đăng nhập</Button>
               </Link>
             </div>
           )}

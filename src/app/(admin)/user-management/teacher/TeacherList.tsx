@@ -340,6 +340,7 @@ const TeacherList: React.FC = () => {
         />
         <Button
           hidden={!(user?.role === "ADMIN")}
+          style={{background: "#2f54eb"}}
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => {

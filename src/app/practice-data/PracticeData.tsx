@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { filterOption } from "@/components/Dashboard/DashboardApp";
 import ButtonSecondary from "@/components/UI/Button/ButtonSecondary";
@@ -291,6 +292,8 @@ const PracticeData: React.FC = () => {
         //   "confidence": 0.054673030972480774,
         //   ...
         // }
+        console.log('data',data)
+        console.log('res', response.data)
         return response.data;
       }
     },
@@ -371,12 +374,6 @@ const PracticeData: React.FC = () => {
 
     if (!isLt10M) {
       message.error("Video phải nhỏ hơn 10MB.");
-      return;
-    }
-
-    const videoDuration = await getVideoDuration(uploadedVideo);
-    if (videoDuration > 5) {
-      message.error("Video phải có thời lượng tối đa 5 giây.");
       return;
     }
 

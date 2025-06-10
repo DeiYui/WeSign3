@@ -1,84 +1,88 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
-import { colors } from "@/assets/colors";
-import { usePage } from "@/hooks/usePage";
+import React, { useCallback, useState, useEffect } from "react";
+import { useQuery} from "@tanstack/react-query";
+import { Button, Select, message, Modal, Tag } from "antd";
+import { debounce } from "lodash";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { useRouter } from "next/navigation";
 import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
-import { RootState } from "@/store";
-import { Button, Input, Select, Table, message, Modal, Tag } from "antd";
-import { useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import styled from "styled-components";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import InputPrimary from "@/components/UI/Input/InputPrimary";
+import { CustomTable } from "../../app/(admin)/learning-management/check-list/ExamList";
+interface ExamItem {
+  examId: number;
+  examName: string;
+  examType: string,
+  classRoomName: string,
+  attemptCount: number,
+  score: number,
+  isFinished: string,
+}
 
-const ExamListPage: React.FC = () => {
+const ExamList: React.FC = () => {
+  const user = useSelector((state: RootState) => state.admin);
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const user: any = useSelector((state: RootState) => state.admin);
 
-  const [searchInput, setSearchInput] = useState("");
+  const [exams, setExams] = useState<ExamItem[]>([]);
+  const [total, setTotal] = useState<number>(0);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  const [searchText, setSearchText] = useState("");
+
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [filterParams, setFilterParams] = useState({
-    classRoomId: 0,
-    nameSearch: "",
-    examType: "",
-    isFinished: "",
-    userId: user?.userId || 0,
-  });
+    const [filterParams, setFilterParams] = useState({
+      classRoomName: "",
+      nameSearch: "",
+      examType: "",
+      isFinished: "",
+      userId: user?.userId || 0,
+    });
 
-  // Debounce input (500ms)
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-    }, 500);
-    return () => clearTimeout(timeoutId);
-  }, [searchInput]);
-
-  // Cập nhật filterParams.nameSearch mỗi khi debounce xong
-  useEffect(() => {
+    useEffect(() => {
     setFilterParams((prev) => ({
       ...prev,
       nameSearch: debouncedSearch,
     }));
   }, [debouncedSearch]);
-
-  const {
-    page,
-    pageSize,
-    content,
-    isFetching,
-    pagination,
-    refetch,
-  } = usePage(
-    user?.userId ? ["getLstExam", filterParams] : [],
-    Exam.getLstExam,
-    { ...filterParams, pageSize: 10 }
-  );
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        refetch();
-        queryClient.invalidateQueries({ queryKey: ["getLstExam"] });
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [queryClient, refetch]);
-
-  const { data: allClass } = useQuery({
-    queryKey: ["getListClass"],
+  
+  // Fetch exams with filters and pagination
+  const { isFetching, refetch } = useQuery({
+    queryKey: ["getExamList", filterParams, searchText, currentPage, user?.userId],
     queryFn: async () => {
-      const res = await Learning.getListClasses();
-      return res?.content?.map((item: { classRoomId: number; name: string }) => ({
-        value: item.classRoomId,
-        label: item.name,
+      const res = await Exam.getLstExam({
+        userId: user.userId,   
+        name: filterParams.nameSearch,
+        classRoomName: filterParams.classRoomName || undefined,
+        examType: filterParams.examType || undefined,
+        isFinished: filterParams.isFinished || undefined,
+        page: currentPage - 1,
+        take: pageSize,
+        orderBy: "examId",
+        sortBy: "DESC",
+      });
+      setTotal(res.data.meta.itemCount);
+      const mapped = res.data.content.map((item: any) => ({
+        examId: item.examId,
+        examName: item.examName,
+        examType: item.examType,
+        classRoomName: item.classRoomName,
+        attemptCount: item.attemptCount,
+        score: item.score,
+        isFinished: item.isFinished,
       }));
+      setExams(mapped);
+      return mapped;
     },
   });
+
+  const handleTableChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleRedoExam = async (examId: number, examType: string) => {
     Modal.confirm({
@@ -86,6 +90,9 @@ const ExamListPage: React.FC = () => {
       content: "Bạn có chắc chắn muốn làm lại bài kiểm tra này không?",
       okText: "Đồng ý",
       cancelText: "Hủy",
+      okButtonProps: {
+      style: { backgroundColor: "#2f54eb", borderColor: "#2f54eb", color: "#fff" },
+      },
       onOk: async () => {
         try {
           if (examType === "practice") {
@@ -105,7 +112,18 @@ const ExamListPage: React.FC = () => {
     });
   };
 
-  const examTypeOptions = [
+    const { data: allClasses, isFetching: isFetchingClasses } = useQuery({
+    queryKey: ["getListClass"],
+    queryFn: async () => {
+      const res = await Learning.getListClasses();
+      return res?.content?.map((item:{ name: string; classRoomId: number }) => ({
+        label: item.name,
+        value: Number(item.classRoomId),
+      }));
+    },
+  });
+
+    const examTypeOptions = [
     { label: "Tất cả", value: "" },
     { label: "Thực hành", value: "practice" },
     { label: "Trắc nghiệm", value: "quiz" },
@@ -120,10 +138,11 @@ const ExamListPage: React.FC = () => {
   const columns = [
     {
       title: "STT",
-      render: (_: any, __: any, index: number) => index + 1,
+      key: "index",
+      render: (_: any, __: any, index: number) => (currentPage - 1) * pageSize + index + 1,
       width: 80,
     },
-    {
+{
       title: "Tên bài kiểm tra",
       dataIndex: "examName",
       key: "examName",
@@ -162,7 +181,7 @@ const ExamListPage: React.FC = () => {
       dataIndex: "classRoomName",
       key: "classRoomName",
     },
-    {
+        {
       title: "Số lần đã làm",
       dataIndex: "attemptCount",
       render: (attemptCount: number, record: any) =>
@@ -219,65 +238,96 @@ const ExamListPage: React.FC = () => {
               Làm bài
             </Button>
           )}
-        </div>
-      ),
-    },
-  ];
+            </div>
+          ),
+        }
+  ].filter(Boolean);
+
+  const handleSearch = useCallback(
+    debounce((value: string) => {
+      setCurrentPage(1);
+      setFilterParams((prev) => ({ ...prev, nameSearch: value }));
+    }, 300),
+    []
+  );
 
   return (
-    <div className="container mx-auto py-4">
-      <h1 className="text-2xl font-bold mb-4">Danh sách bài kiểm tra</h1>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <Select
-          placeholder="Chọn lớp"
+    <div className="w-full p-4">
+      <h1 className="mb-4 text-2xl font-bold">Danh sách bài kiểm tra</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <InputPrimary
           allowClear
-          options={allClass}
+          value={searchText}
+          onChange={(e) => {
+            setSearchText(e.target.value);
+            handleSearch(e.target.value);
+          }}
+          placeholder="Tìm kiếm tên bài kiểm tra"
+          style={{ width: 400 }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSearch(searchText);
+            }
+          }}
+        />
+        <Select
+          options={allClasses || []}
+          placeholder="Lựa chọn lớp"
+          loading={isFetchingClasses}
+          allowClear
+          showSearch
+          optionFilterProp="label"
+          value={filterParams.classRoomName || undefined}
           onChange={(value) =>
-            setFilterParams((prev) => ({ ...prev, classRoomId: value || 0 }))
+            setFilterParams((prev) => ({
+              ...prev,
+              classRoomName: value || "",
+            }))
           }
         />
-        <Input
-          placeholder="Tìm theo tên bài kiểm tra"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
+
         <Select
           placeholder="Loại bài kiểm tra"
           allowClear
           options={examTypeOptions}
+          value={filterParams.examType || undefined}
           onChange={(value) =>
-            setFilterParams((prev) => ({ ...prev, examType: value }))
+            setFilterParams((prev) => ({
+              ...prev,
+              examType: value || "",
+            }))
           }
         />
+
         <Select
           placeholder="Trạng thái"
           allowClear
           options={statusOptions}
+          value={filterParams.isFinished || undefined}
           onChange={(value) =>
-            setFilterParams((prev) => ({ ...prev, isFinished: value }))
+            setFilterParams((prev) => ({
+              ...prev,
+              isFinished: value || "",
+            }))
           }
         />
       </div>
+
       <CustomTable
-        dataSource={content}
-        columns={columns}
+        columns={columns as any}
+        dataSource={exams}
         loading={isFetching}
         pagination={{
-          ...pagination,
-          pageSize: 10,
+          pageSize: pageSize,
+          current: currentPage,
+          total: total,
+          onChange: handleTableChange,
           showSizeChanger: false,
+          position: ["bottomCenter"],
         }}
-        rowKey="examId"
-        scroll={{ x: 1000 }}
       />
     </div>
   );
 };
 
-export default ExamListPage;
-
-const CustomTable = styled(Table)`
-  .ant-table-tbody > tr:hover > td {
-    background-color: #f9f9f9;
-  }
-`;
+export default ExamList;

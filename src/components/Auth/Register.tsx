@@ -184,6 +184,7 @@ const Register: React.FC = () => {
             type="primary"
             htmlType="submit"
             className="w-full"
+            style={{background: "#2f54eb"}}
           >
             Đăng ký
           </Button>

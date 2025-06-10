@@ -83,9 +83,13 @@ const QuestionList = () => {
   // Lưu rowKey của những row đang được mở
   const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([]);
 
-  const handleTableChange = (newPage: number) => {
-    setCurrentPage(newPage);
-  };
+const handleTableChange = (newPage: number) => {
+  setCurrentPage(newPage);
+  setFilterParams((prev) => ({
+    ...prev,
+    page: newPage - 1, // Backend đang dùng page bắt đầu từ 0
+  }));
+};
 
   // API lấy danh sách câu hỏi
   const {
@@ -97,7 +101,7 @@ const QuestionList = () => {
     queryFn: async () => {
       const res = await Questions.getAllQuestion(filterParams);
       console.log('ques', res)
-      return res.content;
+      return res;
     },
   });
 
@@ -158,15 +162,23 @@ const QuestionList = () => {
       key: "className",
     },
     {
-      title: "Hình ảnh/Video",
+      title: "Câu hỏi",
       dataIndex: "imageLocation",
-      key: "imageLocation",
-      render: (imageLocation: string, record: any) => (
-        <div>
-          <Button onClick={() => handleViewImage(record)}>Xem</Button>
-        </div>
-      ),
-      width: 140,
+      key: "questionContent",
+      render: (_: any, record: any) => {
+        // Nếu có ảnh hoặc video thì hiện nút Xem, không thì hiện content
+        if (record.imageLocation || record.videoLocation) {
+          return (
+            <Button onClick={() => handleViewImage(record)}>
+              Xem
+            </Button>
+          );
+        }
+        return (
+          <span className="font-semibold">{record.content}</span>
+        );
+      },
+      width: 200,
     },
     {
   title: "Đáp án đúng",
@@ -336,6 +348,7 @@ const QuestionList = () => {
 
         <Button
           type="primary"
+          style={{background: "#2f54eb"}}
           icon={<PlusOutlined />}
           onClick={() => {
             router.push("/learning-management/questions/add");
@@ -365,11 +378,12 @@ const QuestionList = () => {
         rowSelection={rowSelection}
         rowKey={(record: any) => record.questionId}
         columns={columns}
-        dataSource={allQuestion}
+        dataSource={allQuestion?.content || []}
         loading={isFetching}
         pagination={{
           pageSize: pageSize,
           current: currentPage,
+          total: allQuestion?.itemCount || 0,
           onChange: handleTableChange,
           showSizeChanger: false,
           position: ["bottomCenter"],

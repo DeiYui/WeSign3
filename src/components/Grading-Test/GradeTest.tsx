@@ -29,16 +29,17 @@ const GradingTest: React.FC = () => {
       .then((res) => {
         const list = res?.data;
         if (Array.isArray(list)) {
-            const filtered = list.filter((q: any) => Array.isArray(q.videoUrls) && q.videoUrls.length > 0);
+          const filtered = list.filter((q: any) => Array.isArray(q.videos) && q.videos.length > 0);
 
-            setPracticeQuestions(
-              filtered.map((q: any, idx: number) => ({
-                contentFromVocabulary: q.contentFromVocabulary,
-                videoUrl: q.videoUrls[idx], // lấy đúng video theo index
-                aiAnswer: q.aiAnswer,
-              }))
-            );
-            setGradingList(filtered.map(() => ({ isCorrect: null })));
+          setPracticeQuestions(
+            filtered.map((q: any) => ({
+              contentFromVocabulary: q.contentFromVocabulary,
+              videoUrl: q.videos[0]?.videoUrl || "", // lấy video đầu tiên (có thể cập nhật nếu nhiều video)
+              aiAnswer: q.videos[0]?.aiAnswer || "",
+            }))
+          );
+
+          setGradingList(filtered.map(() => ({ isCorrect: null })));
         } else {
           setPracticeQuestions([]);
           setGradingList([]);
@@ -159,7 +160,7 @@ const GradingTest: React.FC = () => {
           bordered
         />
         <div className="flex justify-end mt-4">
-          <Button type="primary" onClick={handleSaveGrading}>
+          <Button type="primary" onClick={handleSaveGrading} style={{background: "#2f54eb"}}>
             Lưu kết quả chấm điểm
           </Button>
         </div>
