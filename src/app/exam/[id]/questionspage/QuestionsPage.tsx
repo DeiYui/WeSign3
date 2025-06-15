@@ -48,7 +48,6 @@ export default function QuestionsPage() {
     queryKey: ["getExamDetail", id],
     queryFn: async () => {
       const res = await Exam.getDetailExam(Number(id));
-      console.log('de', res)
       if (res?.data?.score !== undefined) {
         setExamScore(res.data.score);
       }
@@ -60,7 +59,6 @@ export default function QuestionsPage() {
     queryKey: ["getLstQuestionExam", id],
     queryFn: async () => {
       const res = await Questions.getLstQuestionExam(Number(id));
-      console.log('lst', res)
       return res?.content || []; // Fixed: use content instead of data
     },
   });

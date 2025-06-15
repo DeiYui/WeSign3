@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { colors } from "@/assets/colors";
 import { usePage } from "@/hooks/usePage";
@@ -7,20 +8,14 @@ import { DeleteOutlined, EditFilled, MoreOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Dropdown, Input, Select, Table, message } from "antd";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import styled from "styled-components";
+import { debounce } from "lodash";
 
 interface Exam {
   key: string;
   name: string;
   questionCount: number;
-  status: number;
-}
-
-interface FilterParams {
-  page: number;
-  size: number;
-  topicId: number;
   status: number;
 }
 
@@ -122,6 +117,14 @@ const ExamListPage = ({ isPrivate }: any) => {
     setCurrentPage(page);
   };
 
+    const handleSearch = useCallback(
+      debounce((value: string) => {
+        setCurrentPage(1);
+        setFilterParams((prev) => ({ ...prev, nameSearch: value }));
+      }, 300),
+      []
+    );
+
   const columns = [
     {
       title: "STT",
@@ -135,11 +138,11 @@ const ExamListPage = ({ isPrivate }: any) => {
       dataIndex: "name",
       key: "name",
     },
-    {
-      title: "Số câu hỏi",
-      dataIndex: "numberOfQuestions",
-      key: "numberOfQuestions",
-    },
+    // {
+    //   title: "Số câu hỏi",
+    //   dataIndex: "numberOfQuestions",
+    //   key: "numberOfQuestions",
+    // },
     {
       fixed: "right",
       dataIndex: "examId",
@@ -193,8 +196,22 @@ const ExamListPage = ({ isPrivate }: any) => {
     <div className="container mx-auto py-4">
       <h1 className="mb-4 text-2xl font-bold">Danh sách bài kiểm tra</h1>
       <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Input className="w-full" placeholder="Tên bài kiểm tra" />
-        <Select
+        <Input
+          allowClear
+          value={searchText}
+          onChange={(e) => {
+            setSearchText(e.target.value);
+            handleSearch(e.target.value);
+          }}
+          placeholder="Tìm kiếm tên bài kiểm tra"
+          style={{ width: 400 }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSearch(searchText);
+            }
+          }}
+        />        
+        {/* <Select
           className="w-full"
           allowClear
           placeholder="Lớp học"
@@ -207,7 +224,7 @@ const ExamListPage = ({ isPrivate }: any) => {
               setFilterParams({ ...filterParams, classRoomId: 0 });
             }
           }}
-        />
+        /> */}
       </div>
       <div className="mb-3 flex justify-end gap-3">
         {/* <Button type="primary">Thêm user vào bài kiểm tra</Button> */}

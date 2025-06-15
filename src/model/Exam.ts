@@ -8,9 +8,9 @@ class Exam extends Base {
     return res;
   };
 
-    getListPracticeExam = async (param?: any) => {
+    getListPracticeExam = async (param?: any, teacherId?: number ) => {
     try {
-      const res = await this.apiGetWithoutPrefixNode(`/exam/all-practice-exams`, param);
+      const res = await this.apiGetWithoutPrefixNode(`/exam/all-practice-exams/${teacherId}`, param);
       
       // Extract the array directly from the response
       return Array.isArray(res.data.content) ? res.data.content : [];
@@ -40,7 +40,6 @@ class Exam extends Base {
 
   addPracticeExam = async (body?: any) => {
     const res = await this.apiPostWithoutPrefixNode(`/exam/practice-exams`, body);
-    console.log('practice', res)
     return res.data;
   };
 
@@ -58,13 +57,11 @@ class Exam extends Base {
 
   getDetailPracticeExam = async (examId: number) => {
     const res = await this.apiGetWithoutPrefixNode(`/exam/practice-exams/${examId}`);
-    console.log("data practice lay dc",  res)
     return res.data;
   };
 
     getDetailPracticeExamToScore = async (examId: number, userId: number) => {
     const res = await this.apiGetWithoutPrefixNode(`/exam/practice-exams-to-score/${examId}/${userId}`);
-    console.log("score lay dc",  res)
     return res.data;
   };
 

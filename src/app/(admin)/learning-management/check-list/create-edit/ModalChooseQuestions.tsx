@@ -125,7 +125,6 @@ const ModalChooseQuestions: React.FC<ModalChooseQuestionsProps> = ({
   }, [open, number, lstQuestion, questionIds]);
 
   const handleViewImage = (record: any) => {
-    console.log("Selected answer to view:", record);
     setPreview({
       open: true,
       file: record?.imageLocation || " ",

@@ -4,18 +4,21 @@ import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
 import { Table, Select, Input, Tag, Button, Spin } from "antd";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 const ScoreTest: React.FC = () => {
   const router = useRouter();
+  const user = useSelector((state: RootState) => state.admin);
   const [examList, setExamList] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Bộ lọc
   const [filterParams, setFilterParams] = useState({
     classRoomId: 0,
-    nameSearch: "",
+    name: "", // Changed from nameSearch to name to match backend
     isPrivate: "false",
     examType: "practice", 
     isFinished: "", 
@@ -35,9 +38,10 @@ const ScoreTest: React.FC = () => {
 
   // Lấy danh sách bài kiểm tra thực hành 
   const fetchExams = React.useCallback(async () => {
+    const teacherId = user.userId;
     try {
       setLoading(true);
-      const data = await Exam.getListPracticeExam(filterParams);
+      const data = await Exam.getListPracticeExam(filterParams, teacherId );
       setExamList(data || []);
     } catch (error) {
       console.error("Error fetching exams:", error);
@@ -45,12 +49,18 @@ const ScoreTest: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterParams]);
 
-    // Effect để gọi API khi filterParams thay đổi
+  // Effect để gọi API khi filterParams thay đổi
   useEffect(() => {
     fetchExams();
   }, [filterParams, fetchExams]);
+
+  // Handler for name search with debounce
+  const handleNameSearch = (value: string) => {
+    setFilterParams({ ...filterParams, name: value });
+  };
 
   // Cột bảng
   const columns = [
@@ -113,25 +123,26 @@ const ScoreTest: React.FC = () => {
     <div className="w-full p-4">
       <h1 className="mb-4 text-2xl font-bold">Danh sách bài kiểm tra thực hành</h1>
       <div className="mb-4 flex items-center gap-4">
-        <Select
+        {/* <Select
           placeholder="Chọn lớp"
           allowClear
           options={allClass}
           style={{ width: 200 }}
           onChange={(value) => setFilterParams({ ...filterParams, classRoomId: value || 0 })}
-        />
+        /> */}
         <Input
           placeholder="Tìm theo tên bài kiểm tra"
           style={{ width: 220 }}
-          onChange={(e) => setFilterParams({ ...filterParams, nameSearch: e.target.value })}
+          value={filterParams.name}
+          onChange={(e) => handleNameSearch(e.target.value)}
+          allowClear
         />
-        
       </div>
       <Table
         columns={columns}
         dataSource={examList}
         loading={loading}
-        rowKey="examId"
+        rowKey={(record) => `${record.examId}-${record.userId}`} // More unique key
         pagination={{
           pageSize: 10,
           showSizeChanger: false,

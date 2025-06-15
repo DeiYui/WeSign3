@@ -138,7 +138,6 @@ const StudentLearningProcess: React.FC<StudentLearningProcessProps> = ({ student
       // Assuming you have an API endpoint to get all lessons learned by a student
       const lessons = await Learning.getFullLessonViews(studentId);
       setLessonsList(lessons);
-      console.log('đã học',lessons)
     } catch (error) {
       console.error("Error fetching lessons:", error);
     } finally {

@@ -110,7 +110,6 @@ const Students: FC = () => {
       key: "classroom",
       render: (value: string, record: Student) => (
         <div className="text-lg">
-          {console.log(record?.classStudents)} 
           {record?.classStudents?.length > 0 &&
             record?.classStudents[0]?.classRoomName}
         </div>

@@ -11,6 +11,7 @@ import Exam from "@/model/Exam";
 import Learning from "@/model/Learning";
 import InputPrimary from "@/components/UI/Input/InputPrimary";
 import { CustomTable } from "../../app/(admin)/learning-management/check-list/ExamList";
+
 interface ExamItem {
   examId: number;
   examName: string;
@@ -32,39 +33,40 @@ const ExamList: React.FC = () => {
   const pageSize = 10;
 
   const [searchText, setSearchText] = useState("");
+  const [selectedType, setSelectedType] = useState("");
 
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [filterParams, setFilterParams] = useState({
+    classRoomName: "",
+    nameSearch: "",
+    examType: "",
+    isFinished: "",
+    userId: user?.userId || 0,
+  });
 
-    const [filterParams, setFilterParams] = useState({
-      classRoomName: "",
-      nameSearch: "",
-      examType: "",
-      isFinished: "",
-      userId: user?.userId || 0,
-    });
-
-    useEffect(() => {
+  // Update filterParams when selectedType changes
+  useEffect(() => {
     setFilterParams((prev) => ({
       ...prev,
-      nameSearch: debouncedSearch,
+      examType: selectedType,
     }));
-  }, [debouncedSearch]);
-  
+  }, [selectedType]);
+
   // Fetch exams with filters and pagination
   const { isFetching, refetch } = useQuery({
-    queryKey: ["getExamList", filterParams, searchText, currentPage, user?.userId],
+    queryKey: ["getExamList", filterParams, currentPage, user?.userId],
     queryFn: async () => {
       const res = await Exam.getLstExam({
         userId: user.userId,   
         name: filterParams.nameSearch,
         classRoomName: filterParams.classRoomName || undefined,
-        examType: filterParams.examType || undefined,
+        examType: filterParams.examType || undefined, // Use filterParams instead of selectedType directly
         isFinished: filterParams.isFinished || undefined,
         page: currentPage - 1,
         take: pageSize,
         orderBy: "examId",
         sortBy: "DESC",
       });
+ 
       setTotal(res.data.meta.itemCount);
       const mapped = res.data.content.map((item: any) => ({
         examId: item.examId,
@@ -91,12 +93,11 @@ const ExamList: React.FC = () => {
       okText: "Đồng ý",
       cancelText: "Hủy",
       okButtonProps: {
-      style: { backgroundColor: "#2f54eb", borderColor: "#2f54eb", color: "#fff" },
+        style: { backgroundColor: "#2f54eb", borderColor: "#2f54eb", color: "#fff" },
       },
       onOk: async () => {
         try {
           if (examType === "practice") {
-            // Gọi API reset riêng cho thực hành
             await Exam.resetPracticeExam(examId, { userId: user.userId });
             message.success("Đã làm mới bài kiểm tra thực hành.");
             router.push(`/exam/${examId}/questionspractice?redo=true`);
@@ -112,18 +113,18 @@ const ExamList: React.FC = () => {
     });
   };
 
-    const { data: allClasses, isFetching: isFetchingClasses } = useQuery({
+  const { data: allClasses, isFetching: isFetchingClasses } = useQuery({
     queryKey: ["getListClass"],
     queryFn: async () => {
       const res = await Learning.getListClasses();
-      return res?.content?.map((item:{ name: string; classRoomId: number }) => ({
+      return res?.content?.map((item: { name: string; classRoomId: number }) => ({
         label: item.name,
         value: Number(item.classRoomId),
       }));
     },
   });
 
-    const examTypeOptions = [
+  const examTypeOptions = [
     { label: "Tất cả", value: "" },
     { label: "Thực hành", value: "practice" },
     { label: "Trắc nghiệm", value: "quiz" },
@@ -142,7 +143,7 @@ const ExamList: React.FC = () => {
       render: (_: any, __: any, index: number) => (currentPage - 1) * pageSize + index + 1,
       width: 80,
     },
-{
+    {
       title: "Tên bài kiểm tra",
       dataIndex: "examName",
       key: "examName",
@@ -176,12 +177,12 @@ const ExamList: React.FC = () => {
           <Tag color="green">Trắc nghiệm</Tag>
         ),
     },
+    // {
+    //   title: "Lớp",
+    //   dataIndex: "classRoomName",
+    //   key: "classRoomName",
+    // },
     {
-      title: "Lớp",
-      dataIndex: "classRoomName",
-      key: "classRoomName",
-    },
-        {
       title: "Số lần đã làm",
       dataIndex: "attemptCount",
       render: (attemptCount: number, record: any) =>
@@ -238,9 +239,9 @@ const ExamList: React.FC = () => {
               Làm bài
             </Button>
           )}
-            </div>
-          ),
-        }
+        </div>
+      ),
+    }
   ].filter(Boolean);
 
   const handleSearch = useCallback(
@@ -270,7 +271,7 @@ const ExamList: React.FC = () => {
             }
           }}
         />
-        <Select
+        {/* <Select
           options={allClasses || []}
           placeholder="Lựa chọn lớp"
           loading={isFetchingClasses}
@@ -284,19 +285,17 @@ const ExamList: React.FC = () => {
               classRoomName: value || "",
             }))
           }
-        />
+        /> */}
 
         <Select
           placeholder="Loại bài kiểm tra"
           allowClear
           options={examTypeOptions}
-          value={filterParams.examType || undefined}
-          onChange={(value) =>
-            setFilterParams((prev) => ({
-              ...prev,
-              examType: value || "",
-            }))
-          }
+          value={selectedType || undefined}
+          onChange={(value) => {
+            setSelectedType(value || "");
+            setCurrentPage(1);
+          }}
         />
 
         <Select

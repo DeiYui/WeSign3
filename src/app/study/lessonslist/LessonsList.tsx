@@ -25,7 +25,6 @@ const LessonsList: FC<SectionHero2Props> = () => {
 
   const { mutate: incrementLessonView } = useMutation({
     mutationFn: async (lessonId: number) => {
-      console.log('Calling API with vocabularyId:', lessonId);
       await axios.post(`${API_BASE_URL}/api/user/lesson/view`, { userId, lessonId });
     },
   });

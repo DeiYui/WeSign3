@@ -423,7 +423,6 @@ const StudentList: React.FC = () => {
             form={form}
             layout="vertical"
             onFinish={(value) => {
-              console.log("value", value)
               mutationCreateUpdate.mutate({
                 ...value,
                 name: value.name,

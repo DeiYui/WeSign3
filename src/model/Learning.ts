@@ -48,7 +48,6 @@ class Learning extends Base {
    // Danh sách từ vựng
   getAllVocabulary = async (param?: any) => {
   const res = await this.apiGet("/vocabularies/all", param);
-  console.log("res", res.data);
   return res.data;
   };
 
@@ -181,7 +180,6 @@ class Learning extends Base {
 
   getListSchool = async (params?: any) => {
     const res = await this.apiGetWithoutPrefixNode(`/user/school-list`, params);
-    console.log('list school raw', res)
     return res.data;
   };
   
@@ -281,7 +279,6 @@ class Learning extends Base {
 
   // join student to class
   joinClass = async (body?: any) => {
-    console.log("joinclass", body);
     const res = await this.apiPostWithoutPrefixNode(
       `/classroom/join/${body?.classRoomId}`,
       body,
@@ -353,12 +350,10 @@ class Learning extends Base {
       undefined, // signal
       { Authorization: `Bearer ${token}` } // headers
     );
-    console.log("this",res.data);
     return res.data;
   };
 
   updateStudentClass = async (body: any) => {
-    console.log("updateStudentClass", body)
     const res = await this.apiPutWithoutPrefixNode(
       `/classroom/update-student-in-class/${body.userId}`,
       body,

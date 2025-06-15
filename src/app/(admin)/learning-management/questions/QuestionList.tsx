@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import Learning from "@/model/Learning";
 import Questions from "@/model/Questions";
@@ -22,7 +23,7 @@ import {
   message,
 } from "antd";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import styled from "styled-components";
 import { CustomTable } from "../check-list/ExamList";
 import { CaretRightIcon } from "@/assets/icons";
@@ -40,20 +41,21 @@ interface Answer {
 
 const QuestionList = () => {
   const router = useRouter();
+  const [total, setTotal] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  // filter
+  // filter params - Centralized state for all filters and pagination
   const [filterParams, setFilterParams] = useState<{
-    contentSearch: string;
-    page?: number;
-    size?: number;
+    content: string;
+    page: number;
+    size: number;
     classRoomId?: number;
   }>({
-    contentSearch: "",
-    page: 0,
+    content: "",
+    page: 0, // Backend uses 0-based indexing
     size: 10,
-    classRoomId: 0,
+    classRoomId: undefined,
   });
 
   // preview
@@ -83,29 +85,68 @@ const QuestionList = () => {
   // Lưu rowKey của những row đang được mở
   const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([]);
 
-const handleTableChange = (newPage: number) => {
-  setCurrentPage(newPage);
-  setFilterParams((prev) => ({
-    ...prev,
-    page: newPage - 1, // Backend đang dùng page bắt đầu từ 0
-  }));
-};
+  // Handle pagination change
+  const handleTableChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    setFilterParams((prev) => ({
+      ...prev,
+      page: newPage - 1, // Convert to 0-based for backend
+    }));
+  };
+
+  // Handle search with debounce
+  const handleSearch = useCallback(
+    debounce((value: string) => {
+      // Reset to first page when searching
+      setCurrentPage(1);
+      setFilterParams((prev) => ({ 
+        ...prev, 
+        content: value,
+        page: 0 // Reset to first page
+      }));
+    }, 300),
+    []
+  );
+
+  // Handle class filter change
+  const handleClassFilter = (value: number | undefined) => {
+    // Reset to first page when filtering
+    setCurrentPage(1);
+    setFilterParams((prev) => ({
+      ...prev,
+      classRoomId: value,
+      page: 0 // Reset to first page
+    }));
+  };
 
   // API lấy danh sách câu hỏi
   const {
     data: allQuestion,
     isFetching,
     refetch,
+    error,
   } = useQuery({
     queryKey: ["getQuestionTopic", filterParams],
     queryFn: async () => {
       const res = await Questions.getAllQuestion(filterParams);
-      console.log('ques', res)
+      // Update total count when data is received
+      if (res?.meta.itemCount !== undefined) {
+              setTotal(res.meta.itemCount);
+      }
+      
       return res;
     },
+    // Keep previous data while loading new page
   });
 
-  // API lấy danh sách  topics
+  // Update total when data changes
+  useEffect(() => {
+    if (allQuestion?.meta.itemCount !== undefined) {
+      setTotal(allQuestion.meta.itemCount);
+    }
+  }, [allQuestion?.meta.itemCount]);
+
+  // API lấy danh sách topics
   const { data: allTopics } = useQuery({
     queryKey: ["getAllTopics"],
     queryFn: async () => {
@@ -119,7 +160,7 @@ const handleTableChange = (newPage: number) => {
     },
   });
 
-  // Dánh sách lớp
+  // Danh sách lớp
   const { data: allClass, isFetching: isFetchingClass } = useQuery({
     queryKey: ["getListClass"],
     queryFn: async () => {
@@ -136,7 +177,17 @@ const handleTableChange = (newPage: number) => {
     mutationFn: Questions.deleteQuestion,
     onSuccess: () => {
       message.success("Xoá câu hỏi thành công");
+      // Clear selection after successful delete
+      setSelectedRowId([]);
+      setSelectRecords([]);
+      // Close modal
+      setModalConfirm({ open: false, rowId: "" });
+      // Refetch data
       refetch();
+    },
+    onError: (error) => {
+      message.error("Có lỗi xảy ra khi xoá câu hỏi");
+      console.error("Delete error:", error);
     },
   });
 
@@ -158,7 +209,7 @@ const handleTableChange = (newPage: number) => {
     },
     {
       title: "Lớp",
-      dataIndex:  "className",
+      dataIndex: "className",
       key: "className",
     },
     {
@@ -181,44 +232,19 @@ const handleTableChange = (newPage: number) => {
       width: 200,
     },
     {
-  title: "Đáp án đúng",
-  dataIndex: "answerResList",
-  key: "answerResList",
-  render: (answerResList: Answer[]) => {
-    const answersCorrect = answerResList?.filter((answer) => answer.correct);
-    return (
-      <>
-        {answersCorrect?.length &&
-          answersCorrect?.slice(0, 3)?.map((answer, index) => {
-            const showButton =
-              !answer.content &&
-              !!answer.videoLocation?.trim(); // content rỗng + có video
-
-            return (
-              <Tag key={index} className="bg-green-500">
-                <div className="p-1 text-sm font-bold text-white">
-                  {showButton ? (
-                    <Button
-                      size="small"
-                      onClick={() => handleViewImage(answer)}
-                    >
-                      Xem
-                    </Button>
-                  ) : (
-                    answer.content
-                  )}
-                </div>
-              </Tag>
-            );
-          })}
-
-        {/* Nếu có >3 đáp án đúng thì phần còn lại hiển thị trong Popover */}
-        <Popover
-          content={
-            <>
-              {answersCorrect?.slice(3)?.map((answer, index) => {
+      title: "Đáp án đúng",
+      dataIndex: "answerResList",
+      key: "answerResList",
+      render: (answerResList: Answer[]) => {
+        const answersCorrect = answerResList?.filter((answer) => answer.correct);
+        return (
+          <>
+            {answersCorrect?.length &&
+              answersCorrect?.slice(0, 3)?.map((answer, index) => {
                 const showButton =
-                  !answer.content && !!answer.videoLocation?.trim();
+                  !answer.content &&
+                  !!answer.videoLocation?.trim(); // content rỗng + có video
+
                 return (
                   <Tag key={index} className="bg-green-500">
                     <div className="p-1 text-sm font-bold text-white">
@@ -236,20 +262,45 @@ const handleTableChange = (newPage: number) => {
                   </Tag>
                 );
               })}
-            </>
-          }
-        >
-          {answersCorrect.length > 3 && (
-            <Tag className="bg-green-500">
-              <div className="p-1 text-sm font-bold text-white">...</div>
-            </Tag>
-          )}
-        </Popover>
-      </>
-    );
-  },
-  width: 300,
-},
+
+            {/* Nếu có >3 đáp án đúng thì phần còn lại hiển thị trong Popover */}
+            <Popover
+              content={
+                <>
+                  {answersCorrect?.slice(3)?.map((answer, index) => {
+                    const showButton =
+                      !answer.content && !!answer.videoLocation?.trim();
+                    return (
+                      <Tag key={index} className="bg-green-500">
+                        <div className="p-1 text-sm font-bold text-white">
+                          {showButton ? (
+                            <Button
+                              size="small"
+                              onClick={() => handleViewImage(answer)}
+                            >
+                              Xem
+                            </Button>
+                          ) : (
+                            answer.content
+                          )}
+                        </div>
+                      </Tag>
+                    );
+                  })}
+                </>
+              }
+            >
+              {answersCorrect.length > 3 && (
+                <Tag className="bg-green-500">
+                  <div className="p-1 text-sm font-bold text-white">...</div>
+                </Tag>
+              )}
+            </Popover>
+          </>
+        );
+      },
+      width: 300,
+    },
     {
       fixed: "right",
       dataIndex: "questionId",
@@ -316,39 +367,30 @@ const handleTableChange = (newPage: number) => {
     },
   };
 
-  // xử lý khi tìm kiếm theo tên câu hỏi
-  const handleSearch = debounce((e: any) => {
-    setFilterParams((prevParams) => ({
-      ...prevParams,
-      contentSearch: e.target.value,
-      page: 0,
-    }));
-  }, 600);
-
   return (
     <div className="w-full p-4">
       <h1 className="mb-4 text-2xl font-bold">Danh sách câu hỏi</h1>
-      <div className="mb-4 flex  items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Select
             className="w-[300px]"
             allowClear
             placeholder="Lớp học"
             options={allClass}
-            onChange={(value, option: any) =>
-              setFilterParams({ ...filterParams, classRoomId: value })
-            }
+            loading={isFetchingClass}
+            onChange={handleClassFilter}
+            value={filterParams.classRoomId}
           />
           <Input
             className="w-[300px]"
             placeholder="Nhập tên câu hỏi"
-            onChange={handleSearch}
+            onChange={(e) => handleSearch(e.target.value)}
           />
         </div>
 
         <Button
           type="primary"
-          style={{background: "#2f54eb"}}
+          style={{ background: "#2f54eb" }}
           icon={<PlusOutlined />}
           onClick={() => {
             router.push("/learning-management/questions/add");
@@ -369,10 +411,11 @@ const handleTableChange = (newPage: number) => {
             className="body-14-medium flex cursor-pointer select-none items-center gap-x-2 p-1 text-primary-600"
           >
             <DeleteOutlined color={colors.primary600} />
-            Xoá câu hỏi
+            Xoá câu hỏi ({selectedRowId.length})
           </div>
         </div>
       )}
+
       <CustomTable
         className="mt-4"
         rowSelection={rowSelection}
@@ -383,7 +426,7 @@ const handleTableChange = (newPage: number) => {
         pagination={{
           pageSize: pageSize,
           current: currentPage,
-          total: allQuestion?.itemCount || 0,
+          total: total,
           onChange: handleTableChange,
           showSizeChanger: false,
           position: ["bottomCenter"],
@@ -474,12 +517,12 @@ const handleTableChange = (newPage: number) => {
         visible={modalConfirm.open}
         iconType="DELETE"
         title="Xóa câu hỏi"
-        content="Hành động này sẽ xóa câu hỏi vĩnh viễn"
+        content={`Hành động này sẽ xóa ${Array.isArray(modalConfirm.rowId) ? modalConfirm.rowId.length : 1} câu hỏi vĩnh viễn`}
         confirmButtonText="Xác nhận"
         onClick={() => {
           mutationDel.mutate({ questionIds: modalConfirm.rowId });
         }}
-        onCloseModal={() => setModalConfirm({ ...modalConfirm, open: false })}
+        onCloseModal={() => setModalConfirm({ open: false, rowId: "" })}
       />
     </div>
   );

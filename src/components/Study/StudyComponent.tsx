@@ -47,23 +47,9 @@ const TYPE_VOCABULARY = {
 
 const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
   const userId = useSelector((state: RootState) => state.admin.userId);
-// <<<<<<< HEAD
-  console.log('Calling API with userId:', userId);
-  // const { mutate: incrementVocabularyView } = useMutation({
-  //   mutationFn: async () => {
-  //     await axios.post("/api/user/vocabulary/view", { userId});
-  //   },
-  // });
   const { mutate: incrementVocabularyView } = useMutation({
     mutationFn: async (vocabularyId: number) => {
-      console.log('Calling API with vocabularyId:', vocabularyId);
       await axios.post(`${API_BASE_URL}/api/user/vocabulary/view`, { userId, vocabularyId });
-// =======
-
-  // const { mutate: incrementVocabularyView } = useMutation({
-  //   mutationFn: async () => {
-  //     await axios.post("/api/vocabulary/view", { userId });
-// >>>>>>> 861763e8cbc6162e5f3d6e6ba3cc4785ef1abff8
     },
   });
 
@@ -190,7 +176,6 @@ const StudyComponent = ({ allVocabulary = [], isLesson = false }: any) => {
     if (allVocabulary && allVocabulary[index]) {
       const vocabularyId = allVocabulary[index].vocabularyId;
       if (vocabularyId) {
-        console.log('Tracking view for vocabulary ID:', vocabularyId);
         incrementVocabularyView(vocabularyId);
       } else {
         console.error("Vocabulary ID is missing for index:", index, allVocabulary[index]);
