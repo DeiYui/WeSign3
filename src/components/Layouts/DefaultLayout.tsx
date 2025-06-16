@@ -40,12 +40,12 @@ export default function DefaultLayout({
     <>
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className="flex h-screen overflow-hidden ">
-        {/* <!-- ===== Sidebar Start ===== --> */}
+        {/* Sidebar */}
         {sidebarOpen && (
           <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         )}
 
-        {/* <!-- ===== Sidebar End ===== --> */}
+        {/* Nút toggle và Content */}
         <button
           className="hidden rounded-full bg-white p-2 focus:outline-none dark:bg-boxdark md:px-1 lg:block"
           onClick={toggleSidebar}
@@ -56,18 +56,16 @@ export default function DefaultLayout({
             <DoubleRightOutlined size={24} />
           )}
         </button>
-        {/* <!-- ===== Content Area Start ===== --> */}
         <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
           <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-          {/* <!-- ===== Main Content Start ===== --> */}
+          {/* <!-- ===== Main Content Start ===== */}
           <main>
             <div className="mx-auto max-w-full p-4 sm:mr-0 lg:mr-14">
               {children}
             </div>
           </main>
         </div>
-
       </div>
     </>
   );

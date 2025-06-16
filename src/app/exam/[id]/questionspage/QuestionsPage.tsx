@@ -137,6 +137,9 @@ export default function QuestionsPage() {
   );
 };
 
+  // 1. State lưu đáp án
+  const [allAnswers, setAllAnswers] = useState<{ [index: number]: any }>({});
+
   useEffect(() => {
     if ((isRedo || isReview) && detailExamSave && lstQuestions) {
       const initialValues = lstQuestions.reduce((acc: any, question: any, index: number) => {
@@ -176,12 +179,9 @@ export default function QuestionsPage() {
     try {
       const values = await form.validateFields();
 
+      // 4. Khi submit, lấy từ allAnswers
       const answers = lstQuestions.map((q: any, index: number) => {
-        const selectedRaw = values?.answerList?.[index]?.answerId;
-        const selected =
-          selectedRaw !== undefined && selectedRaw !== null
-            ? selectedRaw
-            : [];
+        const selected = allAnswers[index] ?? [];
         return {
           examId: detailExam[0].examId,
           questionId: q.questionId,
@@ -191,6 +191,9 @@ export default function QuestionsPage() {
 
       await saveExam.mutateAsync(answers);
 
+      console.log("lstQuestions:", lstQuestions);
+      console.log("answers:", answers);
+
       const correctCount = answers.reduce((count: number, a: { 
         questionId: any; 
         selectedAnswers: string[] | number[] 
@@ -198,13 +201,23 @@ export default function QuestionsPage() {
         const q = lstQuestions.find((q: { questionId: any; }) => q.questionId === a.questionId);
         const correctAnswers = q.answerResList
           .filter((ans: { correct: any; }) => ans.correct)
-          .map((ans: { answerId: any; }) => ans.answerId)
+          .map((ans: { answerId: any; }) => String(ans.answerId))
           .sort()
           .toString();
-        const selectedAnswers = a.selectedAnswers.sort().toString();
+        const selectedAnswers = a.selectedAnswers.map(String).sort().toString();
+
+        // Log từng câu hỏi
+        console.log(
+          "QuestionId:", a.questionId,
+          "| correctAnswers:", correctAnswers,
+          "| selectedAnswers:", selectedAnswers
+        );
+
         return count + (correctAnswers === selectedAnswers ? 1 : 0);
       }, 0);
-  
+
+      console.log("correctCount:", correctCount);
+
       const score = parseFloat(((correctCount / lstQuestions.length) * 10).toFixed(2));
       setExamScore(score);
 
@@ -296,16 +309,22 @@ export default function QuestionsPage() {
                 </div>
               )}
 
-              <Form.Item name={["answerList", currentPage - 1, "answerId"]}>
+              <Form.Item
+                name={["answerList", currentPage - 1, "answerId"]}
+                preserve={true}
+              >
                 {currentQuestion.questionType === "MULTIPLE_ANSWERS" ? (
                   <div className="flex justify-center">
                     <Checkbox.Group
                       disabled={isCompleted || showResults}
+                      // 2. Khi chọn đáp án
+                      value={allAnswers[currentPage - 1] || []}
                       onChange={(value) => {
-                        const correct = currentQuestion.answerResList
-                          .filter((item: any) => value.includes(item.answerId))
-                          .every((item: { correct: any; }) => item.correct);
-                        form.setFieldValue(["answer", currentPage - 1], correct);
+                        setAllAnswers((prev) => ({
+                          ...prev,
+                          [currentPage - 1]: value,
+                        }));
+                        form.setFieldValue(["answerList", currentPage - 1, "answerId"], value);
                       }}
                     >
                       <div
@@ -341,7 +360,16 @@ export default function QuestionsPage() {
                   </div>
                 ) : (
                   <div className="flex justify-center">
-                    <Radio.Group disabled={isCompleted || showResults}>
+                    <Radio.Group
+                      value={allAnswers[currentPage - 1] || undefined}
+                      onChange={(e) => {
+                        setAllAnswers((prev) => ({
+                          ...prev,
+                          [currentPage - 1]: e.target.value,
+                        }));
+                        form.setFieldValue(["answerList", currentPage - 1, "answerId"], e.target.value);
+                      }}
+                    >
                       <div
                         style={{
                           display: "grid",

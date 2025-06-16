@@ -390,6 +390,7 @@ const CreateAndEditExamPage: React.FC = () => {
               </Form.Item>
               <Button
                 type="primary"
+                style={{background: "#2f54eb"}}
                 disabled={
                   form.getFieldValue("numQuestions") > limitQuestion?.length
                 }
@@ -543,7 +544,7 @@ const CreateAndEditExamPage: React.FC = () => {
             >
               Huỷ
             </Button>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" style={{background: "#2f54eb"}}>
               Tạo
             </Button>
           </div>
