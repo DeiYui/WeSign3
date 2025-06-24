@@ -7,7 +7,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import axios from "axios";
 import Lesson from "@/model/Lesson"; 
-
 export interface SectionHero2Props {
   className?: string;
 }
@@ -19,9 +18,7 @@ const LessonsList: FC<SectionHero2Props> = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [filteredLessons, setFilteredLessons] = useState<any[]>([]);
   const userId = useSelector((state: RootState) => state.admin.userId);
-  const API_BASE_URL = 'http://202.191.56.11:8088';
-  // const API_BASE_URL = 'http://localhost:8088';
-
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_ROOT_NODE;
 
   const { mutate: incrementLessonView } = useMutation({
     mutationFn: async (lessonId: number) => {
@@ -33,15 +30,6 @@ const LessonsList: FC<SectionHero2Props> = () => {
     queryKey: ["getLstLessonByClass", classRoomId],
     queryFn: async () => {
       try {
-// =======
-//   if (!classRoomId) {
-//     return <div>Không xác định lớp học. Vui lòng quay lại và chọn lại lớp.</div>;
-//   }
-
-//   const { data: allLessonPublic, isFetching: lessonsIsFetching } = useQuery({
-//     queryKey: ["getLstLessonByClass", classRoomId],
-//     queryFn: async () => {
-// >>>>>>> 861763e8cbc6162e5f3d6e6ba3cc4785ef1abff8
       const res = await Lesson.getLstLessonByClass({ classRoomId });
       if (!res?.data || res?.data?.length === 0) {
         message.warning("Không có bài học cho lớp học này.");
