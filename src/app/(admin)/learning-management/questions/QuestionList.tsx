@@ -302,49 +302,18 @@ const QuestionList = () => {
       width: 300,
     },
     {
-      fixed: "right",
-      dataIndex: "questionId",
-      width: "40px",
+      title: "",
+      key: "delete",
+      width: 60,
       align: "center",
-      render: (value: string, record: any) => {
-        const items = [
-          {
-            key: "1",
-            label: (
-              <div
-                className="flex items-center gap-x-3 py-[3px]"
-                onClick={() =>
-                  router.push(`/learning-management/questions/${value}`)
-                }
-              >
-                <EditFilled />
-                Chỉnh sửa
-              </div>
-            ),
-          },
-          {
-            key: "2",
-            label: (
-              <div
-                className="text-red600 flex items-center gap-x-3 py-[3px] text-red"
-                onClick={() => setModalConfirm({ open: true, rowId: [value] })}
-              >
-                <DeleteOutlined />
-                Xóa
-              </div>
-            ),
-          },
-        ];
-        return (
-          <Dropdown menu={{ items }}>
-            <div className="flex w-5 items-center justify-center">
-              <div className="hidden-table-action" key={record.attributeId}>
-                <MoreOutlined />
-              </div>
-            </div>
-          </Dropdown>
-        );
-      },
+      render: (_: any, record: any) => (
+        <Button
+          type="text"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => setModalConfirm({ open: true, rowId: [record.questionId] })}
+        />
+      ),
     },
   ];
 
@@ -520,7 +489,11 @@ const QuestionList = () => {
         content={`Hành động này sẽ xóa ${Array.isArray(modalConfirm.rowId) ? modalConfirm.rowId.length : 1} câu hỏi vĩnh viễn`}
         confirmButtonText="Xác nhận"
         onClick={() => {
-          mutationDel.mutate({ questionIds: modalConfirm.rowId });
+          // Đảm bảo luôn truyền mảng số
+          let ids = modalConfirm.rowId;
+          if (!Array.isArray(ids)) ids = [ids];
+          ids = ids.map((id) => Number(id)); 
+          mutationDel.mutate({ questionIds: ids });
         }}
         onCloseModal={() => setModalConfirm({ open: false, rowId: "" })}
       />
