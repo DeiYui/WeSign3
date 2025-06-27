@@ -25,8 +25,8 @@ import { RootState } from "@/store";
 
 export default function QuestionsPage() {
   const router = useRouter();
-  const { id }: any = useParams();
   const searchParams = useSearchParams();
+  const id = searchParams.get('id');
   const isRedo = searchParams.get("redo") === "true";
   const isReview = searchParams.get("review") === "true";
 

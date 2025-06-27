@@ -13,9 +13,9 @@ export class Base {
     this.apiRoot = API_ROOT;
     this.apiRootNode = API_ROOT_NODE + "/api";
     this.apiPrefix = `${API_ROOT}/${apiPrefix}`;
-    // this.apiPrefixNode = `${API_ROOT_NODE}/api/${apiPrefix}`;
+    this.apiPrefixNode = `${API_ROOT_NODE}/api/${apiPrefix}`;
     // this.apiPrefix = apiPrefix || '';
-    this.apiPrefixNode = apiPrefix ? `/${apiPrefix}` : '';
+    // this.apiPrefixNode = apiPrefix ? `/${apiPrefix}` : '';
   }
 
   normalizeQuery = (query: { [x: string]: any }) => {
@@ -118,7 +118,7 @@ export class Base {
     http.delete(`${this.apiPrefixNode}${url}`, { signal });
 
   apiDeleteBodyNode = (url = "", body: any, signal?: any) => {
-    return http.delete(`${this.apiPrefixNode}${url}`, {
+    return http.delete(`${this.apiRootNode}${url}`, {
       data: body,
       signal,
     });

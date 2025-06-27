@@ -142,7 +142,8 @@ const CreateAndEditExamPage: React.FC = () => {
   const { data: limitQuestion, isFetching: isFetchingQExams } = useQuery({
     queryKey: ["getLstQuestionExam"],
     queryFn: async () => {
-      const res = await Questions.getLstQuestionExam(detailExam.examId);
+      const res = await Questions.getLstQuestionExam(id);
+      console.log('tes',res)
       form.setFieldValue("lstQuestions", res?.data);
       return res?.data;
     },

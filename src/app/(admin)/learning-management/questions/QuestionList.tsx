@@ -520,7 +520,14 @@ const QuestionList = () => {
         content={`Hành động này sẽ xóa ${Array.isArray(modalConfirm.rowId) ? modalConfirm.rowId.length : 1} câu hỏi vĩnh viễn`}
         confirmButtonText="Xác nhận"
         onClick={() => {
-          mutationDel.mutate({ questionIds: modalConfirm.rowId });
+          const questionIds = Array.isArray(modalConfirm.rowId) 
+            ? modalConfirm.rowId 
+            : [modalConfirm.rowId];
+          const numericIds = questionIds
+            .map(id => Number(id))
+            .filter(id => Number.isInteger(id) && id > 0);
+
+          mutationDel.mutate({ questionIds: numericIds });
         }}
         onCloseModal={() => setModalConfirm({ open: false, rowId: "" })}
       />

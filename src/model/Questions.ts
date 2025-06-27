@@ -50,8 +50,9 @@ class Questions extends Base {
   };
 
   // Xoá câu bỏi
-  deleteQuestion = async (body?: any) => {
-    const res = await this.apiPutWithoutPrefixNode(`/question/delete-list`, body);
+  deleteQuestion = async (body: { questionIds: number[] }) => {
+    const res = await this.apiDeleteBodyNode(`/question/delete-list`, body);
+    console.log('fe',res)
     return res.data;
   };
 
