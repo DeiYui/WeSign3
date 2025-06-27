@@ -106,6 +106,7 @@ const ScoreTest: React.FC = () => {
         <Button
           type="primary"
           onClick={() => router.push(`/grading-test/${record.examId}/${record.userId}`)}
+          style={{background: "#2f54eb"}}
         >
           Chấm điểm
         </Button>

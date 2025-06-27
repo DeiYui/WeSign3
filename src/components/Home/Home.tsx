@@ -24,8 +24,8 @@ let TIME_OUT: NodeJS.Timeout | null = null;
 
 export const HERO2_DEMO_DATA: Hero2DataType[] = [
   {
-    headingImg: "/images/study/heading-study-school.svg",
-    image: "/images/study/heading-study-school.svg",
+    headingImg: "/images/study/class.svg",
+    image: "/images/study/class.svg",
     subHeading: "Học tập",
     heading: "Học tập theo lớp học",
     btnText: "Lớp học",

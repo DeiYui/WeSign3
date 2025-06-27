@@ -230,6 +230,7 @@ const ExamList: React.FC = () => {
           ) : (
             <Button
               type="primary"
+              style={{background: "#2f54eb"}}
               onClick={() =>
                 record.examType === "practice"
                   ? router.push(`/exam/${record.examId}/questionspractice`)

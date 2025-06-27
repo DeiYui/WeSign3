@@ -210,21 +210,7 @@ const LessonList = (props: any) => {
       key: "lessonName",
       render: (value: string) => <div className="text-lg">{value}</div>,
     },
-    {
-      title: "Minh họa",
-      dataIndex: "imageLocation",
-      key: "image",
-      render: (text: string) => (
-        <>
-          {text ? (
-            <Image src={text} alt="" />
-          ) : (
-            <div className="">Không có ảnh minh hoạ</div>
-          )}
-        </>
-      ),
-      width: 200,
-    },
+
     {
       title: "Thuộc lớp",
       dataIndex: "classRoomContent",
@@ -451,31 +437,7 @@ const LessonList = (props: any) => {
             >
               <Input placeholder="Nhập tên bài học muốn thêm" />
             </Form.Item>
-            <Form.Item name="file" label="Ảnh">
-              <Upload {...uploadProps} showUploadList={false}>
-                <Button icon={<UploadOutlined />}>Tải file lên</Button>
-              </Upload>
-            </Form.Item>
-            <div className="flex w-full items-center justify-center">
-              {modalCreate.file ? (
-                <div className="flex flex-col gap-2">
-                  <Image
-                    className=""
-                    src={modalCreate.file}
-                    alt="Ảnh bài học"
-                    style={{ width: 300 }}
-                  />
-                  <Button
-                    onClick={() => {
-                      setModalCreate({ ...modalCreate, file: "" });
-                      form.setFieldValue("file", "");
-                    }}
-                  >
-                    Xoá ảnh
-                  </Button>
-                </div>
-              ) : null}
-            </div>
+            
           </Form>
         </div>
       </BasicDrawer>

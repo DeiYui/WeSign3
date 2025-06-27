@@ -90,21 +90,6 @@ const LessonsList: FC<SectionHero2Props> = () => {
         </div>
       ),
     },
-    {
-      title: "Hình ảnh",
-      dataIndex: "imageLocation",
-      key: "imageLocation",
-      render: (image: string) => (
-        <Image
-          src={image || "/default-preview.png"}
-          alt="Preview"
-          width={50}
-          height={50}
-          style={{ objectFit: "cover", borderRadius: "8px" }}
-        />
-      ),
-      width: 80,
-    },
   ];
 
   return (

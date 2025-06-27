@@ -266,7 +266,7 @@ const QuestionsPractice: React.FC = () => {
                 videoConstraints={{ width: 1280, height: 720, facingMode: "user" }}
               />
               <div className="flex justify-between w-full mt-8 gap-4">
-                <Button type="primary" onClick={handleStartRecording} disabled={isRecording} style={{ minWidth: 140, fontWeight: 600, fontSize: 16 }}>
+                <Button type="primary" onClick={handleStartRecording} disabled={isRecording} style={{ minWidth: 140, fontWeight: 600, fontSize: 16, background: "#2f54eb"}}>
                   Bắt đầu quay
                 </Button>
                 <Button type="default" onClick={handleStopRecording} disabled={!isRecording} style={{ minWidth: 140, fontWeight: 600, fontSize: 16 }}>
