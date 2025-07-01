@@ -490,9 +490,12 @@ const QuestionList = () => {
         confirmButtonText="Xác nhận"
         onClick={() => {
           // Đảm bảo luôn truyền mảng số
-          let ids = modalConfirm.rowId;
-          if (!Array.isArray(ids)) ids = [ids];
-          ids = ids.map((id) => Number(id)); 
+          let ids: number[];
+          if (Array.isArray(modalConfirm.rowId)) {
+            ids = modalConfirm.rowId.map((id) => Number(id));
+          } else {
+            ids = [Number(modalConfirm.rowId)];
+          }
           mutationDel.mutate({ questionIds: ids });
         }}
         onCloseModal={() => setModalConfirm({ open: false, rowId: "" })}
