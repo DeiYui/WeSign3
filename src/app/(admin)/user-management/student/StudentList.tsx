@@ -89,6 +89,7 @@ const StudentList: React.FC = () => {
     queryKey: ["getListStudents", searchText, selectedClass, selectedSchool, currentPage],
     queryFn: async () => {
       const res = await User.studentList({
+        userId:user.userId,
         name: searchText,
         classRoomId: selectedClass,
         schoolId: selectedSchool,
@@ -201,15 +202,15 @@ const StudentList: React.FC = () => {
       ),
       width: 300,
     },
-    {
-      title: "Ngày sinh", // Date of birth
-      dataIndex: "studentProfile",
-      key: "birthDay",
-      render: (value: any) => (
-        <div className="text-lg">{value?.birthDay || "Không có"}</div>
-      ),
-      width: 200,
-    },
+    // {
+    //   title: "Ngày sinh", // Date of birth
+    //   dataIndex: "studentProfile",
+    //   key: "birthDay",
+    //   render: (value: any) => (
+    //     <div className="text-lg">{value?.birthDay || "Không có"}</div>
+    //   ),
+    //   width: 200,
+    // },
     {
       title: "Lớp", // Class
       dataIndex: "classroom",
@@ -231,15 +232,15 @@ const StudentList: React.FC = () => {
       ),
       width: 200,
     },
-    {
-      title: "Địa chỉ", // Address
-      dataIndex: "studentProfile",
-      key: "address",
-      render: (value: any) => (
-        <div className="text-lg">{value?.address || "Không có"}</div>
-      ),
-      width: 300,
-    },
+    // {
+    //   title: "Địa chỉ", // Address
+    //   dataIndex: "studentProfile",
+    //   key: "address",
+    //   render: (value: any) => (
+    //     <div className="text-lg">{value?.address || "Không có"}</div>
+    //   ),
+    //   width: 300,
+    // },
     {
       title: "Email", // Email
       dataIndex: "studentProfile",
@@ -335,28 +336,34 @@ const StudentList: React.FC = () => {
             }
           }}
         />
-
-        <Select
-          options={allClasses}
-          placeholder="Lọc theo lớp"
-          onChange={(value) => {
-            setSelectedClass(value);
-            setCurrentPage(1);
-            // refetch();
-          }}
-          allowClear
-          style={{ width: 200 }}
-        />
-        <Select
-          options={allSchools}
-          placeholder="Lọc theo trường"
-          onChange={(value) => {
-            setSelectedSchool(value);
-            setCurrentPage(1);
-          }}
-          allowClear
-          style={{ width: 200 }}
-        />
+        {/* Show filters only for ADMIN users */}
+          {user?.role === "ADMIN" && (
+            <>
+              <Select
+                options={allClasses}
+                placeholder="Lọc theo lớp"
+                onChange={(value) => {
+                  setSelectedClass(value);
+                  setCurrentPage(1);
+                }}
+                allowClear
+                style={{ width: 200 }}
+                loading={isFetchingClasses}
+              />
+              <Select
+                options={allSchools}
+                placeholder="Lọc theo trường"
+                onChange={(value) => {
+                  setSelectedSchool(value);
+                  setCurrentPage(1);
+                }}
+                allowClear
+                style={{ width: 200 }}
+                loading={isFetchingSchools}
+              />
+            </>
+          )}
+          
         <Button
           hidden={!(user?.role === "ADMIN" || user?.role === "TEACHER")}
           type="primary"
@@ -476,7 +483,7 @@ const StudentList: React.FC = () => {
                   optionFilterProp="label"
                 />
             </Form.Item>
-            <Form.Item
+            {/* <Form.Item
               name="birthDay"
               label="Ngày sinh"
               className="mb-2"
@@ -489,7 +496,7 @@ const StudentList: React.FC = () => {
               className="mb-2"
             >
               <Input placeholder="Nhập địa chỉ" />
-            </Form.Item>
+            </Form.Item> */}
           </Form>
         </div>
       </BasicDrawer>

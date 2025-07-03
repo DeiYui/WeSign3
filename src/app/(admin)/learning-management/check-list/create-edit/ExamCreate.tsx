@@ -93,18 +93,16 @@ const CreateAndEditExamPage: React.FC = () => {
     queryFn: async () => {
       // const res = await Exam.detailExamsForUser(Number(id));
       const res = await Exam.getDetailExam(Number(id));
+        if (!limitQuestion || limitQuestion.length === 0) {
       form.setFieldsValue({
-        ...res?.data,
-        numQuestions: res.data?.numberOfQuestions,
+        examId: res?.data?.examId,
+        // Add other fields that are not available from questions API
       });
-      setOpenChooseQuestions({
-        ...openChooseQuestions,
-        classRoomId: res?.data.classRoomId,
-      });
-
-      return res?.data;
-    },
-    enabled: !!id,
+    }
+    
+    return res?.data;
+  },
+  enabled: !!id, // Run after questions are loaded
   });
 
   // Dánh sách lớp
@@ -138,16 +136,70 @@ const CreateAndEditExamPage: React.FC = () => {
   //   enabled: openChooseQuestions.open,
   // });
 
-  // Lấy câu hỏi theo bài kiểm tra
-  const { data: limitQuestion, isFetching: isFetchingQExams } = useQuery({
-    queryKey: ["getLstQuestionExam"],
-    queryFn: async () => {
-      const res = await Questions.getLstQuestionExam(detailExam.examId);
-      form.setFieldValue("lstQuestions", res?.data);
-      return res?.data;
-    },
-    enabled: detailExam && !!detailExam?.examId,
-  });
+const { data: initialExamData, isFetching: isFetchingQExams } = useQuery({
+  queryKey: ["getLstQuestionExam", id],
+  queryFn: async () => {
+    const res = await Questions.getLstQuestionExam(id);
+    
+    // Set the questions list first
+    form.setFieldValue("lstQuestions", res?.content);
+    
+    // Check if this is a practice exam based on the first question's examType
+    if (res?.content && res.content.length > 0) {
+      const firstQuestion = res.content[0];
+
+      // Set common form values from the first question
+      form.setFieldsValue({
+        name: firstQuestion.examName,
+        classRoomId: parseInt(firstQuestion.classRoomId),
+        examType: firstQuestion.examType,
+      });
+
+      if (firstQuestion.examType === "practice") {
+        // Set exam type to practice
+        setExamType("practice");
+        
+        // Transform the practice questions data
+        const practiceQuestions = res.content.map((item: any) => ({
+          content: item.content,
+          topicId: parseInt(item.topicId),
+          vocabularyId: parseInt(item.vocabularyId),
+        }));
+        
+        form.setFieldValue("practiceQuestions", practiceQuestions);
+        setPracticeQuestions(practiceQuestions);
+        
+        // Load vocabulary options for each question
+        practiceQuestions.forEach((q: any, index: number) => {
+          if (q.topicId) {
+            fetchVocabulary(q.topicId, index);
+          }
+        });
+        
+      } else {
+        // This is a quiz exam
+        setExamType("quiz");
+        form.setFieldsValue({
+          numQuestions: res?.content.length,
+        });
+        
+        // Set classroom for the question selection modal
+        setOpenChooseQuestions(prev => ({
+          ...prev,
+          classRoomId: parseInt(firstQuestion.classRoomId),
+          size: res.content.length
+        }));
+      }
+    }
+    
+    return res?.content;
+  },
+  enabled: !!id,
+});
+
+const limitQuestion = id && form.getFieldValue('classRoomId') === initialExamData?.[0]?.classRoomId 
+  ? initialExamData 
+  : null;
 
   // Thêm bài kiểm tra
   const addExam = useMutation({
@@ -272,6 +324,8 @@ const CreateAndEditExamPage: React.FC = () => {
 
           if (examType === "quiz") {
             reqAdd = {
+              examId: Number(id) || null,
+              examType: examType,
               name: value.name,
               questionIds: value.questionIds,
               classRoomId: value.classRoomId,
@@ -294,6 +348,8 @@ const CreateAndEditExamPage: React.FC = () => {
             });
 
             reqAdd = {
+              examId: Number(id) || null,
+              examType: examType,
               name: value.name,
               practiceWords: practiceQs,
               classRoomId: value.classRoomId,
@@ -327,6 +383,7 @@ const CreateAndEditExamPage: React.FC = () => {
                   classRoomId: e,
                 });
                 form.setFieldValue("lstQuestions", []);
+                form.setFieldValue("questionIds", []);
               }}
             />
           </Form.Item>
@@ -361,6 +418,10 @@ const CreateAndEditExamPage: React.FC = () => {
                 form.setFieldValue("examType", value);
                 form.setFieldValue("lstQuestions", []);
                 form.setFieldValue("practiceWords", []);
+              if (value === "quiz") {
+                  form.setFieldValue("practiceQuestions", []);
+                  setPracticeQuestions([]);
+                }
               }}
             />
           </Form.Item>
@@ -501,7 +562,7 @@ const CreateAndEditExamPage: React.FC = () => {
           </Form.Item>
 
           <Form.Item name="lstQuestions" hidden noStyle />
-          {lstQuestions?.length ? (
+          {examType === "quiz" && lstQuestions?.length ? (
             <div className="mt-2 flex flex-col gap-y-2 bg-white p-2">
               <div className="text-xl font-bold">Danh sách câu hỏi </div>
 

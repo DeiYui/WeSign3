@@ -93,6 +93,11 @@ class User extends Base {
     return res.data;
   };
 
+  allStudentList = async (param?: any) => {
+    const res = await this.apiGetWithoutPrefixNode(`/user/all-student-list`, param);
+    return res.data;
+  };
+
   teacherList = async (param?: any) => {
     const res = await this.apiGetWithoutPrefixNode(`/user/teacher-list`, param);
     return res.data;

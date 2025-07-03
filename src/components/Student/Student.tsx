@@ -36,7 +36,7 @@ const Students: FC = () => {
   const { isFetching, refetch } = useQuery({
     queryKey: ["getListStudents", searchText, currentPage],
     queryFn: async () => {
-      const res = await User.studentList({
+      const res = await User.allStudentList({
         name: searchText,
         page: currentPage - 1,  // Thêm tham số page
         take: pageSize,  
@@ -52,12 +52,12 @@ const Students: FC = () => {
         classroom: item.classRoomName,
         studentProfile: {
           // Giả sử các thông tin về học sinh, nếu có
-          birthDay: item.birthDay && dayjs(item.birthDay).isValid()
-                    ? dayjs(item.birthDay).add(0, 'day').format('YYYY-MM-DD') 
-                    : "Không có",
+          // birthDay: item.birthDay && dayjs(item.birthDay).isValid()
+          //           ? dayjs(item.birthDay).add(0, 'day').format('YYYY-MM-DD') 
+          //           : "Không có",
           schoolName: item.schoolName || "Không có",
-          address: item.city || "Không có",
-          email: item.email || "Không có",
+          // address: item.city || "Không có",
+          // email: item.email || "Không có",
         },
         classStudents: [item], // Mỗi bản ghi là một lớp học sinh tham gia
       }));
@@ -95,15 +95,15 @@ const Students: FC = () => {
       render: (value: string) => <div className="text-lg">{value}</div>,
       width: 300,
     },
-    {
-      title: "Ngày sinh", // Date of birth
-      dataIndex: "studentProfile",
-      key: "birthDay",
-      render: (value: any) => (
-        <div className="text-lg">{value?.birthDay || "Không có"}</div>
-      ),
-      width: 200,
-    },
+    // {
+    //   title: "Ngày sinh", // Date of birth
+    //   dataIndex: "studentProfile",
+    //   key: "birthDay",
+    //   render: (value: any) => (
+    //     <div className="text-lg">{value?.birthDay || "Không có"}</div>
+    //   ),
+    //   width: 200,
+    // },
     {
       title: "Lớp", // Class
       dataIndex: "classroom",
@@ -125,24 +125,24 @@ const Students: FC = () => {
       ),
       width: 200,
     },
-    {
-      title: "Địa chỉ", // Address
-      dataIndex: "studentProfile",
-      key: "address",
-      render: (value: any) => (
-        <div className="text-lg">{value?.address || "Không có"}</div>
-      ),
-      width: 200,
-    },
-    {
-      title: "Email", // Email
-      dataIndex: "studentProfile",
-      key: "email",
-      render: (value: any) => (
-        <div className="text-lg">{value?.email || "Không có"}</div>
-      ),
-      width: 200,
-    },
+    // {
+    //   title: "Địa chỉ", // Address
+    //   dataIndex: "studentProfile",
+    //   key: "address",
+    //   render: (value: any) => (
+    //     <div className="text-lg">{value?.address || "Không có"}</div>
+    //   ),
+    //   width: 200,
+    // },
+    // {
+    //   title: "Email", // Email
+    //   dataIndex: "studentProfile",
+    //   key: "email",
+    //   render: (value: any) => (
+    //     <div className="text-lg">{value?.email || "Không có"}</div>
+    //   ),
+    //   width: 200,
+    // },
   ];
 
   return (

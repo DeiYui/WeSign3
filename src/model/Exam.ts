@@ -28,7 +28,7 @@ class Exam extends Base {
 
   // Chỉnh sửa bài kiểm tra
   editExams = async (body?: any) => {
-    const res = await this.apiPut(`/exams`, body);
+    const res = await this.apiPutWithoutPrefixNode(`/exam/edit-exam`, body);
     return res.data;
   };
 
@@ -60,7 +60,7 @@ class Exam extends Base {
     return res.data;
   };
 
-    getDetailPracticeExamToScore = async (examId: number, userId: number) => {
+  getDetailPracticeExamToScore = async (examId: number, userId: number) => {
     const res = await this.apiGetWithoutPrefixNode(`/exam/practice-exams-to-score/${examId}/${userId}`);
     return res.data;
   };
@@ -71,7 +71,7 @@ class Exam extends Base {
     return res.config.data;
   };
 
-    markPracticeExam = async (body: any) => {
+  markPracticeExam = async (body: any) => {
     const res = await this.apiPostWithoutPrefixNode(`/exam/practice-exam-scoring`, body);
     return res.config.data;
   };

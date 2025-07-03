@@ -185,15 +185,15 @@ const TeacherList: React.FC = () => {
       render: (value: string) => <div className="text-lg">{value}</div>,
       width: 300,
     },
-    {
-      title: "Ngày sinh", // Date of birth
-      dataIndex: "teacherProfile",
-      key: "birthDay",
-      render: (value: any) => (
-        <div className="text-lg">{value?.birthDay || "Không có"}</div>
-      ),
-      width: 200,
-    },
+    // {
+    //   title: "Ngày sinh", // Date of birth
+    //   dataIndex: "teacherProfile",
+    //   key: "birthDay",
+    //   render: (value: any) => (
+    //     <div className="text-lg">{value?.birthDay || "Không có"}</div>
+    //   ),
+    //   width: 200,
+    // },
     {
       title: "Lớp", // Class
       dataIndex: "classroom",
@@ -215,15 +215,15 @@ const TeacherList: React.FC = () => {
       ),
       width: 200,
     },
-    {
-      title: "Địa chỉ", // Address
-      dataIndex: "teacherProfile",
-      key: "address",
-      render: (value: any) => (
-        <div className="text-lg">{value?.address || "Không có"}</div>
-      ),
-      width: 300,
-    },
+    // {
+    //   title: "Địa chỉ", // Address
+    //   dataIndex: "teacherProfile",
+    //   key: "address",
+    //   render: (value: any) => (
+    //     <div className="text-lg">{value?.address || "Không có"}</div>
+    //   ),
+    //   width: 300,
+    // },
     {
       title: "Email", // Email
       dataIndex: "teacherProfile",
@@ -243,15 +243,15 @@ const TeacherList: React.FC = () => {
                 icon={<EditOutlined />}
                 onClick={() => {
                   setCurrentTeacherId(record.teacherId);
-                  const birthDay = record.teacherProfile.birthDay && 
-                                    record.teacherProfile.birthDay !== "Không có" ? 
-                                    dayjs(record.teacherProfile.birthDay) : null;
+                  // const birthDay = record.teacherProfile.birthDay && 
+                  //                   record.teacherProfile.birthDay !== "Không có" ? 
+                  //                   dayjs(record.teacherProfile.birthDay) : null;
                   form.setFieldsValue({
                     name: record.name,
                     classroom: record.classRoomId || allClasses?.find((c: { label: any; }) => c.label === record.classroom)?.value,
                     school: allSchools?.find((s: { label: any; }) => s.label === record.teacherProfile.schoolName)?.value,
-                    birthDay: birthDay,
-                    address: record.teacherProfile.address,
+                    // birthDay: birthDay,
+                    // address: record.teacherProfile.address || "Không có",
                     teacherId: record.teacherId,
                   });
                   setModalCreate({
@@ -440,9 +440,9 @@ const TeacherList: React.FC = () => {
               required
               rules={[validateRequireInput("Trường không được bỏ trống")]}
             >
-              <Select options={allSchools} placeholder="Lựa chọn lớp" />
+              <Select options={allSchools} placeholder="Lựa chọn trường" />
             </Form.Item>
-            <Form.Item
+            {/* <Form.Item
               name="birthDay"
               label="Ngày sinh"
               className="mb-2"
@@ -455,7 +455,7 @@ const TeacherList: React.FC = () => {
               className="mb-2"
             >
               <Input placeholder="Nhập địa chỉ" />
-            </Form.Item>
+            </Form.Item> */}
           </Form>
         </div>
       </BasicDrawer>
