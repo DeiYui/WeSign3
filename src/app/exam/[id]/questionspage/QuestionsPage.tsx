@@ -25,8 +25,8 @@ import { RootState } from "@/store";
 
 export default function QuestionsPage() {
   const router = useRouter();
+  const { id }: any = useParams();
   const searchParams = useSearchParams();
-  const id = searchParams.get('id');
   const isRedo = searchParams.get("redo") === "true";
   const isReview = searchParams.get("review") === "true";
 
@@ -43,7 +43,7 @@ export default function QuestionsPage() {
   }>({ visible: false, type: null, url: '', title: '' });
   
   const userId = useSelector((state: RootState) => state.admin.userId);
-
+console.log('id ne', id)
   const { data: detailExam, refetch: refetchExam } = useQuery({
     queryKey: ["getExamDetail", id],
     queryFn: async () => {
