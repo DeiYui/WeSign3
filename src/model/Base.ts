@@ -14,8 +14,6 @@ export class Base {
     this.apiRootNode = API_ROOT_NODE + "/api";
     this.apiPrefix = `${API_ROOT}/${apiPrefix}`;
     this.apiPrefixNode = `${API_ROOT_NODE}/api/${apiPrefix}`;
-    // this.apiPrefix = apiPrefix || '';
-    // this.apiPrefixNode = apiPrefix ? `/${apiPrefix}` : '';
   }
 
   normalizeQuery = (query: { [x: string]: any }) => {

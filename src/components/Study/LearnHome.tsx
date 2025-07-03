@@ -40,7 +40,7 @@ function LearnHome({ isAlphabet }: any) {
 
       <div className="flex w-full flex-col items-center justify-center">
         <h1 className="mb-4 pt-12 text-center text-2xl font-bold">
-          Bảng chữ cái ngôn ngữ ký hiệu tiếng Việt
+          Bảng chữ số ngôn ngữ ký hiệu tiếng Việt
         </h1>
         <div className="group relative m-auto flex w-full justify-center gap-4 px-4">
           {slides
