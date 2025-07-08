@@ -665,6 +665,7 @@ const PracticeData: React.FC = () => {
                         <Button
                           size="large"
                           type="primary"
+                          style={{background: "#2f54eb"}}
                           disabled={!mediaBlobUrl}
                           loading={mutationDetectAI.isPending}
                           ref={checkButtonRef}
@@ -701,6 +702,7 @@ const PracticeData: React.FC = () => {
                     type="primary"
                     loading={uploadLoading} // Add loading state
                     onClick={handleUpload}
+                    style={{background: "#2f54eb"}}
                   >
                     Kiểm tra
                   </Button>,

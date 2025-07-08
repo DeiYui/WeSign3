@@ -449,6 +449,7 @@ const VocabularyList = ({ isPrivate }: any) => {
         </div>
         <Button
           type="primary"
+          style={{background: "#2f54eb"}}
           icon={<PlusOutlined />}
           onClick={() => {
             router.push(
