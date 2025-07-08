@@ -284,6 +284,7 @@ const handleSearch = useCallback(
             setModalCreate({ ...modalCreate, open: true, typeModal: "create" });
             form.resetFields();
           }}
+          style={{background: "#2f54eb"}}
         >
           Thêm mới
         </Button>

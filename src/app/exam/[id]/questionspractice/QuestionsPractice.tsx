@@ -340,6 +340,9 @@ const QuestionsPractice: React.FC = () => {
         title="Xác nhận nộp bài"
         width={600}
         destroyOnClose
+        okButtonProps={{
+          style: { background: "#2f54eb" }
+        }}
       >
         <div>
           <p>Bạn có chắc chắn muốn nộp bài không?</p>

@@ -634,6 +634,7 @@ const PartCreateUpdate = ({ setOpenCreateModal }: any) => {
                     type="primary"
                     htmlType="submit"
                     disabled={isLoadingFile}
+                    style={{background: "#2f54eb"}}
                   >
                     Tạo
                   </Button>

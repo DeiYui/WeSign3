@@ -409,6 +409,7 @@ const limitQuestion = id && form.getFieldValue('classRoomId') === initialExamDat
           >
             <Select
               placeholder="Chọn loại bài kiểm tra"
+              disabled={!!id}
               options={[
                 { value: "quiz", label: "Bài kiểm tra trắc nghiệm" },
                 { value: "practice", label: "Bài kiểm tra thực hành" },

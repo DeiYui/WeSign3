@@ -460,7 +460,7 @@ const VocabularyCreateUpdate: React.FC = () => {
                 </div>
                 <div className="flex w-full items-center justify-center gap-4">
                   <Button onClick={() => router.back()}>Huỷ</Button>
-                  <Button type="primary" htmlType="submit">
+                  <Button type="primary" htmlType="submit" style={{background: "#2f54eb"}}>
                     Tạo
                   </Button>
                 </div>
@@ -555,6 +555,7 @@ const VocabularyCreateUpdate: React.FC = () => {
                     type="primary"
                     htmlType="submit"
                     disabled={isLoadingFile}
+                    style={{background: "#2f54eb"}}
                   >
                     Tạo
                   </Button>
