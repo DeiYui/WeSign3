@@ -325,6 +325,11 @@ class Learning extends Base {
     return res.data;
   }; 
 
+  getFullTestResults = async (query?: any) => {
+    const res = await this.apiGetWithoutPrefixNode(`/user/test/full-result`, query);
+    return res.data;
+  }; 
+
   viewLesson = async (lessonId: number, userId: number) => {
   const res = await this.apiPostWithoutPrefixNode(
     `/user/lesson/view/${lessonId}`, {
