@@ -428,6 +428,7 @@ const StudentLearningProcess: React.FC<StudentLearningProcessProps> = ({ student
                 {record.videoUrls && record.videoUrls.length > 0 && (
                   <Button
                     type="primary"
+                    style={{background: "#2f54eb"}}
                     size="small"
                     icon={<PlayCircleOutlined />}
                     onClick={() => handleShowVideos(record.videoUrls)}
