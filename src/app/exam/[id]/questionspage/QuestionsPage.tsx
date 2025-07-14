@@ -43,7 +43,7 @@ export default function QuestionsPage() {
   }>({ visible: false, type: null, url: '', title: '' });
   
   const userId = useSelector((state: RootState) => state.admin.userId);
-
+console.log('id ne', id)
   const { data: detailExam, refetch: refetchExam } = useQuery({
     queryKey: ["getExamDetail", id],
     queryFn: async () => {
